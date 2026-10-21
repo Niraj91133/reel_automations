@@ -1,48 +1,82 @@
 import os
 import sys
 import time
+import requests
+from datetime import datetime
 from db import init_db, is_reel_processed
 from dm_scraper import get_shared_reels_from_chat
 from scraper import download_reel_video
 from main_pipeline import process_single_reel
+from telegram_sender import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 sys.stdout.reconfigure(encoding='utf-8')
 
+def send_daily_batch_start_message(day_name, date_str, total_found):
+    """Sends a clear header message in Telegram before sending the daily reels."""
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    text = (
+        f"☀️ <b>GOOD MORNING! TODAY'S REEL AUTOMATION BATCH</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"📅 <b>Day:</b> {day_name}\n"
+        f"🗓️ <b>Date:</b> {date_str}\n"
+        f"🎯 <b>Found:</b> {total_found} new shared reels ready to process!\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"<i>Processing and sending 10 ready-to-post reels below 👇</i>"
+    )
+    try:
+        requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML"}, timeout=15)
+    except:
+        pass
+
 def run_chat_automation(max_reels=10):
+    now = datetime.now()
+    day_name = now.strftime("%A")
+    date_str = now.strftime("%d-%b-%Y")
+
     print("========================================================")
-    print("   STARTING AUTOMATION: @im_raaaj_ CHAT SHARED REELS    ")
+    print(f"   STARTING AUTOMATION: {day_name.upper()} ({date_str})    ")
     print("========================================================")
     init_db()
 
-    # Fetch all recent reels from im_raaaj_ chat
-    reels = get_shared_reels_from_chat(max_count=20)
+    # Fetch candidate reels from im_raaaj_ chat
+    reels = get_shared_reels_from_chat(max_count=25)
     if not reels:
         print("No shared reels found in chat.")
         return
 
-    processed_count = 0
-    for item in reels:
-        if processed_count >= max_reels:
-            print(f"🎯 Target limit of {max_reels} reels delivered!")
-            break
+    # Filter only unprocessed reels
+    unprocessed_reels = [r for r in reels if not is_reel_processed(r["shortcode"])]
+    print(f"Total fresh unprocessed reels found: {len(unprocessed_reels)}")
 
+    if not unprocessed_reels:
+        print("No new reels found today. Everything is already up-to-date!")
+        return
+
+    target_reels = unprocessed_reels[:max_reels]
+    total_today = len(target_reels)
+
+    # 1. Send Day Header announcement in Telegram
+    send_daily_batch_start_message(day_name, date_str, total_today)
+
+    processed_count = 0
+    for idx, item in enumerate(target_reels, start=1):
         shortcode = item["shortcode"]
         reel_url = item["url"]
         creator = item["creator"]
 
-        # Duplicate check: skip if already sent before
-        if is_reel_processed(shortcode):
-            print(f"⏩ [Skip] Reel {shortcode} already processed in past. Skipping.")
-            continue
-
         temp_video = f"temp_{shortcode}.mp4"
-        print(f"\n📥 Downloading New Shared Reel ({processed_count + 1}/{max_reels}): {reel_url}...")
+        print(f"\n📥 Downloading Reel ({idx}/{total_today}): {reel_url}...")
         downloaded = download_reel_video(reel_url, temp_video)
 
         if downloaded and os.path.exists(downloaded):
             try:
-                # Process with Gemini AI, Upgraded Big Font Red Template + 5s animated circle
-                success = process_single_reel(downloaded, shortcode, username=creator)
+                success = process_single_reel(
+                    video_file_path=downloaded,
+                    reel_id=shortcode,
+                    username=creator,
+                    reel_index=idx,
+                    total_reels=total_today
+                )
                 if success:
                     processed_count += 1
             except Exception as e:
@@ -53,7 +87,7 @@ def run_chat_automation(max_reels=10):
         else:
             print(f"Could not download reel {shortcode}")
 
-    print(f"\n🎉 Automation finished! Delivered {processed_count} new reels from @im_raaaj_ chat to Telegram!")
+    print(f"\n🎉 Finished {day_name} batch! Delivered {processed_count} reels to Telegram!")
 
 if __name__ == '__main__':
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 10

@@ -3,6 +3,7 @@ import sys
 import time
 import requests
 import subprocess
+from datetime import datetime
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -12,16 +13,12 @@ from video_processor import process_video_with_template
 from telegram_sender import send_reel_to_telegram
 
 def extract_thumbnail_for_circle(video_path, output_img_path="circle_hook.jpg"):
-    """
-    Extracts high-resolution, sharp keyframe from the reel for the circular hook.
-    Selects 2.5 seconds mark where the speaker/topic visual is stable and clear.
-    """
     cmd = [
         "ffmpeg", "-y",
         "-ss", "00:00:02.500",
         "-i", video_path,
         "-vframes", "1",
-        "-q:v", "1",  # Maximum JPEG quality
+        "-q:v", "1",
         output_img_path
     ]
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -29,9 +26,9 @@ def extract_thumbnail_for_circle(video_path, output_img_path="circle_hook.jpg"):
         return output_img_path
     return None
 
-def process_single_reel(video_file_path, reel_id, username="creator"):
+def process_single_reel(video_file_path, reel_id, username="creator", reel_index=1, total_reels=10):
     print(f"\n==========================================")
-    print(f"Processing Reel: {reel_id} (Original Creator: @{username})")
+    print(f"Processing Reel {reel_index}/{total_reels}: {reel_id} (Creator: @{username})")
     print(f"==========================================")
 
     init_db()
@@ -39,8 +36,8 @@ def process_single_reel(video_file_path, reel_id, username="creator"):
         print(f"Reel {reel_id} already processed before! Skipping to avoid duplicates.")
         return False
 
-    # 1. AI Analysis with Gemini
-    print("Calling Gemini AI for content analysis, headline & caption...")
+    # 1. AI Analysis with Gemini Real Speech
+    print("Calling Gemini AI for real spoken audio analysis...")
     ai_data = analyze_reel_content(video_file_path, creator_username=username)
     hook_pill = ai_data.get("hook_pill", "Must Watch")
     main_title = ai_data.get("main_title", "Important Lesson For Creators")
@@ -51,12 +48,12 @@ def process_single_reel(video_file_path, reel_id, username="creator"):
     print(f"Main Title: {main_title}")
     print(f"Sub Quote: {sub_quote}")
 
-    # 2. Extract Crystal Clear Circle Image Hook
+    # 2. Extract High-Res Keyframe Hook
     circle_img = extract_thumbnail_for_circle(video_file_path, "temp_circle.jpg")
 
-    # 3. Video Rendering with Solid Black Bottom + Big Text + 5s Animated Circle
+    # 3. Video Rendering with Safe Zone + Smooth Top Fade + Authentic Arrow
     output_processed_path = f"final_{reel_id}.mp4"
-    print("Rendering custom 9:16 template video with FFmpeg...")
+    print("Rendering Ultra-HD video with FFmpeg...")
     process_video_with_template(
         input_video_path=video_file_path,
         output_video_path=output_processed_path,
@@ -66,9 +63,15 @@ def process_single_reel(video_file_path, reel_id, username="creator"):
         circle_img_path=circle_img
     )
 
-    # 4. Delivery to Telegram
+    # 4. Formatted Caption with Day, Date & Reel Number
+    now = datetime.now()
+    day_name = now.strftime("%A")        # e.g. Wednesday
+    date_str = now.strftime("%d-%b-%Y")  # e.g. 21-Oct-2026
+
     full_caption = (
-        f"<b>{main_title.replace(chr(10), ' ')}</b>\n\n"
+        f"📅 <b>Day: {day_name} | {date_str}</b>\n"
+        f"🎬 <b>Reel {reel_index} of {total_reels} Today</b>\n\n"
+        f"🔥 <b>{main_title.replace(chr(10), ' ')}</b>\n\n"
         f"{caption}\n\n"
         f"Original Creator: @{username}\n"
         f"Status: Ready to Post 🚀"
