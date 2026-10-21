@@ -207,6 +207,18 @@ def run_politics_daily_automation(max_reels=10):
 
     if not unprocessed:
         print("No new politics reels today. Already up to date!")
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{POLITICS_BOT_TOKEN}/sendMessage",
+                json={
+                    "chat_id": POLITICS_CHAT_ID,
+                    "text": "ℹ️ <b>Politics Update:</b> @baatleaderki chat me sabhi reels already process ho chuki hain! Chat me nayi reels share karein fir run karein.",
+                    "parse_mode": "HTML"
+                },
+                timeout=10
+            )
+        except:
+            pass
         return
 
     target_reels = unprocessed[:max_reels]

@@ -50,6 +50,19 @@ def run_chat_automation(max_reels=10):
 
     if not unprocessed_reels:
         print("No new reels found today. Everything is already up-to-date!")
+        try:
+            from telegram_sender import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+            requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                json={
+                    "chat_id": TELEGRAM_CHAT_ID,
+                    "text": "ℹ️ <b>Startup Update:</b> Chat me sabhi reels already process ho chuki hain! Instagram chat (@im_raaaj_) me nayi reels share karein fir run karein.",
+                    "parse_mode": "HTML"
+                },
+                timeout=10
+            )
+        except:
+            pass
         return
 
     target_reels = unprocessed_reels[:max_reels]
