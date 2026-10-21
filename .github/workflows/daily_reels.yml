@@ -31,23 +31,25 @@ jobs:
           pip install yt-dlp pillow google-genai requests playwright
           playwright install --with-deps chromium
 
-      - name: Restore Processed Reels Database
-        run: |
-          . venv/bin/activate
-          python -c "from db import init_db; init_db()"
-
-      - name: Run Reel Automation Pipeline
+      - name: Run Pipeline 1: Startup Channel (im_raaaj_ -> Bot 1)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           . venv/bin/activate
-          python run_dm_automation.py 10
+          python run_dm_automation.py 10 || true
 
-      - name: Commit & Push Updated Database
+      - name: Run Pipeline 2: Politics Channel (baatleaderki -> News Bot)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          . venv/bin/activate
+          python run_politics_automation.py 10 || true
+
+      - name: Commit & Push Updated Databases (To prevent duplicates)
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git add reels_history.db
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto: Update reels history DB [skip ci]" && git push)
+          git add reels_history.db politics_history.db
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto: Update history DBs [skip ci]" && git push)
