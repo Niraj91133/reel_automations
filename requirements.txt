@@ -1,0 +1,5 @@
+yt-dlp
+pillow
+google-genai
+requests
+playwright
