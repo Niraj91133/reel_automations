@@ -17,27 +17,23 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install System Dependencies (FFmpeg)
+      - name: Install System Dependencies (FFmpeg & Fonts)
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-liberation fonts-dejavu-core
+          sudo apt-get install -y ffmpeg fonts-liberation fonts-dejavu-core python3-pip python3-venv
 
-      - name: Install Python Packages
+      - name: Set up Virtual Environment & Install Packages
         run: |
-          python -m pip install --upgrade pip
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install --upgrade pip
           pip install yt-dlp pillow google-genai requests playwright
-          python -m playwright install --with-deps chromium
+          playwright install --with-deps chromium
 
       - name: Restore Processed Reels Database
         run: |
+          . venv/bin/activate
           python -c "from db import init_db; init_db()"
 
       - name: Run Reel Automation Pipeline
@@ -46,6 +42,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          . venv/bin/activate
           python run_dm_automation.py 10
 
       - name: Commit & Push Updated Database
