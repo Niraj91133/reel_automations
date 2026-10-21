@@ -27,7 +27,7 @@ def parse_cookie_file(cookie_file):
                 })
     return cookies
 
-def get_shared_reels_from_chat(max_count=10):
+def get_shared_reels_from_chat(max_count=15):
     print("Navigating to Instagram chat with @im_raaaj_...")
     cookies = parse_cookie_file(COOKIE_FILE)
     reels = []
@@ -46,7 +46,19 @@ def get_shared_reels_from_chat(max_count=10):
             page.goto(CHAT_THREAD_URL, timeout=45000, wait_until="networkidle")
             time.sleep(4)
 
-            # Find all usernames mentioned in the cards (like irfan_bhai90k, just_sfurti, vaidant.jain)
+            # Dismiss notification popups if any
+            not_now = page.query_selector("button:has-text('Not Now')")
+            if not_now:
+                not_now.click()
+                time.sleep(1)
+
+            # DEEP SCROLL UP: Scroll up 10 times to load previous shared reels in chat
+            print("Deep scrolling chat to load all previous shared reels...")
+            for i in range(10):
+                page.mouse.wheel(0, -4000)
+                time.sleep(1.5)
+
+            # Find all creator handles in chat cards
             creators = page.evaluate("""
                 () => {
                     const links = Array.from(document.querySelectorAll("a[href^='/']")).map(a => a.getAttribute('href').replace(/\\//g, ''));
@@ -54,13 +66,12 @@ def get_shared_reels_from_chat(max_count=10):
                     return Array.from(new Set(filtered));
                 }
             """)
-            print(f"Found creators in chat cards: {creators}")
+            print(f"Found {len(creators)} creators across the chat history: {creators}")
 
             for creator in creators:
                 if len(reels) >= max_count:
                     break
                 try:
-                    # Find card containing this creator
                     card = page.query_selector(f"div[role='button']:has-text('{creator}')")
                     if card:
                         card.click()
@@ -76,11 +87,11 @@ def get_shared_reels_from_chat(max_count=10):
                                     "url": f"https://www.instagram.com/reel/{code}/",
                                     "creator": creator
                                 })
-                                print(f"Found Shared Reel [{len(reels)}]: {code} from @{creator}")
+                                print(f"Found Reel [{len(reels)}]: {code} from @{creator}")
                         page.keyboard.press("Escape")
-                        time.sleep(1)
+                        time.sleep(0.5)
                 except Exception as card_err:
-                    print(f"Error inspecting card for {creator}:", card_err)
+                    continue
 
         except Exception as e:
             print("Chat extraction error:", e)
@@ -90,5 +101,5 @@ def get_shared_reels_from_chat(max_count=10):
     return reels
 
 if __name__ == '__main__':
-    reels = get_shared_reels_from_chat(5)
-    print("Found reels:", reels)
+    reels = get_shared_reels_from_chat(15)
+    print("Found reels:", len(reels))
