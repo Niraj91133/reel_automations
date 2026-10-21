@@ -28,9 +28,10 @@ def parse_cookie_file(cookie_file):
     return cookies
 
 def get_shared_reels_from_chat(max_count=15):
-    print("Navigating to Instagram chat with @im_raaaj_...")
+    print("Navigating strictly to Instagram chat with @im_raaaj_...")
     cookies = parse_cookie_file(COOKIE_FILE)
-    captured_reels = {}
+    reels = []
+    seen = set()
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -41,30 +42,6 @@ def get_shared_reels_from_chat(max_count=15):
         context.add_cookies(cookies)
         page = context.new_page()
 
-        # Intercept network responses for direct clip/reel data
-        def handle_response(response):
-            if "direct_v2" in response.url or "graphql" in response.url:
-                try:
-                    res_json = response.json()
-                    def find_reels(obj):
-                        if isinstance(obj, dict):
-                            code = obj.get("code")
-                            if code and 9 <= len(code) <= 13:
-                                user_obj = obj.get("user") or {}
-                                creator = user_obj.get("username") or "creator"
-                                if code not in captured_reels:
-                                    captured_reels[code] = creator
-                            for k, v in obj.items():
-                                find_reels(v)
-                        elif isinstance(obj, list):
-                            for item in obj:
-                                find_reels(item)
-                    find_reels(res_json)
-                except:
-                    pass
-
-        page.on("response", handle_response)
-
         try:
             page.goto(CHAT_THREAD_URL, timeout=45000, wait_until="networkidle")
             time.sleep(3)
@@ -74,42 +51,57 @@ def get_shared_reels_from_chat(max_count=15):
                 not_now.click()
                 time.sleep(1)
 
-            # Deep scroll up to 20 times to paginate chat and extract all reels
-            print("Deep scrolling chat to extract shared reels...")
-            for i in range(20):
-                page.mouse.wheel(0, -6000)
-                page.keyboard.press("PageUp")
-                time.sleep(1.2)
-                if len(captured_reels) >= max_count:
-                    break
+            # Deep scroll to load conversation history
+            print("Scrolling conversation in @im_raaaj_ chat...")
+            for s in range(10):
+                page.mouse.wheel(0, -4000)
+                time.sleep(0.7)
 
-            # DOM fallback extraction if any cards in DOM
-            dom_reels = page.evaluate("""
+            # Extract distinct usernames present in message elements
+            creators = page.evaluate("""
                 () => {
-                    const links = Array.from(document.querySelectorAll("a[href*='/reel/'], a[href*='/p/']"))
-                        .map(a => a.href);
-                    return links;
+                    const links = Array.from(document.querySelectorAll("a[href^='/']")).map(a => a.getAttribute('href').replace(/\\//g, ''));
+                    const filtered = links.filter(l => l && !['direct', 'reels', 'explore', 'im_raaaj_', 'uxwithraaj', 'home', 'messages', 'p'].includes(l));
+                    return Array.from(new Set(filtered));
                 }
             """)
-            for dl in dom_reels:
-                m = re.search(r"/(?:reel|p)/([^/?]+)", dl)
-                if m and m.group(1) not in captured_reels:
-                    captured_reels[m.group(1)] = "creator"
+            print(f"Detected creator handles inside @im_raaaj_ chat: {creators}")
+
+            for cr in creators:
+                if len(reels) >= max_count:
+                    break
+                try:
+                    card = page.query_selector(f"div[role='button']:has-text('{cr}')")
+                    if card:
+                        card.click(timeout=2000)
+                        time.sleep(2)
+                        cur_url = page.url
+                        m = re.search(r"/(?:reel|p)/([^/?]+)", cur_url)
+                        if m:
+                            code = m.group(1)
+                            if code not in seen:
+                                seen.add(code)
+                                reels.append({
+                                    "shortcode": code,
+                                    "url": f"https://www.instagram.com/reel/{code}/",
+                                    "creator": cr
+                                })
+                                print(f"🎯 Verified Reel [{len(reels)}] from @im_raaaj_ chat: https://www.instagram.com/reel/{code}/ (By @{cr})")
+                            page.keyboard.press("Escape")
+                            time.sleep(0.5)
+                        else:
+                            page.keyboard.press("Escape")
+                            time.sleep(0.2)
+                except Exception as card_err:
+                    continue
 
         except Exception as e:
             print("Chat extraction error:", e)
         finally:
             browser.close()
 
-    result = []
-    for code, creator in captured_reels.items():
-        result.append({
-            "shortcode": code,
-            "url": f"https://www.instagram.com/reel/{code}/",
-            "creator": creator
-        })
-    print(f"Total Unique Shared Reels Extracted from @im_raaaj_: {len(result)}")
-    return result
+    print(f"\nTotal Verified Reels strictly from @im_raaaj_ chat: {len(reels)}")
+    return reels
 
 if __name__ == '__main__':
     reels = get_shared_reels_from_chat(15)
