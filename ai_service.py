@@ -57,7 +57,7 @@ def analyze_reel_content(video_file_path, creator_username="creator"):
             mime_type="audio/mp3"
         )
 
-        for model_name in ["gemini-flash-latest", "gemini-2.5-flash", "gemini-1.5-flash"]:
+        for model_name in ["gemini-2.0-flash", "gemini-flash-latest", "gemini-2.5-flash"]:
             try:
                 response = client.models.generate_content(
                     model=model_name,
