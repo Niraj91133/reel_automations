@@ -56,17 +56,19 @@ def run_job(pipeline_type, token, chat_id, limit=10):
                 send_telegram_msg(token, chat_id, f"✅ <b>Politics Reels Batch Finished!</b> {count} videos delivered!")
 
         elif pipeline_type == "all":
-            send_telegram_msg(token, chat_id, f"⚡ <b>MEGA BATCH TRIGGERED!</b>\nStartup aur Politics dono channels ka automation EKSATH parallel start ho rha hai...\nApne-apne bot par videos deliver ho jayengi!")
+            send_telegram_msg(token, chat_id, f"⚡ <b>MEGA BATCH TRIGGERED!</b>\n1️⃣ Pehle <b>Startup</b> reels process hongi (@my_reel_auto_bot par)...\n2️⃣ Uske turant baad <b>Politics</b> reels process hongi (@my_reel_news_bot par)...\n⏱️ Rendering chal rahi hai, wait karein!")
             
-            # Run both simultaneously in separate worker threads
-            t_startup = threading.Thread(target=run_chat_automation, args=(limit,))
-            t_politics = threading.Thread(target=run_politics_daily_automation, args=(limit, POLITICS_CHAT_ID))
-            
-            t_startup.start()
-            t_politics.start()
-            
-            t_startup.join()
-            t_politics.join()
+            try:
+                run_chat_automation(max_reels=limit)
+            except Exception as e_start:
+                print("Error in startup batch:", e_start)
+                send_telegram_msg(token, chat_id, f"⚠️ Startup batch warning: {e_start}")
+
+            try:
+                count = run_politics_daily_automation(max_reels=limit, target_chat_id=POLITICS_CHAT_ID)
+            except Exception as e_pol:
+                print("Error in politics batch:", e_pol)
+                send_telegram_msg(token, chat_id, f"⚠️ Politics batch warning: {e_pol}")
             
             send_telegram_msg(token, chat_id, "🎉 <b>Both Batches Delivered Successfully to Respective Channels!</b>")
 
