@@ -113,16 +113,18 @@ def poll_bot(token, bot_name, default_type):
 
                     # Check custom number in command e.g. "make 5" or "/run 10"
                     parts = text.split()
-                    cmd = parts[0]
+                    raw_cmd = parts[0]
+                    # Strip @botname if user sent /politics@my_reel_news_bot
+                    cmd = raw_cmd.split("@")[0]
                     if len(parts) > 1 and parts[1].isdigit():
                         limit = int(parts[1])
 
                     if cmd in ["/run", "run", "make", "banao", "start", "/start", "create", "generate"]:
                         pipeline = default_type
-                    elif cmd in ["/startup", "startup"]:
-                        pipeline = "startup"
                     elif cmd in ["/politics", "politics", "bharat"]:
                         pipeline = "politics"
+                    elif cmd in ["/startup", "startup"]:
+                        pipeline = "startup"
                     elif cmd in ["/all", "all", "dono"]:
                         pipeline = "all"
                     elif cmd in ["/help", "help", "hi", "hello"]:
