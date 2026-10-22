@@ -45,32 +45,37 @@ def run_job(pipeline_type, token, chat_id, limit=10):
 
     try:
         if pipeline_type == "startup":
-            send_telegram_msg(token, chat_id, f"🚀 <b>STARTUP Automation Triggered!</b>\nInstagram DM se up to {limit} reels extract karke video banana start kar rha hu...\n⏱️ Thoda time lagega (Rendering + AI), wait karein!")
-            run_chat_automation(max_reels=limit)
-            send_telegram_msg(token, chat_id, "✅ <b>Startup Reels Batch Finished & Delivered!</b>")
+            send_telegram_msg(token, chat_id, f"🚀 <b>STARTUP Automation Triggered!</b>\nInstagram DM (@im_raaaj_) se up to {limit} reels extract karke video banana start kar rha hu...\n⏱️ Thoda time lagega (Rendering + AI), wait karein!")
+            count = run_chat_automation(max_reels=limit, target_chat_id=chat_id)
+            send_telegram_msg(token, chat_id, f"✅ <b>Startup Reels Batch Finished!</b> {count} videos delivered!")
 
         elif pipeline_type == "politics":
             send_telegram_msg(token, chat_id, f"🇮🇳 <b>POLITICS Automation Triggered!</b>\n@baatleaderki chat se up to {limit} reels extract karke Bhagwa template videos banana start ho gaya hai...\n⏱️ Rendering chal rahi hai, wait karein!")
             count = run_politics_daily_automation(max_reels=limit, target_chat_id=chat_id)
-            if count and count > 0:
-                send_telegram_msg(token, chat_id, f"✅ <b>Politics Reels Batch Finished!</b> {count} videos delivered!")
+            send_telegram_msg(token, chat_id, f"✅ <b>Politics Reels Batch Finished!</b> {count} videos delivered!")
 
         elif pipeline_type == "all":
-            send_telegram_msg(token, chat_id, f"⚡ <b>MEGA BATCH TRIGGERED!</b>\n1️⃣ Pehle <b>Startup</b> reels process hongi (@my_reel_auto_bot par)...\n2️⃣ Uske turant baad <b>Politics</b> reels process hongi (@my_reel_news_bot par)...\n⏱️ Rendering chal rahi hai, wait karein!")
+            send_telegram_msg(token, chat_id, f"⚡ <b>MEGA BATCH TRIGGERED!</b>\n1️⃣ Pehle <b>Startup</b> reels (@im_raaaj_ se)...\n2️⃣ Uske baad <b>Politics</b> reels (@baatleaderki se)...\n⏱️ Rendering chal rahi hai, wait karein!")
             
+            c1 = 0
             try:
-                run_chat_automation(max_reels=limit)
+                c1 = run_chat_automation(max_reels=limit, target_chat_id=STARTUP_CHAT_ID)
+                send_telegram_msg(STARTUP_BOT_TOKEN, STARTUP_CHAT_ID, f"✅ <b>Startup Batch Complete:</b> {c1} videos delivered!")
             except Exception as e_start:
                 print("Error in startup batch:", e_start)
-                send_telegram_msg(token, chat_id, f"⚠️ Startup batch warning: {e_start}")
+                send_telegram_msg(token, chat_id, f"⚠️ Startup batch error: {e_start}")
 
+            time.sleep(2)
+
+            c2 = 0
             try:
-                count = run_politics_daily_automation(max_reels=limit, target_chat_id=POLITICS_CHAT_ID)
+                c2 = run_politics_daily_automation(max_reels=limit, target_chat_id=POLITICS_CHAT_ID)
+                send_telegram_msg(POLITICS_BOT_TOKEN, POLITICS_CHAT_ID, f"✅ <b>Politics Batch Complete:</b> {c2} videos delivered!")
             except Exception as e_pol:
                 print("Error in politics batch:", e_pol)
-                send_telegram_msg(token, chat_id, f"⚠️ Politics batch warning: {e_pol}")
+                send_telegram_msg(token, chat_id, f"⚠️ Politics batch error: {e_pol}")
             
-            send_telegram_msg(token, chat_id, "🎉 <b>Both Batches Delivered Successfully to Respective Channels!</b>")
+            send_telegram_msg(token, chat_id, f"🎉 <b>Both Batches Delivered!</b>\n• Startup: {c1} videos\n• Politics: {c2} videos")
 
     except Exception as e:
         print(f"Error in job {pipeline_type}: {e}")

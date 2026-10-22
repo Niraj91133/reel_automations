@@ -27,7 +27,7 @@ def parse_cookie_file(cookie_file):
     return cookies
 
 def get_shared_reels_from_chat(max_count=10):
-    print("Navigating to Instagram chat with @im_raaaj_...")
+    print("Navigating to Instagram chat with @im_raaaj_ (Startup)...")
     cookies = parse_cookie_file(COOKIE_FILE)
     reels = []
     seen = set()
@@ -50,52 +50,39 @@ def get_shared_reels_from_chat(max_count=10):
                 not_now.click()
                 time.sleep(1)
 
-            # Scroll up to top of history
-            print("Step 1: Scrolling conversation history...")
-            for _ in range(8):
+            # Scroll up to load older messages
+            print("Step 1: Scrolling conversation history upwards in @im_raaaj_ chat...")
+            for _ in range(6):
                 page.mouse.move(600, 400)
-                page.mouse.wheel(0, -4000)
-                time.sleep(0.5)
+                page.mouse.wheel(0, -3000)
+                time.sleep(0.4)
 
-            # Discover all distinct creator handles by sweeping downwards strictly inside the chat box
-            all_creators = []
-            for _ in range(8):
-                # Search strictly in the chat message container (main right pane, not left sidebar)
-                anchors = page.query_selector_all("div[role='main'] a[href^='/'], div[tabindex='0'] a[href^='/']")
-                if not anchors:
-                    anchors = page.query_selector_all("a[href^='/']")
-                for a in anchors:
-                    h = a.get_attribute('href')
-                    if h:
-                        cleaned = h.strip('/')
-                        if cleaned and not any(skip == cleaned for skip in ['direct', 'explore', 'reels', 'home', 'messages', 'p', 'reel', 'stories', 'im_raaaj_', 'startup_road', 'baatleaderki', 'uxwithraaj']):
-                            if cleaned not in all_creators:
-                                all_creators.append(cleaned)
-                page.mouse.move(600, 400)
-                page.mouse.wheel(0, 2000)
-                time.sleep(0.5)
-
-            print(f"Step 2: Found {len(all_creators)} creators in thread. Resolving exact Reel URLs...")
-            
-            # Step 2: Now resolve each creator button by scrolling upwards
-            for cr in all_creators:
+            # Sweep downwards and click every reel card in right chat container
+            print("Step 2: Resolving interactive reel cards downwards in @im_raaaj_ chat...")
+            for step in range(12):
                 if len(reels) >= max_count:
                     break
 
-                btn = page.query_selector(f"div[role='button']:has-text('{cr}')")
-                if not btn:
-                    for _ in range(3):
-                        page.mouse.move(600, 400)
-                        page.mouse.wheel(0, -2500)
-                        time.sleep(0.5)
-                        btn = page.query_selector(f"div[role='button']:has-text('{cr}')")
-                        if btn:
-                            break
-
-                if btn:
+                cards = page.query_selector_all("div[role='button']")
+                for card in cards:
+                    if len(reels) >= max_count:
+                        break
                     try:
-                        btn.dispatch_event('click')
-                        time.sleep(1.8)
+                        box = card.bounding_box()
+                        # Strict right-pane check (x > 350) and card dimensions
+                        if not box or box['x'] < 350 or box['width'] < 100 or box['height'] < 150:
+                            continue
+
+                        card_text = card.inner_text().strip().replace('\n', ' ')
+                        if any(skip in card_text for skip in ['Message...', 'Search', 'Send message', 'Active']):
+                            continue
+
+                        # Extract creator from card text
+                        creator = card_text.split()[0] if card_text else "creator"
+
+                        card.click(timeout=2000)
+                        time.sleep(1.5)
+
                         cur_url = page.url
                         m = re.search(r"/(?:reel|p)/([^/?]+)", cur_url)
                         if m:
@@ -105,22 +92,26 @@ def get_shared_reels_from_chat(max_count=10):
                                 reels.append({
                                     "shortcode": code,
                                     "url": f"https://www.instagram.com/reel/{code}/",
-                                    "creator": cr
+                                    "creator": creator
                                 })
-                                print(f"🎯 [{len(reels)}/{max_count}] Verified Reel: https://www.instagram.com/reel/{code}/ (By @{cr})")
-                            
+                                print(f"🎯 [{len(reels)}/{max_count}] Verified Startup Reel: https://www.instagram.com/reel/{code}/ (By @{creator})")
+
                             close_btn = page.query_selector("svg[aria-label='Close']")
                             if close_btn:
                                 close_btn.click()
-                                time.sleep(0.5)
+                                time.sleep(0.4)
                             else:
                                 page.keyboard.press("Escape")
-                                time.sleep(0.4)
+                                time.sleep(0.3)
                         else:
                             page.keyboard.press("Escape")
                             time.sleep(0.2)
                     except Exception:
                         pass
+
+                page.mouse.move(600, 400)
+                page.mouse.wheel(0, 1600)
+                time.sleep(0.5)
 
         except Exception as e:
             print("Chat extraction error:", e)

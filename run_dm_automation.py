@@ -28,7 +28,9 @@ def send_daily_batch_start_message(day_name, date_str, total_found):
     except:
         pass
 
-def run_chat_automation(max_reels=10):
+def run_chat_automation(max_reels=10, target_chat_id=None):
+    from telegram_sender import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+    chat_id = target_chat_id or TELEGRAM_CHAT_ID
     now = datetime.now()
     day_name = now.strftime("%A")
     date_str = now.strftime("%d-%b-%Y")
@@ -41,8 +43,20 @@ def run_chat_automation(max_reels=10):
     # Fetch candidate reels from im_raaaj_ chat
     reels = get_shared_reels_from_chat(max_count=25)
     if not reels:
-        print("No shared reels found in chat.")
-        return
+        print("No shared reels found in @im_raaaj_ chat.")
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                json={
+                    "chat_id": chat_id,
+                    "text": "⚠️ <b>Startup Update:</b> @im_raaaj_ chat me koi reels nahi mili!",
+                    "parse_mode": "HTML"
+                },
+                timeout=10
+            )
+        except:
+            pass
+        return 0
 
     # Filter only unprocessed reels
     unprocessed_reels = [r for r in reels if not is_reel_processed(r["shortcode"])]
@@ -51,11 +65,10 @@ def run_chat_automation(max_reels=10):
     if not unprocessed_reels:
         print("No new reels found today. Everything is already up-to-date!")
         try:
-            from telegram_sender import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
             requests.post(
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
                 json={
-                    "chat_id": TELEGRAM_CHAT_ID,
+                    "chat_id": chat_id,
                     "text": "ℹ️ <b>Startup Update:</b> Chat me sabhi reels already process ho chuki hain! Instagram chat (@im_raaaj_) me nayi reels share karein fir run karein.",
                     "parse_mode": "HTML"
                 },
@@ -63,7 +76,7 @@ def run_chat_automation(max_reels=10):
             )
         except:
             pass
-        return
+        return 0
 
     target_reels = unprocessed_reels[:max_reels]
     total_today = len(target_reels)
@@ -101,6 +114,7 @@ def run_chat_automation(max_reels=10):
             print(f"Could not download reel {shortcode}")
 
     print(f"\n🎉 Finished {day_name} batch! Delivered {processed_count} reels to Telegram!")
+    return processed_count
 
 if __name__ == '__main__':
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 10
