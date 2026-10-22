@@ -56,10 +56,19 @@ def run_job(pipeline_type, token, chat_id, limit=10):
                 send_telegram_msg(token, chat_id, f"✅ <b>Politics Reels Batch Finished!</b> {count} videos delivered!")
 
         elif pipeline_type == "all":
-            send_telegram_msg(token, chat_id, f"⚡ <b>ALL BATCH Triggered!</b>\nPehle Startup fir Politics ke reels process honge...")
-            run_chat_automation(max_reels=limit)
-            count = run_politics_daily_automation(max_reels=limit, target_chat_id=chat_id)
-            send_telegram_msg(token, chat_id, "🎉 <b>Both Batches Delivered Successfully!</b>")
+            send_telegram_msg(token, chat_id, f"⚡ <b>MEGA BATCH TRIGGERED!</b>\nStartup aur Politics dono channels ka automation EKSATH parallel start ho rha hai...\nApne-apne bot par videos deliver ho jayengi!")
+            
+            # Run both simultaneously in separate worker threads
+            t_startup = threading.Thread(target=run_chat_automation, args=(limit,))
+            t_politics = threading.Thread(target=run_politics_daily_automation, args=(limit, POLITICS_CHAT_ID))
+            
+            t_startup.start()
+            t_politics.start()
+            
+            t_startup.join()
+            t_politics.join()
+            
+            send_telegram_msg(token, chat_id, "🎉 <b>Both Batches Delivered Successfully to Respective Channels!</b>")
 
     except Exception as e:
         print(f"Error in job {pipeline_type}: {e}")
@@ -121,21 +130,20 @@ def poll_bot(token, bot_name, default_type):
 
                     if cmd in ["/run", "run", "make", "banao", "start", "/start", "create", "generate"]:
                         pipeline = default_type
-                    elif cmd in ["/politics", "politics", "bharat"]:
+                    elif cmd in ["/all", "all", "dono", "/dono", "both", "/both", "mega", "/mega", "startall", "/startall"]:
+                        pipeline = "all"
+                    elif cmd in ["/politics", "politics", "bharat", "/bharat"]:
                         pipeline = "politics"
                     elif cmd in ["/startup", "startup"]:
                         pipeline = "startup"
-                    elif cmd in ["/all", "all", "dono"]:
-                        pipeline = "all"
                     elif cmd in ["/help", "help", "hi", "hello"]:
                         help_text = (
                             f"👋 <b>Automation Bot Help:</b>\n\n"
                             f"Bas ye likh kar bhejiye:\n"
-                            f"• <b>/run</b> ➔ 10 videos banakar deliver karega\n"
-                            f"• <b>run 5</b> ➔ 5 videos banayega\n"
-                            f"• <b>/politics</b> ➔ Politics videos banayega\n"
-                            f"• <b>/startup</b> ➔ Startup videos banayega\n"
-                            f"• <b>/all</b> ➔ Dono channels process karega"
+                            f"• <b>/all</b> ya <b>both</b> ➔ Dono categories EKSATH banayega aur dono channels par bhej dega\n"
+                            f"• <b>/run</b> ➔ Current bot ke 10 reels banakar bhej dega\n"
+                            f"• <b>/politics</b> ➔ Sirf Politics videos banayega\n"
+                            f"• <b>/startup</b> ➔ Sirf Startup videos banayega"
                         )
                         send_telegram_msg(token, chat_id, help_text)
                         continue
