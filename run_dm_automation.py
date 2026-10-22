@@ -28,7 +28,7 @@ def send_daily_batch_start_message(day_name, date_str, total_found):
     except:
         pass
 
-def run_chat_automation(max_reels=10, target_chat_id=None):
+def run_chat_automation(max_reels=10, target_chat_id=None, notify_callback=None):
     from telegram_sender import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
     chat_id = target_chat_id or TELEGRAM_CHAT_ID
     now = datetime.now()
@@ -39,6 +39,9 @@ def run_chat_automation(max_reels=10, target_chat_id=None):
     print(f"   STARTING AUTOMATION: {day_name.upper()} ({date_str})    ")
     print("========================================================")
     init_db()
+
+    if notify_callback:
+        notify_callback(f"🔍 <b>Startup:</b> Instagram DM (@im_raaaj_) se reels fetch kar rha hu...")
 
     # Fetch candidate reels from im_raaaj_ chat
     reels = get_shared_reels_from_chat(max_count=25)
@@ -64,18 +67,17 @@ def run_chat_automation(max_reels=10, target_chat_id=None):
 
     if not unprocessed_reels:
         print("No new reels found today. Everything is already up-to-date!")
+        msg_text = "ℹ️ <b>Startup Update:</b> @im_raaaj_ chat me sabhi reels already processed hain! Chat me nayi reels share karein fir run karein."
         try:
             requests.post(
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-                json={
-                    "chat_id": chat_id,
-                    "text": "ℹ️ <b>Startup Update:</b> Chat me sabhi reels already process ho chuki hain! Instagram chat (@im_raaaj_) me nayi reels share karein fir run karein.",
-                    "parse_mode": "HTML"
-                },
+                json={"chat_id": chat_id, "text": msg_text, "parse_mode": "HTML"},
                 timeout=10
             )
         except:
             pass
+        if notify_callback:
+            notify_callback(msg_text)
         return 0
 
     target_reels = unprocessed_reels[:max_reels]
@@ -90,12 +92,17 @@ def run_chat_automation(max_reels=10, target_chat_id=None):
         reel_url = item["url"]
         creator = item["creator"]
 
+        if notify_callback:
+            notify_callback(f"📥 <b>[Startup {idx}/{total_today}]</b> Downloading reel from @{creator}...")
+
         temp_video = f"temp_{shortcode}.mp4"
         print(f"\n📥 Downloading Reel ({idx}/{total_today}): {reel_url}...")
         downloaded = download_reel_video(reel_url, temp_video)
 
         if downloaded and os.path.exists(downloaded):
             try:
+                if notify_callback:
+                    notify_callback(f"🧠 <b>[Startup {idx}/{total_today}]</b> Gemini AI audio sun rha hai aur Studio video render kar rha hai...")
                 success = process_single_reel(
                     video_file_path=downloaded,
                     reel_id=shortcode,
@@ -105,8 +112,12 @@ def run_chat_automation(max_reels=10, target_chat_id=None):
                 )
                 if success:
                     processed_count += 1
+                    if notify_callback:
+                        notify_callback(f"🚀 <b>[Startup {idx}/{total_today}]</b> Delivered to Startup Channel! ✅")
             except Exception as e:
                 print(f"Error processing reel {shortcode}:", e)
+                if notify_callback:
+                    notify_callback(f"⚠️ Error in reel {shortcode}: {e}")
             finally:
                 if os.path.exists(temp_video):
                     os.remove(temp_video)
