@@ -51,13 +51,14 @@ def run_job(pipeline_type, token, chat_id, limit=10):
 
         elif pipeline_type == "politics":
             send_telegram_msg(token, chat_id, f"🇮🇳 <b>POLITICS Automation Triggered!</b>\n@baatleaderki chat se up to {limit} reels extract karke Bhagwa template videos banana start ho gaya hai...\n⏱️ Rendering chal rahi hai, wait karein!")
-            run_politics_daily_automation(max_reels=limit)
-            send_telegram_msg(token, chat_id, "✅ <b>Politics Reels Batch Finished & Delivered!</b>")
+            count = run_politics_daily_automation(max_reels=limit, target_chat_id=chat_id)
+            if count and count > 0:
+                send_telegram_msg(token, chat_id, f"✅ <b>Politics Reels Batch Finished!</b> {count} videos delivered!")
 
         elif pipeline_type == "all":
             send_telegram_msg(token, chat_id, f"⚡ <b>ALL BATCH Triggered!</b>\nPehle Startup fir Politics ke reels process honge...")
             run_chat_automation(max_reels=limit)
-            run_politics_daily_automation(max_reels=limit)
+            count = run_politics_daily_automation(max_reels=limit, target_chat_id=chat_id)
             send_telegram_msg(token, chat_id, "🎉 <b>Both Batches Delivered Successfully!</b>")
 
     except Exception as e:

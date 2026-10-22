@@ -1,5 +1,6 @@
 import os
 import sys
+sys.stdout.reconfigure(encoding='utf-8')
 import time
 import re
 from playwright.sync_api import sync_playwright
@@ -49,31 +50,48 @@ def get_shared_reels_from_chat(max_count=10):
                 not_now.click()
                 time.sleep(1)
 
-            # Scroll up inside the chat pane to reveal recent history
-            print("Scrolling up to load full 24h conversation history...")
+            # Scroll up to top of history
+            print("Step 1: Scrolling conversation history...")
             for _ in range(8):
                 page.mouse.move(600, 400)
                 page.mouse.wheel(0, -4000)
                 time.sleep(0.5)
 
-            # Step downwards and click each media button using dispatch_event and Close SVG
-            print("Resolving media card links via dispatch click & close...")
-            for step in range(12):
+            # Discover all distinct creator handles by sweeping downwards
+            all_creators = []
+            for _ in range(8):
+                anchors = page.query_selector_all("a[href^='/']")
+                for a in anchors:
+                    h = a.get_attribute('href')
+                    if h:
+                        cleaned = h.strip('/')
+                        if cleaned and not any(skip == cleaned for skip in ['direct', 'explore', 'reels', 'home', 'messages', 'p', 'reel', 'stories', 'im_raaaj_', 'startup_road']):
+                            if cleaned not in all_creators:
+                                all_creators.append(cleaned)
+                page.mouse.move(600, 400)
+                page.mouse.wheel(0, 2000)
+                time.sleep(0.5)
+
+            print(f"Step 2: Found {len(all_creators)} creators in thread. Resolving exact Reel URLs...")
+            
+            # Step 2: Now resolve each creator button by scrolling upwards
+            for cr in all_creators:
                 if len(reels) >= max_count:
                     break
 
-                cards = page.query_selector_all("div[role='button']")
-                for card in cards:
-                    if len(reels) >= max_count:
-                        break
-                    txt = card.inner_text().strip().replace('\n', ' ')
-                    if not txt or any(skip in txt for skip in ['Search', 'Primary', 'General', 'Requests', 'Message...', 'Your note', 'Active', 'startup_road']):
-                        continue
-                    if not card.query_selector("img, video"):
-                        continue
+                btn = page.query_selector(f"div[role='button']:has-text('{cr}')")
+                if not btn:
+                    for _ in range(3):
+                        page.mouse.move(600, 400)
+                        page.mouse.wheel(0, -2500)
+                        time.sleep(0.5)
+                        btn = page.query_selector(f"div[role='button']:has-text('{cr}')")
+                        if btn:
+                            break
 
+                if btn:
                     try:
-                        card.dispatch_event('click')
+                        btn.dispatch_event('click')
                         time.sleep(1.8)
                         cur_url = page.url
                         m = re.search(r"/(?:reel|p)/([^/?]+)", cur_url)
@@ -81,8 +99,6 @@ def get_shared_reels_from_chat(max_count=10):
                             code = m.group(1)
                             if code not in seen:
                                 seen.add(code)
-                                cr_match = re.search(r"([a-zA-Z0-9._]+)", txt)
-                                cr = cr_match.group(1) if cr_match else "creator"
                                 reels.append({
                                     "shortcode": code,
                                     "url": f"https://www.instagram.com/reel/{code}/",
@@ -90,7 +106,6 @@ def get_shared_reels_from_chat(max_count=10):
                                 })
                                 print(f"🎯 [{len(reels)}/{max_count}] Verified Reel: https://www.instagram.com/reel/{code}/ (By @{cr})")
                             
-                            # Close the modal overlay cleanly
                             close_btn = page.query_selector("svg[aria-label='Close']")
                             if close_btn:
                                 close_btn.click()
@@ -103,10 +118,6 @@ def get_shared_reels_from_chat(max_count=10):
                             time.sleep(0.2)
                     except Exception:
                         pass
-
-                page.mouse.move(600, 400)
-                page.mouse.wheel(0, 1800)
-                time.sleep(0.6)
 
         except Exception as e:
             print("Chat extraction error:", e)

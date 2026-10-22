@@ -187,7 +187,8 @@ def send_daily_politics_start_message(day_name, date_str, total_found):
     except:
         pass
 
-def run_politics_daily_automation(max_reels=10):
+def run_politics_daily_automation(max_reels=10, target_chat_id=None):
+    chat_id = target_chat_id or POLITICS_CHAT_ID
     now = datetime.now()
     day_name = now.strftime("%A")
     date_str = now.strftime("%d-%b-%Y")
@@ -200,7 +201,19 @@ def run_politics_daily_automation(max_reels=10):
     reels = get_politics_reels_from_chat(max_count=25)
     if not reels:
         print("No shared reels found in @baatleaderki chat.")
-        return
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{POLITICS_BOT_TOKEN}/sendMessage",
+                json={
+                    "chat_id": chat_id,
+                    "text": "⚠️ <b>Politics Update:</b> @baatleaderki chat me koi shared reels nahi mili!",
+                    "parse_mode": "HTML"
+                },
+                timeout=10
+            )
+        except:
+            pass
+        return 0
 
     unprocessed = [r for r in reels if not is_politics_reel_processed(r["shortcode"])]
     print(f"Total fresh unprocessed politics reels found: {len(unprocessed)}")
@@ -211,7 +224,7 @@ def run_politics_daily_automation(max_reels=10):
             requests.post(
                 f"https://api.telegram.org/bot{POLITICS_BOT_TOKEN}/sendMessage",
                 json={
-                    "chat_id": POLITICS_CHAT_ID,
+                    "chat_id": chat_id,
                     "text": "ℹ️ <b>Politics Update:</b> @baatleaderki chat me sabhi reels already process ho chuki hain! Chat me nayi reels share karein fir run karein.",
                     "parse_mode": "HTML"
                 },
@@ -219,7 +232,7 @@ def run_politics_daily_automation(max_reels=10):
             )
         except:
             pass
-        return
+        return 0
 
     target_reels = unprocessed[:max_reels]
     total_today = len(target_reels)
@@ -255,6 +268,7 @@ def run_politics_daily_automation(max_reels=10):
                     except: pass
 
     print(f"\n🎉 Finished Politics batch! Delivered {processed_count} reels to Politics Telegram Bot!")
+    return processed_count
 
 if __name__ == '__main__':
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 10

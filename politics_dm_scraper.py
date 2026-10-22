@@ -78,28 +78,48 @@ def get_politics_reels_from_chat(max_count=15):
                 not_now.click()
                 time.sleep(1)
 
-            # Two-way scroll: scroll up, then down while checking cards
-            print("Step 1: Scrolling upwards in @baatleaderki chat...")
-            for s in range(12):
+            # Scroll up to top of history
+            print("Step 1: Scrolling conversation history in @baatleaderki chat...")
+            for _ in range(8):
                 page.mouse.move(600, 400)
                 page.mouse.wheel(0, -4000)
                 time.sleep(0.5)
 
-            print("Step 2: Resolving cards downwards in @baatleaderki chat...")
-            for step in range(12):
+            # Discover all distinct creator handles by sweeping downwards
+            all_creators = []
+            for _ in range(8):
+                anchors = page.query_selector_all("a[href^='/']")
+                for a in anchors:
+                    h = a.get_attribute('href')
+                    if h:
+                        cleaned = h.strip('/')
+                        if cleaned and not any(skip == cleaned for skip in ['direct', 'explore', 'reels', 'home', 'messages', 'p', 'reel', 'stories', 'im_raaaj_', 'startup_road', 'baatleaderki']):
+                            if cleaned not in all_creators:
+                                all_creators.append(cleaned)
+                page.mouse.move(600, 400)
+                page.mouse.wheel(0, 2000)
+                time.sleep(0.5)
+
+            print(f"Step 2: Found {len(all_creators)} creators in @baatleaderki chat. Resolving exact Reel URLs...")
+
+            # Resolve each creator card
+            for cr in all_creators:
                 if len(reels) >= max_count:
                     break
 
-                buttons = page.query_selector_all("div[role='button']")
-                for btn in buttons:
-                    if len(reels) >= max_count:
-                        break
-                    txt = btn.inner_text().strip().replace('\n', ' ')
-                    if not txt or any(skip in txt for skip in ['Search', 'Primary', 'General', 'Requests', 'Message...', 'Your note', 'Active']):
-                        continue
+                btn = page.query_selector(f"div[role='button']:has-text('{cr}')")
+                if not btn:
+                    for _ in range(3):
+                        page.mouse.move(600, 400)
+                        page.mouse.wheel(0, -2500)
+                        time.sleep(0.5)
+                        btn = page.query_selector(f"div[role='button']:has-text('{cr}')")
+                        if btn:
+                            break
 
+                if btn:
                     try:
-                        btn.click(timeout=1500)
+                        btn.dispatch_event('click')
                         time.sleep(1.8)
                         cur_url = page.url
                         m = re.search(r"/(?:reel|p)/([^/?]+)", cur_url)
@@ -107,25 +127,25 @@ def get_politics_reels_from_chat(max_count=15):
                             code = m.group(1)
                             if code not in seen:
                                 seen.add(code)
-                                creator_match = re.search(r"([a-zA-Z0-9._]+)", txt)
-                                creator = creator_match.group(1) if creator_match else "creator"
                                 reels.append({
                                     "shortcode": code,
                                     "url": f"https://www.instagram.com/reel/{code}/",
-                                    "creator": creator
+                                    "creator": cr
                                 })
-                                print(f"🎯 Verified Politics Reel [{len(reels)}]: https://www.instagram.com/reel/{code}/ (By @{creator})")
-                            page.keyboard.press("Escape")
-                            time.sleep(0.4)
+                                print(f"🎯 [{len(reels)}/{max_count}] Verified Politics Reel: https://www.instagram.com/reel/{code}/ (By @{cr})")
+
+                            close_btn = page.query_selector("svg[aria-label='Close']")
+                            if close_btn:
+                                close_btn.click()
+                                time.sleep(0.5)
+                            else:
+                                page.keyboard.press("Escape")
+                                time.sleep(0.4)
                         else:
                             page.keyboard.press("Escape")
                             time.sleep(0.2)
                     except Exception:
                         pass
-
-                page.mouse.move(600, 400)
-                page.mouse.wheel(0, 1800)
-                time.sleep(0.6)
 
         except Exception as e:
             print("Chat extraction error:", e)
