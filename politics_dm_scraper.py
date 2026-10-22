@@ -4,8 +4,6 @@ import time
 import re
 from playwright.sync_api import sync_playwright
 
-sys.stdout.reconfigure(encoding='utf-8')
-
 COOKIE_FILE = "cookies.txt"
 POLITICS_CHAT_THREAD_URL = "https://www.instagram.com/direct/t/17887646322533789/"
 
@@ -30,7 +28,8 @@ def parse_cookie_file(cookie_file):
 def get_politics_reels_from_chat(max_count=15):
     print("Navigating to Instagram chat with @baatleaderki...")
     cookies = parse_cookie_file(COOKIE_FILE)
-    captured_reels = {}
+    reels = []
+    seen = set()
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -41,7 +40,7 @@ def get_politics_reels_from_chat(max_count=15):
         context.add_cookies(cookies)
         page = context.new_page()
 
-        # Intercept network responses for direct clip/reel data
+        # Intercept network responses for direct clip/reel data as well
         def handle_response(response):
             if "direct_v2" in response.url or "graphql" in response.url:
                 try:
@@ -52,8 +51,13 @@ def get_politics_reels_from_chat(max_count=15):
                             if code and 9 <= len(code) <= 13:
                                 user_obj = obj.get("user") or {}
                                 creator = user_obj.get("username") or "creator"
-                                if code not in captured_reels:
-                                    captured_reels[code] = creator
+                                if code not in seen:
+                                    seen.add(code)
+                                    reels.append({
+                                        "shortcode": code,
+                                        "url": f"https://www.instagram.com/reel/{code}/",
+                                        "creator": creator
+                                    })
                             for k, v in obj.items():
                                 find_reels(v)
                         elif isinstance(obj, list):
@@ -74,43 +78,63 @@ def get_politics_reels_from_chat(max_count=15):
                 not_now.click()
                 time.sleep(1)
 
-            # Deep scroll up to 20 times to paginate chat and extract all reels
-            print("Deep scrolling chat to extract shared reels from @baatleaderki...")
-            for i in range(20):
-                page.mouse.wheel(0, -6000)
-                page.keyboard.press("PageUp")
-                time.sleep(1.2)
-                if len(captured_reels) >= max_count:
+            # Two-way scroll: scroll up, then down while checking cards
+            print("Step 1: Scrolling upwards in @baatleaderki chat...")
+            for s in range(12):
+                page.mouse.move(600, 400)
+                page.mouse.wheel(0, -4000)
+                time.sleep(0.5)
+
+            print("Step 2: Resolving cards downwards in @baatleaderki chat...")
+            for step in range(12):
+                if len(reels) >= max_count:
                     break
 
-            # DOM fallback extraction if any cards in DOM
-            dom_reels = page.evaluate("""
-                () => {
-                    const links = Array.from(document.querySelectorAll("a[href*='/reel/'], a[href*='/p/']"))
-                        .map(a => a.href);
-                    return links;
-                }
-            """)
-            for dl in dom_reels:
-                m = re.search(r"/(?:reel|p)/([^/?]+)", dl)
-                if m and m.group(1) not in captured_reels:
-                    captured_reels[m.group(1)] = "creator"
+                buttons = page.query_selector_all("div[role='button']")
+                for btn in buttons:
+                    if len(reels) >= max_count:
+                        break
+                    txt = btn.inner_text().strip().replace('\n', ' ')
+                    if not txt or any(skip in txt for skip in ['Search', 'Primary', 'General', 'Requests', 'Message...', 'Your note', 'Active']):
+                        continue
+
+                    try:
+                        btn.click(timeout=1500)
+                        time.sleep(1.8)
+                        cur_url = page.url
+                        m = re.search(r"/(?:reel|p)/([^/?]+)", cur_url)
+                        if m:
+                            code = m.group(1)
+                            if code not in seen:
+                                seen.add(code)
+                                creator_match = re.search(r"([a-zA-Z0-9._]+)", txt)
+                                creator = creator_match.group(1) if creator_match else "creator"
+                                reels.append({
+                                    "shortcode": code,
+                                    "url": f"https://www.instagram.com/reel/{code}/",
+                                    "creator": creator
+                                })
+                                print(f"🎯 Verified Politics Reel [{len(reels)}]: https://www.instagram.com/reel/{code}/ (By @{creator})")
+                            page.keyboard.press("Escape")
+                            time.sleep(0.4)
+                        else:
+                            page.keyboard.press("Escape")
+                            time.sleep(0.2)
+                    except Exception:
+                        pass
+
+                page.mouse.move(600, 400)
+                page.mouse.wheel(0, 1800)
+                time.sleep(0.6)
 
         except Exception as e:
             print("Chat extraction error:", e)
         finally:
             browser.close()
 
-    result = []
-    for code, creator in captured_reels.items():
-        result.append({
-            "shortcode": code,
-            "url": f"https://www.instagram.com/reel/{code}/",
-            "creator": creator
-        })
-    print(f"Total Unique Shared Reels Extracted from @baatleaderki: {len(result)}")
-    return result
+    print(f"\nTotal Verified Politics Reels strictly from @baatleaderki chat: {len(reels)}")
+    return reels
 
 if __name__ == '__main__':
-    reels = get_politics_reels_from_chat(15)
-    print("Found reels:", len(reels))
+    res = get_politics_reels_from_chat(10)
+    print("Found total politics reels:", len(res))
