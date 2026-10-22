@@ -85,15 +85,18 @@ def get_politics_reels_from_chat(max_count=15):
                 page.mouse.wheel(0, -4000)
                 time.sleep(0.5)
 
-            # Discover all distinct creator handles by sweeping downwards
+            # Discover all distinct creator handles by sweeping downwards strictly inside the chat box
             all_creators = []
             for _ in range(8):
-                anchors = page.query_selector_all("a[href^='/']")
+                # Search strictly in the chat message container (main right pane, not left sidebar)
+                anchors = page.query_selector_all("div[role='main'] a[href^='/'], div[tabindex='0'] a[href^='/']")
+                if not anchors:
+                    anchors = page.query_selector_all("a[href^='/']")
                 for a in anchors:
                     h = a.get_attribute('href')
                     if h:
                         cleaned = h.strip('/')
-                        if cleaned and not any(skip == cleaned for skip in ['direct', 'explore', 'reels', 'home', 'messages', 'p', 'reel', 'stories', 'im_raaaj_', 'startup_road', 'baatleaderki']):
+                        if cleaned and not any(skip == cleaned for skip in ['direct', 'explore', 'reels', 'home', 'messages', 'p', 'reel', 'stories', 'im_raaaj_', 'startup_road', 'baatleaderki', 'uxwithraaj']):
                             if cleaned not in all_creators:
                                 all_creators.append(cleaned)
                 page.mouse.move(600, 400)
