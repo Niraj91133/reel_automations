@@ -34,8 +34,8 @@ jobs:
       - name: Run Pipeline 1: Startup Channel (im_raaaj_ -> Bot 1)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A"
+          TELEGRAM_CHAT_ID: "711598335"
         run: |
           . venv/bin/activate
           python run_dm_automation.py 10 || true
@@ -43,6 +43,8 @@ jobs:
       - name: Run Pipeline 2: Politics Channel (baatleaderki -> News Bot)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          POLITICS_BOT_TOKEN: "8997893199:AAEUxCeRiVupFV9KElzdsni2kTre7klWteM"
+          POLITICS_CHAT_ID: "5903254012"
         run: |
           . venv/bin/activate
           python run_politics_automation.py 10 || true
