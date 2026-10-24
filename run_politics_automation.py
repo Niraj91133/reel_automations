@@ -145,19 +145,13 @@ def process_politics_reel(video_file_path, reel_id, username="creator", reel_ind
         if os.path.exists(comp_path):
             send_target_path = comp_path
 
-    # 4. Formatted Caption
-    now = datetime.now()
-    day_name = now.strftime("%A")
-    date_str = now.strftime("%d-%b-%Y")
-
-    full_caption = (
-        f"🇮🇳 <b>Day: {day_name} | {date_str}</b>\n"
-        f"🎬 <b>Reel {reel_index} of {total_reels} Today</b>\n\n"
-        f"🔥 <b>{main_title.replace(chr(10), ' ')}</b>\n\n"
-        f"{caption}\n\n"
-        f"Original Creator: @{username}\n"
-        f"Status: Ready to Post 🚀"
-    )
+    # 4. Clean Direct Instagram Caption (Title + AI Transcript + Credits + Hashtags)
+    clean_title = main_title.replace(chr(10), ' ').strip()
+    caption_body = caption.strip()
+    if f"@{username}" not in caption_body:
+        caption_body += f"\n\nCredits & Speaker: @{username}"
+    
+    full_caption = f"🔥 <b>{clean_title}</b>\n\n{caption_body}"
 
     # 5. Send to Second Telegram Bot
     print(f"Sending finished Politics reel to Telegram Bot...")

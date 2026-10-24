@@ -63,19 +63,13 @@ def process_single_reel(video_file_path, reel_id, username="creator", reel_index
         circle_img_path=circle_img
     )
 
-    # 4. Formatted Caption with Day, Date & Reel Number
-    now = datetime.now()
-    day_name = now.strftime("%A")        # e.g. Wednesday
-    date_str = now.strftime("%d-%b-%Y")  # e.g. 21-Oct-2026
-
-    full_caption = (
-        f"📅 <b>Day: {day_name} | {date_str}</b>\n"
-        f"🎬 <b>Reel {reel_index} of {total_reels} Today</b>\n\n"
-        f"🔥 <b>{main_title.replace(chr(10), ' ')}</b>\n\n"
-        f"{caption}\n\n"
-        f"Original Creator: @{username}\n"
-        f"Status: Ready to Post 🚀"
-    )
+    # 4. Clean Direct Instagram Caption (Title + AI Transcript + Credits + Hashtags)
+    clean_title = main_title.replace(chr(10), ' ').strip()
+    caption_body = caption.strip()
+    if f"@{username}" not in caption_body:
+        caption_body += f"\n\nCredits & Speaker: @{username}"
+    
+    full_caption = f"🔥 <b>{clean_title}</b>\n\n{caption_body}"
 
     print("Sending finished video to Telegram...")
     sent = send_reel_to_telegram(output_processed_path, full_caption)
