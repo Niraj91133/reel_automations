@@ -36,9 +36,9 @@ def process_single_reel(video_file_path, reel_id, username="creator", reel_index
         print(f"Reel {reel_id} already processed before! Skipping to avoid duplicates.")
         return False
 
-    # 1. AI Analysis with Gemini Real Speech
-    print("Calling Gemini AI for real spoken audio analysis...")
-    ai_data = analyze_reel_content(video_file_path, creator_username=username)
+    # 1. AI Analysis with Gemini Real Speech (Viral SEO Mode)
+    print("Calling Gemini AI for real spoken audio analysis (Viral SEO Mode)...")
+    ai_data = analyze_reel_content(video_file_path, creator_username=username, category="startup")
     hook_pill = ai_data.get("hook_pill", "Must Watch")
     main_title = ai_data.get("main_title", "Important Lesson For Creators")
     sub_quote = ai_data.get("sub_quote", '"Stay consistent and build"')

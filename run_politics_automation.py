@@ -75,9 +75,9 @@ def process_politics_reel(video_file_path, reel_id, username="creator", reel_ind
         print(f"Reel {reel_id} already processed before in Politics DB. Skipping.")
         return False
 
-    # 1. AI Content Analysis with Gemini Real Audio
-    print("Calling Gemini AI for political/national speech analysis...")
-    ai_data = analyze_reel_content(video_file_path, creator_username=username)
+    # 1. AI Content Analysis with Gemini Real Audio (Viral SEO Mode)
+    print("Calling Gemini AI for political/national speech analysis (Viral SEO Mode)...")
+    ai_data = analyze_reel_content(video_file_path, creator_username=username, category="politics")
     hook_pill = ai_data.get("hook_pill", "Bharat Ki Awaz")
     main_title = ai_data.get("main_title", "Desh Ki Badi Khabar Aur Vishleshan")
     sub_quote = ai_data.get("sub_quote", '"Loktantra me janta ki awaz hi sabse badi taqat hai"')
