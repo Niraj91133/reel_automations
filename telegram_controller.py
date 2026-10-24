@@ -34,7 +34,16 @@ def send_telegram_msg(token, chat_id, text):
     }
     try:
         r = requests.post(url, json=payload, timeout=15)
-        return r.status_code == 200
+        if r.status_code == 200:
+            return True
+        else:
+            print(f"Telegram msg status {r.status_code}: {r.text}", flush=True)
+            # If 400 Bad Request (usually unclosed HTML tags), retry as plain text
+            if r.status_code == 400:
+                payload.pop("parse_mode", None)
+                r2 = requests.post(url, json=payload, timeout=15)
+                return r2.status_code == 200
+            return False
     except Exception as e:
         print(f"Failed to send Telegram msg: {e}", flush=True)
         return False
@@ -116,16 +125,61 @@ def poll_bot(token, bot_name, default_type):
     offset = None
     print(f"🤖 Listening for commands on {bot_name}...", flush=True)
     
+SCHEDULE_HOUR = 9
+SCHEDULE_MINUTE = 0
+last_auto_run_date = ""
+
+def daily_9am_scheduler():
+    """Runs automatically every day at 09:00 AM IST."""
+    global last_auto_run_date
+    print(f"⏰ [SCHEDULER] Daily 9:00 AM Auto-Scheduler thread active! (Target: {SCHEDULE_HOUR:02d}:{SCHEDULE_MINUTE:02d} AM IST)", flush=True)
+    
+    while True:
+        try:
+            now = datetime.now()
+            today_str = now.strftime("%Y-%m-%d")
+            
+            # Check if current time matches 9:00 AM and hasn't run yet today
+            if now.hour == SCHEDULE_HOUR and now.minute == SCHEDULE_MINUTE:
+                if last_auto_run_date != today_str:
+                    last_auto_run_date = today_str
+                    print(f"\n⏰ [SCHEDULER] 09:00 AM reached for date {today_str}! Triggering Daily Mega Batch...", flush=True)
+                    send_telegram_msg(
+                        STARTUP_BOT_TOKEN,
+                        STARTUP_CHAT_ID,
+                        f"☀️ <b>GOOD MORNING! 9:00 AM DAILY AUTOMATION TRIGGERED!</b>\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📅 <b>Date:</b> {now.strftime('%d-%b-%Y')} ({now.strftime('%A')})\n"
+                        f"⏰ Subah ke 9:00 baj chuke hain! Scheduled Mega Batch shuru ho rha hai...\n"
+                        f"1️⃣ <b>Startup:</b> 10 reels (@im_raaaj_)\n"
+                        f"2️⃣ <b>Politics:</b> 10 reels (@baatleaderki)\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"Videos deliver hona shuru ho jayengi 👇"
+                    )
+                    t = threading.Thread(
+                        target=run_job,
+                        args=("all", STARTUP_BOT_TOKEN, STARTUP_CHAT_ID, 10),
+                        daemon=True
+                    )
+                    t.start()
+        except Exception as e:
+            print(f"Error in daily scheduler: {e}", flush=True)
+        time.sleep(25)
+
+def poll_bot(token, bot_name, default_type):
+    offset = None
+    print(f"🤖 Listening for commands on {bot_name}...", flush=True)
+    
     # Target chat
     target_chat = STARTUP_CHAT_ID if default_type == "startup" else POLITICS_CHAT_ID
     welcome = (
         f"🤖 <b>{bot_name} Active & Listening!</b>\n\n"
-        f"Aap jab chahein ye command bhejein:\n"
-        f"👉 <code>/all</code> ➔ Startup & Politics dono ke 2-2 fresh reels banayega\n"
-        f"👉 <code>/all 5</code> ➔ Dono categories ke 5-5 reels banayega\n"
-        f"👉 <code>/run</code> ya <code>make</code> ➔ Current channel ke 2 reels banayega\n"
-        f"👉 <code>/run 10</code> ➔ 10 reels banayega\n"
-        f"👉 <code>/ping</code> ya <code>/status</code> ➔ Check karega bot active hai ya nahi"
+        f"⏰ <b>Auto-Schedule:</b> Har roz subah 9:00 AM automatically 10 reels banayega!\n\n"
+        f"Aap jab chahein manually ye command bhejein:\n"
+        f"👉 <code>/all 10</code> ➔ Dono categories ke 10-10 reels banayega\n"
+        f"👉 <code>/all</code> ➔ Dono ke 2-2 fresh reels banayega\n"
+        f"👉 <code>/run 10</code> ➔ Current channel ke 10 reels banayega\n"
+        f"👉 <code>/status</code> ya <code>/schedule</code> ➔ Check bot health & schedule"
     )
     send_telegram_msg(token, target_chat, welcome)
 
@@ -151,16 +205,24 @@ def poll_bot(token, bot_name, default_type):
 
                     print(f"[{bot_name}] Received message: '{text}' from chat {chat_id}", flush=True)
 
-                    # Quick ping/status response (0 seconds latency)
-                    if text in ["/ping", "ping", "/status", "status"]:
+                    # Quick ping/status/schedule response (0 seconds latency)
+                    if text in ["/ping", "ping", "/status", "status", "/schedule", "schedule", "/time", "time"]:
                         status_str = "🟡 PROCESSING" if is_processing else "🟢 IDLE (Ready for work)"
+                        now_dt = datetime.now()
+                        today_9am = now_dt.replace(hour=SCHEDULE_HOUR, minute=SCHEDULE_MINUTE, second=0, microsecond=0)
+                        if now_dt >= today_9am:
+                            next_run = "Kal subah 9:00 AM"
+                        else:
+                            next_run = "Aaj subah 9:00 AM"
+
                         send_telegram_msg(
                             token,
                             chat_id,
                             f"🤖 <b>Bot Status:</b> {status_str}\n"
                             f"• Active Task: {current_job_name or 'None'}\n"
-                            f"• Time: {datetime.now().strftime('%H:%M:%S')}\n"
-                            f"• Send <code>/all</code> to start generating videos!"
+                            f"• System Time: {now_dt.strftime('%I:%M:%S %p')}\n"
+                            f"• ⏰ <b>Daily Schedule:</b> Har subah 9:00 AM (Next: {next_run})\n"
+                            f"• ⚡ <b>Command:</b> <code>/all 10</code> ya <code>/run 10</code>"
                         )
                         continue
 
@@ -219,8 +281,13 @@ if __name__ == '__main__':
     t2 = threading.Thread(target=poll_bot, args=(POLITICS_BOT_TOKEN, "Politics Bot (@my_reel_news_bot)", "politics"), daemon=True)
     t2.start()
 
+    # Start thread for Daily 9:00 AM Scheduler
+    t_sched = threading.Thread(target=daily_9am_scheduler, daemon=True)
+    t_sched.start()
+
     print("\n✅ Dono Telegram bots ab active hain aur aapke messages ka wait kar rahe hain!", flush=True)
-    print("Aap Telegram par '/all', '/run' ya 'ping' bhej sakte hain.\n", flush=True)
+    print("⏰ Har roz subah 9:00 AM automatically 10-10 reels generate hongi.", flush=True)
+    print("Aap Telegram par kabhi bhi '/all 10', '/run' ya 'ping' bhej sakte hain.\n", flush=True)
 
     # Keep main alive
     try:

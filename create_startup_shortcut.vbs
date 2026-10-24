@@ -6,4 +6,3 @@ shortcut.Arguments = Chr(34) & "C:\Users\DHEERAJ\OneDrive\Desktop\Insta Video\ru
 shortcut.WorkingDirectory = "C:\Users\DHEERAJ\OneDrive\Desktop\Insta Video"
 shortcut.WindowStyle = 7
 shortcut.Save
-WScript.Echo "SUCCESS"

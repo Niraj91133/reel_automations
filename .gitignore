@@ -6,3 +6,4 @@ final_*
 *.jpg
 __pycache__/
 .pytest_cache/
+*.log

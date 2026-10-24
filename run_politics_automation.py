@@ -123,15 +123,27 @@ def process_politics_reel(video_file_path, reel_id, username="creator", reel_ind
         "-map", "0:a?",
         "-c:v", "libx264",
         "-preset", "medium",
-        "-crf", "17",
+        "-crf", "22",
         "-c:a", "aac",
-        "-b:a", "320k",
+        "-b:a", "256k",
         "-shortest",
         output_processed_path
     ]
     res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if res.returncode != 0:
         raise RuntimeError("FFmpeg processing failed for Politics reel")
+
+    # Ensure output is strictly under 50MB for Telegram
+    send_target_path = output_processed_path
+    if os.path.exists(output_processed_path) and os.path.getsize(output_processed_path) > 48 * 1024 * 1024:
+        comp_path = f"comp_{output_processed_path}"
+        subprocess.run([
+            "ffmpeg", "-y", "-i", output_processed_path,
+            "-c:v", "libx264", "-crf", "26", "-preset", "faster",
+            "-c:a", "aac", "-b:a", "128k", comp_path
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if os.path.exists(comp_path):
+            send_target_path = comp_path
 
     # 4. Formatted Caption
     now = datetime.now()
@@ -150,7 +162,7 @@ def process_politics_reel(video_file_path, reel_id, username="creator", reel_ind
     # 5. Send to Second Telegram Bot
     print(f"Sending finished Politics reel to Telegram Bot...")
     url = f"https://api.telegram.org/bot{POLITICS_BOT_TOKEN}/sendVideo"
-    with open(output_processed_path, "rb") as vf:
+    with open(send_target_path, "rb") as vf:
         r = requests.post(
             url,
             data={"chat_id": POLITICS_CHAT_ID, "caption": full_caption[:1024], "parse_mode": "HTML", "supports_streaming": True},
@@ -159,9 +171,25 @@ def process_politics_reel(video_file_path, reel_id, username="creator", reel_ind
         )
     sent = r.status_code == 200
 
+    if not sent:
+        # Fallback to plain text if HTML had parsing issue
+        with open(send_target_path, "rb") as vf:
+            r2 = requests.post(
+                url,
+                data={"chat_id": POLITICS_CHAT_ID, "caption": full_caption[:1024].replace("<b>","").replace("</b>",""), "supports_streaming": True},
+                files={"video": vf},
+                timeout=180
+            )
+            sent = r2.status_code == 200
+
     if sent:
         mark_politics_reel_processed(reel_id, username, main_title)
         print(f"Reel {reel_id} delivered to Politics Telegram bot successfully!")
+
+    # Cleanup temp
+    if send_target_path != output_processed_path and os.path.exists(send_target_path):
+        try: os.remove(send_target_path)
+        except: pass
 
     # Cleanup temp
     for f in [base_layer_path, circle_layer_path, output_processed_path, circle_img]:

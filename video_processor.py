@@ -52,9 +52,9 @@ def process_video_with_template(
         "-map", "0:a?",
         "-c:v", "libx264",
         "-preset", "medium", # High quality preset
-        "-crf", "17",        # Studio-grade visually lossless quality
+        "-crf", "22",        # Studio-grade crisp quality (stays safely under Telegram 50MB limit)
         "-c:a", "aac",
-        "-b:a", "320k",      # 320kbps high fidelity audio
+        "-b:a", "256k",      # High fidelity audio
         "-shortest",
         output_video_path
     ]
