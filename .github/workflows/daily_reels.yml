@@ -2,8 +2,8 @@ name: Daily Instagram Reel Automation
 
 on:
   schedule:
-    # Runs everyday at 03:30 UTC = 9:00 AM IST
-    - cron: '30 3 * * *'
+    # Runs everyday at 16:30 UTC = 10:00 PM IST
+    - cron: '30 16 * * *'
   workflow_dispatch:
 
 permissions:

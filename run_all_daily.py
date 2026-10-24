@@ -16,16 +16,16 @@ def run_daily_mega_batch(limit=10):
     date_str = now.strftime("%d-%b-%Y")
     
     print(f"==================================================", flush=True)
-    print(f"   9:00 AM SCHEDULED MEGA BATCH: {day_name} ({date_str})", flush=True)
+    print(f"   10:00 PM SCHEDULED MEGA BATCH: {day_name} ({date_str})", flush=True)
     print(f"==================================================", flush=True)
     
     send_telegram_msg(
         STARTUP_BOT_TOKEN,
         STARTUP_CHAT_ID,
-        f"☀️ <b>GOOD MORNING! 9:00 AM DAILY AUTOMATION TRIGGERED!</b>\n"
+        f"🌙 <b>DAILY 10:00 PM AUTOMATION TRIGGERED!</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━━\n"
         f"📅 <b>Date:</b> {date_str} ({day_name})\n"
-        f"⏰ Subah ke 9:00 baj chuke hain! Daily 10 reels automation shuru ho rha hai...\n"
+        f"⏰ Raat ke 10:00 baj chuke hain! Daily 10 reels automation shuru ho rha hai...\n"
         f"1️⃣ <b>Startup:</b> 10 reels (@im_raaaj_)\n"
         f"2️⃣ <b>Politics:</b> 10 reels (@baatleaderki)\n"
         f"━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -34,7 +34,7 @@ def run_daily_mega_batch(limit=10):
     
     # Live callback
     def notify(msg):
-        print(f"[DAILY 9AM] {msg}", flush=True)
+        print(f"[DAILY 10PM] {msg}", flush=True)
         send_telegram_msg(STARTUP_BOT_TOKEN, STARTUP_CHAT_ID, msg)
 
     # 1. Startup Batch
@@ -58,7 +58,7 @@ def run_daily_mega_batch(limit=10):
         notify(f"⚠️ Politics batch error: {e}")
 
     summary = (
-        f"🏆 <b>DAILY 9:00 AM BATCH COMPLETED!</b>\n"
+        f"🏆 <b>DAILY 10:00 PM BATCH COMPLETED!</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━━\n"
         f"• Startup Videos Delivered: <b>{c1}</b>\n"
         f"• Politics Videos Delivered: <b>{c2}</b>\n"
