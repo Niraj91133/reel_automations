@@ -3,6 +3,7 @@ import sys
 sys.stdout.reconfigure(encoding='utf-8')
 import time
 import re
+import sqlite3
 from playwright.sync_api import sync_playwright
 
 COOKIE_FILE = "cookies.txt"
@@ -10,6 +11,8 @@ STARTUP_THREAD_URL = "https://www.instagram.com/direct/t/101996904536119/"
 
 def parse_cookie_file(cookie_file):
     cookies = []
+    if not os.path.exists(cookie_file):
+        return cookies
     with open(cookie_file, 'r', encoding='utf-8') as f:
         for line in f:
             if line.startswith('#') or not line.strip():
@@ -26,11 +29,31 @@ def parse_cookie_file(cookie_file):
                 })
     return cookies
 
+def get_already_processed_shortcodes():
+    """Fetches already processed shortcodes from reels_history.db and politics_history.db."""
+    processed = set()
+    for db_file, tbl in [("reels_history.db", "processed_reels"), ("politics_history.db", "processed_politics_reels")]:
+        if os.path.exists(db_file):
+            try:
+                conn = sqlite3.connect(db_file)
+                c = conn.cursor()
+                c.execute(f"SELECT shortcode FROM {tbl}")
+                for row in c.fetchall():
+                    if row[0]:
+                        processed.add(row[0].strip())
+                conn.close()
+            except Exception:
+                pass
+    return processed
+
 def get_shared_reels_from_chat(max_count=10):
     print("Navigating to Instagram chat with @im_raaaj_ (Startup)...")
     cookies = parse_cookie_file(COOKIE_FILE)
-    reels = []
-    seen = set()
+    processed_codes = get_already_processed_shortcodes()
+    print(f"Loaded {len(processed_codes)} already-processed shortcodes from history databases.")
+
+    fresh_reels = []
+    seen_in_session = set()
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -50,23 +73,16 @@ def get_shared_reels_from_chat(max_count=10):
                 not_now.click()
                 time.sleep(1)
 
-            # Scroll up to load older messages
-            print("Step 1: Scrolling conversation history upwards in @im_raaaj_ chat...")
-            for _ in range(6):
-                page.mouse.move(600, 400)
-                page.mouse.wheel(0, -3000)
-                time.sleep(0.4)
+            # NOTE: Scan from bottom (newest messages first) upwards
+            print("Scanning @im_raaaj_ chat from the BOTTOM (newest messages first)...")
 
-            # Sweep downwards and click every reel card in right chat container
-            print("Step 2: Resolving interactive reel cards downwards in @im_raaaj_ chat...")
-            for step in range(12):
-                if len(reels) >= max_count:
+            for scroll_round in range(8):
+                if len(fresh_reels) >= max_count:
                     break
 
                 cards = page.query_selector_all("div[role='button']")
+                chat_cards = []
                 for card in cards:
-                    if len(reels) >= max_count:
-                        break
                     try:
                         box = card.bounding_box()
                         # Strict right-pane check (x > 350) and card dimensions
@@ -77,25 +93,41 @@ def get_shared_reels_from_chat(max_count=10):
                         if any(skip in card_text for skip in ['Message...', 'Search', 'Send message', 'Active']):
                             continue
 
-                        # Extract creator from card text
-                        creator = card_text.split()[0] if card_text else "creator"
+                        chat_cards.append((card, card_text, box['y']))
+                    except Exception:
+                        pass
 
+                # Sort cards by Y descending (bottom of page to top = newest to oldest!)
+                chat_cards.sort(key=lambda x: x[2], reverse=True)
+
+                for card, card_text, y in chat_cards:
+                    if len(fresh_reels) >= max_count:
+                        break
+
+                    creator = card_text.split()[0] if card_text else "creator"
+
+                    try:
                         card.click(timeout=2000)
-                        time.sleep(1.5)
+                        time.sleep(1.2)
 
                         cur_url = page.url
                         m = re.search(r"/(?:reel|p)/([^/?]+)", cur_url)
                         if m:
                             code = m.group(1)
-                            if code not in seen:
-                                seen.add(code)
-                                reels.append({
-                                    "shortcode": code,
-                                    "url": f"https://www.instagram.com/reel/{code}/",
-                                    "creator": creator
-                                })
-                                print(f"🎯 [{len(reels)}/{max_count}] Verified Startup Reel: https://www.instagram.com/reel/{code}/ (By @{creator})")
+                            if code not in seen_in_session:
+                                seen_in_session.add(code)
+                                is_already_done = code in processed_codes
+                                if not is_already_done:
+                                    fresh_reels.append({
+                                        "shortcode": code,
+                                        "url": f"https://www.instagram.com/reel/{code}/",
+                                        "creator": creator
+                                    })
+                                    print(f"🎯 [{len(fresh_reels)}/{max_count}] Verified Fresh Startup Reel: https://www.instagram.com/reel/{code}/ (By @{creator})")
+                                else:
+                                    print(f"⏩ Skipping already processed startup reel: {code} (By @{creator})")
 
+                            # Close reel modal dialog
                             close_btn = page.query_selector("svg[aria-label='Close']")
                             if close_btn:
                                 close_btn.click()
@@ -109,19 +141,23 @@ def get_shared_reels_from_chat(max_count=10):
                     except Exception:
                         pass
 
+                if len(fresh_reels) >= max_count:
+                    break
+
+                # Scroll upwards slightly to load preceding messages if more are needed
                 page.mouse.move(600, 400)
-                page.mouse.wheel(0, 1600)
-                time.sleep(0.5)
+                page.mouse.wheel(0, -1400)
+                time.sleep(1.0)
 
         except Exception as e:
             print("Chat extraction error:", e)
         finally:
             browser.close()
 
-    print(f"\nTotal Verified Reels strictly from @im_raaaj_ chat: {len(reels)}")
-    return reels
+    print(f"\nTotal Verified Fresh Startup Reels from @im_raaaj_ chat: {len(fresh_reels)}")
+    return fresh_reels
 
 if __name__ == '__main__':
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 10
     reels = get_shared_reels_from_chat(limit)
-    print("Found total:", len(reels))
+    print("Found total startup reels:", len(reels))

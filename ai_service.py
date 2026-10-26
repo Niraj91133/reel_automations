@@ -25,7 +25,7 @@ def extract_audio_from_video(video_path, output_audio_path="temp_audio.mp3"):
     return None
 
 def analyze_reel_content(video_file_path, creator_username="creator", category="startup"):
-    client = genai.Client(api_key=GEMINI_API_KEY)
+    client = genai.Client(api_key=GEMINI_API_KEY, http_options=types.HttpOptions(timeout=25000))
     audio_path = extract_audio_from_video(video_file_path, "reel_speech.mp3")
 
     if category == "politics":
@@ -108,7 +108,7 @@ def analyze_reel_content(video_file_path, creator_username="creator", category="
             mime_type="audio/mp3"
         )
 
-        for model_name in ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"]:
+        for model_name in ["gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-flash-latest", "gemini-3-flash-preview"]:
             try:
                 response = client.models.generate_content(
                     model=model_name,
@@ -123,21 +123,23 @@ def analyze_reel_content(video_file_path, creator_username="creator", category="
                 continue
 
         if os.path.exists(audio_path):
-            os.remove(audio_path)
+            try: os.remove(audio_path)
+            except: pass
 
     if not data:
+        # Dynamic fallback based on creator username so videos never share identical duplicate titles
         if category == "politics":
             data = {
                 "hook_pill": "Desh Ki Awaz",
-                "main_title": "Understanding Indian Constitutional Rights\nAnd Governance Framework",
-                "sub_quote": '"Loktantra me janta ki awaz hi sabse badi taqat hai."',
+                "main_title": f"Badi Baat Deshhit Ki\nBy @{creator_username}",
+                "sub_quote": f'"Rashtrahit aur loktantra me har nagrik ka jagruk hona zaroori hai."',
                 "caption": (
-                    f"Understanding the core pillars of Indian governance and public accountability 👇\n\n"
-                    f"📌 The Core Breakdown:\n"
-                    f"• Constitutional Rights: How legal provisions safeguard citizen democracy.\n"
-                    f"• Policy Impact: Why grassroot implementation matters for everyday citizens.\n"
-                    f"• Civic Awareness: The power of informed questions in a vibrant democracy.\n\n"
-                    f"💡 Key Takeaway: Democracy thrives when citizens stay informed and engaged.\n\n"
+                    f"Important perspectives and national discussion shared by @{creator_username} 👇\n\n"
+                    f"📌 Key Highlights:\n"
+                    f"• Civic Awareness: Understanding key issues shaping the nation today.\n"
+                    f"• Public Interest: Why informed citizens drive positive reform.\n"
+                    f"• National Perspective: Analyzing policies and their ground reality.\n\n"
+                    f"💡 Core Takeaway: A vibrant democracy thrives on dialogue and awareness.\n\n"
                     f"Save this reel for later 📌 | What are your thoughts on this? Tell us below 👇\n\n"
                     f"Credits & Speaker: @{creator_username}\n\n"
                     f"{sample_tags}"
@@ -145,16 +147,16 @@ def analyze_reel_content(video_file_path, creator_username="creator", category="
             }
         else:
             data = {
-                "hook_pill": "Billion Dollar Playbook",
-                "main_title": "The Strategic Playbook Behind\nModern High-Growth Businesses",
-                "sub_quote": '"Execution beats idea every single day in business."',
+                "hook_pill": "Founder Insights",
+                "main_title": f"The Strategic Playbook\nFrom @{creator_username}",
+                "sub_quote": f'"Execution and customer focus beat theory every single day."',
                 "caption": (
-                    f"Most people wait for the perfect idea, while successful founders focus on distribution 👇\n\n"
-                    f"📌 The Core Breakdown:\n"
-                    f"• High Margin Positioning: Finding unmet market demand with strong unit economics.\n"
-                    f"• Distribution First: Building organic customer acquisition channels before scaling spend.\n"
-                    f"• Cash Flow Discipline: Reinvesting retained earnings into repeatable systems.\n\n"
-                    f"💡 Key Takeaway: Real business success comes from relentless execution and tight margins.\n\n"
+                    f"Key business and entrepreneurial breakdown from @{creator_username} 👇\n\n"
+                    f"📌 Key Breakdown:\n"
+                    f"• Strategic Growth: Building scalable systems with strong unit economics.\n"
+                    f"• Practical Execution: Turning market insights into high-margin products.\n"
+                    f"• Long-Term Value: Cultivating customer trust and sustainable advantage.\n\n"
+                    f"💡 Core Takeaway: Real success comes from disciplined execution.\n\n"
                     f"Save this reel for later 📌 | Would you try this strategy? Drop your thoughts below 👇\n\n"
                     f"Credits & Speaker: @{creator_username}\n\n"
                     f"{sample_tags}"

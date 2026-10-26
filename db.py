@@ -24,7 +24,22 @@ def is_reel_processed(shortcode):
     cursor.execute("SELECT id FROM processed_reels WHERE shortcode = ?", (shortcode,))
     row = cursor.fetchone()
     conn.close()
-    return row is not None
+    if row is not None:
+        return True
+
+    # Also check politics_history.db to prevent duplicate reel generation across channels
+    if os.path.exists("politics_history.db"):
+        try:
+            conn_pol = sqlite3.connect("politics_history.db")
+            c_pol = conn_pol.cursor()
+            c_pol.execute("SELECT id FROM processed_politics_reels WHERE shortcode = ?", (shortcode,))
+            row_pol = c_pol.fetchone()
+            conn_pol.close()
+            if row_pol is not None:
+                return True
+        except:
+            pass
+    return False
 
 def mark_reel_processed(shortcode, username, title):
     conn = sqlite3.connect(DB_PATH)

@@ -7,3 +7,5 @@ final_*
 __pycache__/
 .pytest_cache/
 *.log
+ffmpeg.exe
+ffprobe.exe

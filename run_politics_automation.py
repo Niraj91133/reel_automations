@@ -37,7 +37,22 @@ def is_politics_reel_processed(shortcode):
     cursor.execute("SELECT id FROM processed_politics_reels WHERE shortcode = ?", (shortcode,))
     row = cursor.fetchone()
     conn.close()
-    return row is not None
+    if row is not None:
+        return True
+
+    # Also check reels_history.db to avoid duplicate reels across channels
+    if os.path.exists("reels_history.db"):
+        try:
+            conn_reels = sqlite3.connect("reels_history.db")
+            c_reels = conn_reels.cursor()
+            c_reels.execute("SELECT id FROM processed_reels WHERE shortcode = ?", (shortcode,))
+            row_reels = c_reels.fetchone()
+            conn_reels.close()
+            if row_reels is not None:
+                return True
+        except:
+            pass
+    return False
 
 def mark_politics_reel_processed(shortcode, username, title):
     conn = sqlite3.connect(POLITICS_DB_PATH)
