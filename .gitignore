@@ -9,3 +9,5 @@ __pycache__/
 *.log
 ffmpeg.exe
 ffprobe.exe
+PERMANENT_PAGE_TOKEN.txt
+
