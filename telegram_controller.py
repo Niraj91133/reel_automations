@@ -3,27 +3,33 @@ import sys
 import time
 import requests
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 
-# Import pipelines
+# Import startup pipeline and Instagram publisher
 from run_dm_automation import run_chat_automation
-from run_politics_automation import run_politics_daily_automation
+from instagram_publisher import INSTAGRAM_ACCOUNT_ID, PAGE_ACCESS_TOKEN, BASE_URL
 
 # Line buffering ensures logs flush immediately to disk/pipe
 sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
 
-# Bot 1: Startup Bot
-STARTUP_BOT_TOKEN = "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A"
-STARTUP_CHAT_ID = "711598335"
-
-# Bot 2: Politics Bot
-POLITICS_BOT_TOKEN = "8997893199:AAEUxCeRiVupFV9KElzdsni2kTre7klWteM"
-POLITICS_CHAT_ID = "5903254012"
+# Startup Road Bot Credentials
+STARTUP_BOT_TOKEN = os.environ.get("STARTUP_BOT_TOKEN", "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A")
+STARTUP_CHAT_ID = os.environ.get("STARTUP_CHAT_ID", "711598335")
 
 # Track if a job is actively running to prevent overlapping
 is_processing = False
 current_job_name = ""
 lock = threading.Lock()
+
+# 30-Posts Schedule State
+SCHEDULER_ENABLED = True
+DAILY_TARGET = 30
+START_HOUR = 6    # 06:00 AM IST
+END_HOUR = 22     # 10:00 PM IST
+INTERVAL_MINUTES = 32  # 16 hours / 30 reels = ~32 mins
+today_date_str = ""
+today_posts_count = 0
+next_scheduled_run = None
 
 def send_telegram_msg(token, chat_id, text):
     url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -38,7 +44,6 @@ def send_telegram_msg(token, chat_id, text):
             return True
         else:
             print(f"Telegram msg status {r.status_code}: {r.text}", flush=True)
-            # If 400 Bad Request (usually unclosed HTML tags), retry as plain text
             if r.status_code == 400:
                 payload.pop("parse_mode", None)
                 r2 = requests.post(url, json=payload, timeout=15)
@@ -48,140 +53,141 @@ def send_telegram_msg(token, chat_id, text):
         print(f"Failed to send Telegram msg: {e}", flush=True)
         return False
 
-def run_job(pipeline_type, token, chat_id, limit=2):
-    global is_processing, current_job_name
+def get_instagram_stats():
+    """Fetches real-time follower count and media count for @startup_road."""
+    try:
+        url = f"{BASE_URL}/{INSTAGRAM_ACCOUNT_ID}?fields=username,name,followers_count,media_count&access_token={PAGE_ACCESS_TOKEN}"
+        resp = requests.get(url, timeout=15)
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception as e:
+        print(f"Error fetching IG stats: {e}", flush=True)
+    return None
+
+def run_job(token, chat_id, limit=1, is_scheduled=False):
+    global is_processing, current_job_name, today_posts_count
     with lock:
         if is_processing:
             send_telegram_msg(token, chat_id, f"⚠️ <b>Ek task pehle se chal rha hai ({current_job_name})!</b>\nKripya thoda wait karein ya <code>/status</code> check karein.")
             return
         is_processing = True
-        current_job_name = f"{pipeline_type.upper()} ({limit} reels)"
+        current_job_name = f"STARTUP ROAD ({limit} reels)"
 
-    # Live callback function to notify user of every step
     def notify(msg):
-        print(f"[{pipeline_type.upper()}] {msg}", flush=True)
+        print(f"[STARTUP ROAD] {msg}", flush=True)
         send_telegram_msg(token, chat_id, msg)
 
     try:
-        if pipeline_type == "startup":
-            notify(f"🚀 <b>STARTUP BATCH TRIGGERED!</b>\nTarget: up to {limit} reels (@im_raaaj_)\nHar step ka live status yahan milega 👇")
-            count = run_chat_automation(max_reels=limit, target_chat_id=STARTUP_CHAT_ID, notify_callback=notify)
-            notify(f"🎉 <b>Startup Reels Batch Finished!</b> {count} videos delivered successfully!")
-
-        elif pipeline_type == "politics":
-            notify(f"🇮🇳 <b>POLITICS BATCH TRIGGERED!</b>\nTarget: up to {limit} reels (@baatleaderki)\nHar step ka live status yahan milega 👇")
-            count = run_politics_daily_automation(max_reels=limit, target_chat_id=POLITICS_CHAT_ID, notify_callback=notify)
-            notify(f"🎉 <b>Politics Reels Batch Finished!</b> {count} videos delivered successfully!")
-
-        elif pipeline_type == "all":
+        if is_scheduled:
             notify(
-                f"⚡ <b>MEGA BATCH TRIGGERED!</b>\n"
+                f"⏰ <b>AUTO-PILOT SLOT TRIGGERED! [Post #{today_posts_count + 1}/{DAILY_TARGET}]</b>\n"
                 f"━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"1️⃣ <b>Startup:</b> {limit} reels (@im_raaaj_ se) ➔ Startup Bot\n"
-                f"2️⃣ <b>Politics:</b> {limit} reels (@baatleaderki se) ➔ Politics Bot\n"
-                f"━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"⏱️ Live progress yahan update hogi, please wait..."
+                f"🎯 1 Fresh Reel (@im_raaaj_ ➔ @startup_road)\n"
+                f"Live status yahan update hoga 👇"
             )
-            
-            # Step 1: Startup batch
-            notify("▶️ <b>[Step 1/2] Startup Reels processing shuru ho rhi hai...</b>")
-            c1 = 0
-            try:
-                c1 = run_chat_automation(max_reels=limit, target_chat_id=STARTUP_CHAT_ID, notify_callback=notify)
-                notify(f"✅ <b>Startup Complete:</b> {c1} reels delivered!")
-            except Exception as e_start:
-                print("Error in startup batch:", e_start, flush=True)
-                notify(f"⚠️ Startup error: {e_start}")
-
-            time.sleep(3)
-
-            # Step 2: Politics batch
-            notify("▶️ <b>[Step 2/2] Politics Reels (@baatleaderki) processing shuru ho rhi hai...</b>")
-            c2 = 0
-            try:
-                c2 = run_politics_daily_automation(max_reels=limit, target_chat_id=POLITICS_CHAT_ID, notify_callback=notify)
-                notify(f"✅ <b>Politics Complete:</b> {c2} reels delivered!")
-            except Exception as e_pol:
-                print("Error in politics batch:", e_pol, flush=True)
-                notify(f"⚠️ Politics error: {e_pol}")
-            
+        else:
             notify(
-                f"🏆 <b>MEGA BATCH COMPLETED!</b>\n"
+                f"🚀 <b>MANUAL BATCH TRIGGERED!</b>\n"
                 f"━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"• Startup Videos Delivered: <b>{c1}</b>\n"
-                f"• Politics Videos Delivered: <b>{c2}</b>\n"
-                f"Dono Telegram channels par videos deliver ho chuki hain! 🚀"
+                f"🎯 Target: up to {limit} fresh reels (from @im_raaaj_)\n"
+                f"📱 Destination: Instagram <b>@startup_road</b>\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"Har step ka live status yahan update hoga 👇"
             )
 
+        count = run_chat_automation(max_reels=limit, target_chat_id=STARTUP_CHAT_ID, notify_callback=notify)
+        
+        if count > 0:
+            today_posts_count += count
+
+        notify(
+            f"🏆 <b>COMPLETED!</b>\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"• Reels Published This Run: <b>{count}</b>\n"
+            f"• Today's Total Progress: <b>{today_posts_count}/{DAILY_TARGET}</b> reels\n"
+            f"Instagram @startup_road par posts live ho chuki hain! 🚀"
+        )
     except Exception as e:
-        print(f"Error in job {pipeline_type}: {e}", flush=True)
+        print(f"Error in job: {e}", flush=True)
         send_telegram_msg(token, chat_id, f"❌ Error during processing: {str(e)}")
     finally:
         with lock:
             is_processing = False
             current_job_name = ""
 
-def poll_bot(token, bot_name, default_type):
-    offset = None
-    print(f"🤖 Listening for commands on {bot_name}...", flush=True)
+def auto_30_posts_scheduler():
+    """
+    Schedules 30 posts evenly between 6:00 AM and 10:00 PM IST (every ~32 minutes).
+    """
+    global today_date_str, today_posts_count, next_scheduled_run
+    print(f"⏰ [SCHEDULER] 30-Posts Schedule active! (6:00 AM to 10:00 PM IST, every {INTERVAL_MINUTES} mins)", flush=True)
     
-SCHEDULE_HOUR = 22  # 10:00 PM IST
-SCHEDULE_MINUTE = 0
-last_auto_run_date = ""
+    last_run_time = datetime.now()
+    next_scheduled_run = last_run_time + timedelta(minutes=INTERVAL_MINUTES)
 
-def daily_10pm_scheduler():
-    """Runs automatically every night at 10:00 PM (22:00) IST."""
-    global last_auto_run_date
-    print(f"⏰ [SCHEDULER] Daily 10:00 PM Auto-Scheduler thread active! (Target: 10:00 PM IST)", flush=True)
-    
     while True:
         try:
             now = datetime.now()
-            today_str = now.strftime("%Y-%m-%d")
-            
-            # Check if current time matches 10:00 PM and hasn't run yet today
-            if now.hour == SCHEDULE_HOUR and now.minute == SCHEDULE_MINUTE:
-                if last_auto_run_date != today_str:
-                    last_auto_run_date = today_str
-                    print(f"\n⏰ [SCHEDULER] 10:00 PM reached for date {today_str}! Triggering Daily Mega Batch...", flush=True)
-                    send_telegram_msg(
-                        STARTUP_BOT_TOKEN,
-                        STARTUP_CHAT_ID,
-                        f"🌙 <b>DAILY 10:00 PM AUTOMATION TRIGGERED!</b>\n"
-                        f"━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"📅 <b>Date:</b> {now.strftime('%d-%b-%Y')} ({now.strftime('%A')})\n"
-                        f"⏰ Raat ke 10:00 baj chuke hain! Scheduled Mega Batch shuru ho rha hai...\n"
-                        f"1️⃣ <b>Startup:</b> 10 reels (@im_raaaj_)\n"
-                        f"2️⃣ <b>Politics:</b> 10 reels (@baatleaderki)\n"
-                        f"━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"Videos deliver hona shuru ho jayengi 👇"
-                    )
+            today = now.strftime("%Y-%m-%d")
+
+            # Reset daily counter at midnight
+            if today_date_str != today:
+                today_date_str = today
+                today_posts_count = 0
+                last_run_time = None
+                print(f"🔄 Date reset to {today}. Daily counter reset to 0/{DAILY_TARGET}.", flush=True)
+
+            # Check if within window (06:00 AM to 10:00 PM)
+            in_window = (START_HOUR <= now.hour < END_HOUR) or (now.hour == END_HOUR and now.minute == 0)
+
+            if SCHEDULER_ENABLED and in_window and today_posts_count < DAILY_TARGET:
+                should_run = False
+                if last_run_time is None:
+                    should_run = True
+                elif (now - last_run_time).total_seconds() >= (INTERVAL_MINUTES * 60):
+                    should_run = True
+
+                if should_run and not is_processing:
+                    last_run_time = now
+                    next_scheduled_run = now + timedelta(minutes=INTERVAL_MINUTES)
+                    print(f"\n⏰ [SCHEDULER] Triggering scheduled post #{today_posts_count + 1}/{DAILY_TARGET} at {now.strftime('%I:%M:%S %p')}...", flush=True)
                     t = threading.Thread(
                         target=run_job,
-                        args=("all", STARTUP_BOT_TOKEN, STARTUP_CHAT_ID, 10),
+                        args=(STARTUP_BOT_TOKEN, STARTUP_CHAT_ID, 1, True),
                         daemon=True
                     )
                     t.start()
-        except Exception as e:
-            print(f"Error in daily scheduler: {e}", flush=True)
-        time.sleep(25)
+            elif not in_window:
+                # Outside window (after 10 PM, before 6 AM)
+                next_morning = now.replace(hour=START_HOUR, minute=0, second=0, microsecond=0)
+                if now.hour >= END_HOUR:
+                    next_morning += timedelta(days=1)
+                next_scheduled_run = next_morning
 
-def poll_bot(token, bot_name, default_type):
+        except Exception as e:
+            print(f"Error in scheduler loop: {e}", flush=True)
+
+        time.sleep(30)
+
+def poll_bot(token, bot_name):
+    global SCHEDULER_ENABLED
+    bot_start_time = time.time()
     offset = None
     print(f"🤖 Listening for commands on {bot_name}...", flush=True)
     
-    # Target chat
-    target_chat = STARTUP_CHAT_ID if default_type == "startup" else POLITICS_CHAT_ID
     welcome = (
-        f"🤖 <b>{bot_name} Active & Listening!</b>\n\n"
-        f"⏰ <b>Auto-Schedule:</b> Har roz raat 10:00 PM automatically 10 reels banayega!\n\n"
-        f"Aap jab chahein manually ye command bhejein:\n"
-        f"👉 <code>/all 10</code> ➔ Dono categories ke 10-10 reels banayega\n"
-        f"👉 <code>/all</code> ➔ Dono ke 2-2 fresh reels banayega\n"
-        f"👉 <code>/run 10</code> ➔ Current channel ke 10 reels banayega\n"
-        f"👉 <code>/status</code> ya <code>/schedule</code> ➔ Check bot health & schedule"
+        f"🤖 <b>Startup Road 24/7 Controller Active!</b>\n\n"
+        f"📱 <b>Target:</b> Instagram @startup_road\n"
+        f"⏰ <b>Auto-Schedule:</b> 30 Posts/Day (6:00 AM - 10:00 PM, har ~32 mins)\n\n"
+        f"<b>Available Commands:</b>\n"
+        f"👉 <code>/run 5</code> ➔ Abhi turant 5 reels publish karega\n"
+        f"👉 <code>/status</code> ➔ Check daily progress (e.g. 12/30) & next run\n"
+        f"👉 <code>/account</code> ➔ Live @startup_road stats\n"
+        f"👉 <code>/pause</code> ➔ Auto-scheduler ko pause karein\n"
+        f"👉 <code>/resume</code> ➔ Auto-scheduler ko resume karein\n"
+        f"👉 <code>/help</code> ➔ Show full guide"
     )
-    send_telegram_msg(token, target_chat, welcome)
+    send_telegram_msg(token, STARTUP_CHAT_ID, welcome)
 
     while True:
         try:
@@ -200,94 +206,120 @@ def poll_bot(token, bot_name, default_type):
                     chat_id = str(chat.get("id"))
                     text = (msg.get("text") or "").strip().lower()
 
+                    msg_date = msg.get("date", 0)
+                    if msg_date and msg_date < (bot_start_time - 300):
+                        continue
+
                     if not text:
                         continue
 
                     print(f"[{bot_name}] Received message: '{text}' from chat {chat_id}", flush=True)
 
-                    # Quick ping/status/schedule response (0 seconds latency)
-                    if text in ["/ping", "ping", "/status", "status", "/schedule", "schedule", "/time", "time"]:
-                        status_str = "🟡 PROCESSING" if is_processing else "🟢 IDLE (Ready for work)"
+                    # Status / Schedule
+                    if text in ["/status", "status", "/schedule", "schedule", "/ping", "ping"]:
+                        status_str = "🟡 PROCESSING" if is_processing else "🟢 IDLE (Ready)"
+                        sched_str = "🟢 ACTIVE (30 posts/day)" if SCHEDULER_ENABLED else "🔴 PAUSED"
+                        next_str = next_scheduled_run.strftime('%I:%M %p') if next_scheduled_run else "Pending"
                         now_dt = datetime.now()
-                        today_target = now_dt.replace(hour=SCHEDULE_HOUR, minute=SCHEDULE_MINUTE, second=0, microsecond=0)
-                        if now_dt >= today_target:
-                            next_run = "Kal raat 10:00 PM"
-                        else:
-                            next_run = "Aaj raat 10:00 PM"
 
                         send_telegram_msg(
                             token,
                             chat_id,
-                            f"🤖 <b>Bot Status:</b> {status_str}\n"
-                            f"• Active Task: {current_job_name or 'None'}\n"
-                            f"• System Time: {now_dt.strftime('%I:%M:%S %p')}\n"
-                            f"• ⏰ <b>Daily Schedule:</b> Har raat 10:00 PM (Next: {next_run})\n"
-                            f"• ⚡ <b>Command:</b> <code>/all 10</code> ya <code>/run 10</code>"
+                            f"🤖 <b>Startup Road Bot Status:</b>\n"
+                            f"━━━━━━━━━━━━━━━━━━━━━━\n"
+                            f"• <b>Status:</b> {status_str}\n"
+                            f"• <b>Auto-Schedule:</b> {sched_str}\n"
+                            f"• 📊 <b>Today's Progress:</b> <b>{today_posts_count} / {DAILY_TARGET}</b> Reels\n"
+                            f"• ⏰ <b>Next Auto-Run:</b> {next_str}\n"
+                            f"• ⏱️ <b>Window:</b> 06:00 AM - 10:00 PM IST (Har 32 min)\n"
+                            f"• <b>Active Task:</b> {current_job_name or 'None'}"
                         )
                         continue
 
-                    # Determine command and custom number
-                    pipeline = None
-                    limit = 2  # Default to 2 for instant execution (user can specify e.g. /all 5 or /run 10)
+                    # Pause/Resume
+                    if text in ["/pause", "pause", "stop"]:
+                        SCHEDULER_ENABLED = False
+                        send_telegram_msg(token, chat_id, "⏸️ <b>Auto-scheduler PAUSED!</b>\nAb automatically posts nahi honge. Resume karne ke liye <code>/resume</code> bhejein.")
+                        continue
+                    if text in ["/resume", "resume", "chalu"]:
+                        SCHEDULER_ENABLED = True
+                        send_telegram_msg(token, chat_id, "▶️ <b>Auto-scheduler RESUMED!</b>\n30 posts schedule ab wapas active hai.")
+                        continue
 
+                    # Account stats
+                    if text in ["/account", "account", "/stats", "stats", "/followers", "followers"]:
+                        stats = get_instagram_stats()
+                        if stats:
+                            send_telegram_msg(
+                                token,
+                                chat_id,
+                                f"📊 <b>Instagram @startup_road Stats:</b>\n"
+                                f"━━━━━━━━━━━━━━━━━━━━━━\n"
+                                f"• <b>Handle:</b> @{stats.get('username')}\n"
+                                f"• <b>Name:</b> {stats.get('name')}\n"
+                                f"• <b>Followers:</b> {stats.get('followers_count'):,}\n"
+                                f"• <b>Total Posts:</b> {stats.get('media_count')}\n"
+                                f"• <b>Meta API:</b> 🟢 100% Connected"
+                            )
+                        else:
+                            send_telegram_msg(token, chat_id, "⚠️ Could not fetch Instagram stats from Meta API.")
+                        continue
+
+                    # Run commands
                     parts = text.split()
                     raw_cmd = parts[0]
                     cmd = raw_cmd.split("@")[0]
+                    limit = 2
+
                     if len(parts) > 1 and parts[1].isdigit():
                         limit = int(parts[1])
 
-                    if cmd in ["/run", "run", "make", "banao", "start", "/start", "create", "generate"]:
-                        pipeline = default_type
-                    elif cmd in ["/all", "all", "dono", "/dono", "both", "/both", "mega", "/mega", "startall", "/startall"]:
-                        pipeline = "all"
-                    elif cmd in ["/politics", "politics", "bharat", "/bharat"]:
-                        pipeline = "politics"
-                    elif cmd in ["/startup", "startup"]:
-                        pipeline = "startup"
-                    elif cmd in ["/help", "help", "hi", "hello"]:
-                        help_text = (
-                            f"👋 <b>Automation Bot Commands:</b>\n\n"
-                            f"• <b>/all</b> ➔ Dono categories ek-sath run karega (Startup + Politics) aur dono par video bhejega\n"
-                            f"• <b>/all 5</b> ➔ 5 reels each banayega\n"
-                            f"• <b>/run</b> ➔ Current category ke reels banayega\n"
-                            f"• <b>/politics</b> ➔ Sirf Politics videos banayega\n"
-                            f"• <b>/startup</b> ➔ Sirf Startup videos banayega\n"
-                            f"• <b>/ping</b> ➔ Bot health check"
-                        )
-                        send_telegram_msg(token, chat_id, help_text)
+                    # Scout command: Finds trending reels and sends to @im_raaaj_ DM for review
+                    if cmd in ["/scout", "scout", "/find", "find", "khojo", "/khojo"]:
+                        from viral_reel_scout import scout_and_send_reels
+                        def notify_scout(m):
+                            send_telegram_msg(token, chat_id, m)
+                        send_telegram_msg(token, chat_id, f"🔍 <i>Viral Scout shuru ho rha hai... Top creators se {limit} viral reels dhoondh kar @im_raaaj_ DM me bhej rha hu...</i>")
+                        t_scout = threading.Thread(target=scout_and_send_reels, args=(limit, notify_scout), daemon=True)
+                        t_scout.start()
                         continue
 
-                    if pipeline:
-                        # Immediate confirmation so user sees response instantly
-                        send_telegram_msg(token, chat_id, f"⚡ <i>Command '{cmd}' received! Starting pipeline ({limit} reels)...</i>")
-                        t = threading.Thread(target=run_job, args=(pipeline, token, chat_id, limit), daemon=True)
+                    if cmd in ["/run", "run", "make", "banao", "start", "/start", "create", "generate"]:
+                        send_telegram_msg(token, chat_id, f"⚡ <i>Command received! Starting {limit} reels for @startup_road...</i>")
+                        t = threading.Thread(target=run_job, args=(token, chat_id, limit, False), daemon=True)
                         t.start()
+                    elif cmd in ["/help", "help", "hi", "hello"]:
+                        help_text = (
+                            f"👋 <b>Startup Road Automation Commands:</b>\n\n"
+                            f"• <b>/scout 5</b> ➔ Top creators se viral reels dhoondh kar @im_raaaj_ ke DM me bhejega review ke liye\n"
+                            f"• <b>/status</b> ➔ Check today's {today_posts_count}/{DAILY_TARGET} count & next run time\n"
+                            f"• <b>/run 5</b> ➔ Turant 5 reels process aur publish karega\n"
+                            f"• <b>/account</b> ➔ Live follower count aur stats dekhein\n"
+                            f"• <b>/pause</b> ➔ Schedule ko pause karein\n"
+                            f"• <b>/resume</b> ➔ Schedule ko wapas shuru karein"
+                        )
+                        send_telegram_msg(token, chat_id, help_text)
 
             time.sleep(1)
         except Exception as e:
-            # print("Polling error:", e, flush=True)
             time.sleep(3)
 
 if __name__ == '__main__':
     print("==================================================", flush=True)
-    print("    TELEGRAM COMMAND TRIGGER CONTROLLER           ", flush=True)
+    print("    STARTUP ROAD 30-POSTS/DAY CONTROLLER          ", flush=True)
     print("==================================================", flush=True)
     
-    # Start thread for Startup Bot listener
-    t1 = threading.Thread(target=poll_bot, args=(STARTUP_BOT_TOKEN, "Startup Bot (@my_reel_auto_bot)", "startup"), daemon=True)
+    # 1. Start thread for Startup Bot listener
+    t1 = threading.Thread(target=poll_bot, args=(STARTUP_BOT_TOKEN, "Startup Bot (@my_reel_auto_bot)"), daemon=True)
     t1.start()
 
-    # Start thread for Politics Bot listener
-    t2 = threading.Thread(target=poll_bot, args=(POLITICS_BOT_TOKEN, "Politics Bot (@my_reel_news_bot)", "politics"), daemon=True)
-    t2.start()
-
-    # Start thread for Daily 10:00 PM Scheduler
-    t_sched = threading.Thread(target=daily_10pm_scheduler, daemon=True)
+    # 2. Start thread for 30-Posts Schedule (6:00 AM to 10:00 PM)
+    t_sched = threading.Thread(target=auto_30_posts_scheduler, daemon=True)
     t_sched.start()
 
-    print("\n✅ Dono Telegram bots ab active hain aur aapke messages ka wait kar rahe hain!", flush=True)
-    print("⏰ Har roz raat 10:00 PM automatically 10-10 reels generate hongi.", flush=True)
-    print("Aap Telegram par kabhi bhi '/all 10', '/run' ya 'ping' bhej sakte hain.\n", flush=True)
+    print("\n✅ Startup Road 30-Posts/Day Controller ACTIVE!", flush=True)
+    print("⏰ Schedule: Har roz 6:00 AM se 10:00 PM tak har 32 minute me 1 reel post hogi.", flush=True)
+    print("Aap Telegram par kabhi bhi '/status', '/run 5' ya '/account' bhej sakte hain.\n", flush=True)
 
     # Keep main alive
     try:

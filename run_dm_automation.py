@@ -11,8 +11,10 @@ from telegram_sender import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-def send_daily_batch_start_message(day_name, date_str, total_found):
+def send_daily_batch_start_message(day_name, date_str, total_found, target_chat_id=None):
     """Sends a clear header message in Telegram before sending the daily reels."""
+    from telegram_sender import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+    chat_id = target_chat_id or TELEGRAM_CHAT_ID
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     text = (
         f"☀️ <b>GOOD MORNING! TODAY'S REEL AUTOMATION BATCH</b>\n"
@@ -21,10 +23,10 @@ def send_daily_batch_start_message(day_name, date_str, total_found):
         f"🗓️ <b>Date:</b> {date_str}\n"
         f"🎯 <b>Found:</b> {total_found} new shared reels ready to process!\n"
         f"━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"<i>Processing and sending 10 ready-to-post reels below 👇</i>"
+        f"<i>Processing and sending {total_found} ready-to-post reels below 👇</i>"
     )
     try:
-        requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML"}, timeout=15)
+        requests.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"}, timeout=15)
     except:
         pass
 
@@ -43,8 +45,8 @@ def run_chat_automation(max_reels=10, target_chat_id=None, notify_callback=None)
     if notify_callback:
         notify_callback(f"🔍 <b>Startup:</b> Instagram DM (@im_raaaj_) se reels fetch kar rha hu...")
 
-    # Fetch candidate reels from im_raaaj_ chat
-    reels = get_shared_reels_from_chat(max_count=25)
+    # Fetch candidate reels from im_raaaj_ chat (optimized to fetch just enough)
+    reels = get_shared_reels_from_chat(max_count=max(max_reels, 3))
     if not reels:
         print("No shared reels found in @im_raaaj_ chat.")
         try:
@@ -84,7 +86,7 @@ def run_chat_automation(max_reels=10, target_chat_id=None, notify_callback=None)
     total_today = len(target_reels)
 
     # 1. Send Day Header announcement in Telegram
-    send_daily_batch_start_message(day_name, date_str, total_today)
+    send_daily_batch_start_message(day_name, date_str, total_today, target_chat_id=chat_id)
 
     processed_count = 0
     for idx, item in enumerate(target_reels, start=1):
@@ -108,12 +110,13 @@ def run_chat_automation(max_reels=10, target_chat_id=None, notify_callback=None)
                     reel_id=shortcode,
                     username=creator,
                     reel_index=idx,
-                    total_reels=total_today
+                    total_reels=total_today,
+                    target_chat_id=chat_id
                 )
                 if success:
                     processed_count += 1
                     if notify_callback:
-                        notify_callback(f"🚀 <b>[Startup {idx}/{total_today}]</b> Delivered to Startup Channel! ✅")
+                        notify_callback(f"🚀 <b>[Startup {idx}/{total_today}]</b> Delivered to Telegram & Published to @startup_road! ✅")
             except Exception as e:
                 print(f"Error processing reel {shortcode}:", e)
                 if notify_callback:

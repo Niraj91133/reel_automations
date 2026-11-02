@@ -11,6 +11,7 @@ from db import init_db, is_reel_processed, mark_reel_processed
 from ai_service import analyze_reel_content
 from video_processor import process_video_with_template
 from telegram_sender import send_reel_to_telegram
+from instagram_publisher import publish_reel_pipeline
 
 def extract_thumbnail_for_circle(video_path, output_img_path="circle_hook.jpg"):
     cmd = [
@@ -26,7 +27,7 @@ def extract_thumbnail_for_circle(video_path, output_img_path="circle_hook.jpg"):
         return output_img_path
     return None
 
-def process_single_reel(video_file_path, reel_id, username="creator", reel_index=1, total_reels=10):
+def process_single_reel(video_file_path, reel_id, username="creator", reel_index=1, total_reels=10, target_chat_id=None):
     print(f"\n==========================================")
     print(f"Processing Reel {reel_index}/{total_reels}: {reel_id} (Creator: @{username})")
     print(f"==========================================")
@@ -72,7 +73,31 @@ def process_single_reel(video_file_path, reel_id, username="creator", reel_index
     full_caption = f"🔥 <b>{clean_title}</b>\n\n{caption_body}"
 
     print("Sending finished video to Telegram...")
-    sent = send_reel_to_telegram(output_processed_path, full_caption)
+    sent, public_video_url = send_reel_to_telegram(output_processed_path, full_caption, target_chat_id=target_chat_id)
+
+    # 5. Official Meta Graph API Auto-Publish to @startup_road
+    insta_permalink = None
+    if sent and public_video_url:
+        print("🚀 Auto-publishing Reel to @startup_road via Official Meta Graph API...", flush=True)
+        clean_insta_caption = f"🔥 {clean_title}\n\n{caption_body}"
+        try:
+            insta_result = publish_reel_pipeline(public_video_url, clean_insta_caption, creator_username=username)
+            if insta_result and "permalink" in insta_result:
+                insta_permalink = insta_result["permalink"]
+                print(f"🏆 Reel successfully published on Instagram! Link: {insta_permalink}", flush=True)
+                # Send confirmation message to Telegram
+                try:
+                    from telegram_sender import TELEGRAM_BOT_TOKEN
+                    notify_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+                    requests.post(notify_url, json={
+                        "chat_id": str(target_chat_id or "711598335"),
+                        "text": f"🎉 <b>Reel LIVE on Instagram (@startup_road)!</b>\n\n🔗 <b>Watch here:</b>\n{insta_permalink}",
+                        "parse_mode": "HTML"
+                    }, timeout=15)
+                except Exception as e_notif:
+                    print(f"Note: Could not send insta link to telegram: {e_notif}", flush=True)
+        except Exception as e_pub:
+            print(f"❌ Instagram publishing error: {e_pub}", flush=True)
 
     if sent:
         mark_reel_processed(reel_id, username, main_title)
@@ -80,9 +105,11 @@ def process_single_reel(video_file_path, reel_id, username="creator", reel_index
     
     # Clean up local temporary files
     if os.path.exists(output_processed_path):
-        os.remove(output_processed_path)
+        try: os.remove(output_processed_path)
+        except: pass
     if circle_img and os.path.exists(circle_img):
-        os.remove(circle_img)
+        try: os.remove(circle_img)
+        except: pass
 
     return sent
 

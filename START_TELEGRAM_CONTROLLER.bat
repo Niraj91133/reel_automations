@@ -1,14 +1,16 @@
 @echo off
-title Instagram Reels Telegram Controller
+title Startup Road 24/7 Controller & Auto-Publisher
 cd /d "%~dp0"
 echo ========================================================
-echo    TELEGRAM 24/7 COMMAND CONTROLLER (Startup + Politics)
+echo    STARTUP ROAD AUTOMATION & AUTO-PUBLISHING CONTROLLER
 echo ========================================================
 echo.
-echo Startup Bot:  @my_reel_auto_bot (/startup, /run)
-echo Politics Bot: @my_reel_news_bot (/politics, /run)
+echo Source Chat:   Instagram DM (@im_raaaj_)
+echo Destination:   Instagram Account (@startup_road)
+echo Telegram Bot:  @my_reel_auto_bot (/run, /account, /status)
+echo Auto-Schedule: Daily 10:00 PM IST
 echo.
-echo Starting controller service...
+echo Starting 24/7 service...
 echo.
 
 python telegram_controller.py

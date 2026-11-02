@@ -76,7 +76,8 @@ def get_politics_reels_from_chat(max_count=10):
             # NOTE: We do NOT scroll up to the top. The newest messages reside at the BOTTOM!
             print("Scanning @baatleaderki chat from the BOTTOM (newest messages first)...")
 
-            for scroll_round in range(8):
+            max_scroll_rounds = max(15, max_count * 2)
+            for scroll_round in range(max_scroll_rounds):
                 if len(fresh_reels) >= max_count:
                     break
 

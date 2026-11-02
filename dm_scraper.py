@@ -76,7 +76,8 @@ def get_shared_reels_from_chat(max_count=10):
             # NOTE: Scan from bottom (newest messages first) upwards
             print("Scanning @im_raaaj_ chat from the BOTTOM (newest messages first)...")
 
-            for scroll_round in range(8):
+            max_scroll_rounds = max(15, max_count * 2)
+            for scroll_round in range(max_scroll_rounds):
                 if len(fresh_reels) >= max_count:
                     break
 
@@ -85,13 +86,32 @@ def get_shared_reels_from_chat(max_count=10):
                 for card in cards:
                     try:
                         box = card.bounding_box()
-                        # Strict right-pane check (x > 350) and card dimensions
-                        if not box or box['x'] < 350 or box['width'] < 100 or box['height'] < 150:
+                        if not box or box['width'] < 100 or box['height'] < 150:
                             continue
 
                         card_text = card.inner_text().strip().replace('\n', ' ')
+                        print(f"DEBUG CARD: x={box['x']:.1f}, w={box['width']:.1f}, h={box['height']:.1f}, txt={card_text[:30]}", flush=True)
+
+                        # Robust outgoing detection:
+                        # 1. CSS flex alignment check on parent containers (flex-end = outgoing)
+                        # 2. Coordinate check: incoming messages from @im_raaaj_ sit on the left (x < 540)
+                        is_outgoing = card.evaluate("""el => {
+                            let art = el.closest('div[role="article"]') || el.parentElement;
+                            let p1 = art ? art.parentElement : null;
+                            let p2 = p1 ? p1.parentElement : null;
+                            let j1 = p1 ? window.getComputedStyle(p1).justifyContent : '';
+                            let j2 = p2 ? window.getComputedStyle(p2).justifyContent : '';
+                            let a1 = p1 ? window.getComputedStyle(p1).alignItems : '';
+                            let a2 = p2 ? window.getComputedStyle(p2).alignItems : '';
+                            return j1.includes('end') || j2.includes('end') || a1.includes('end') || a2.includes('end');
+                        }""")
+
+                        if is_outgoing or box['x'] >= 540 or box['x'] < 350:
+                            continue
+
                         if any(skip in card_text for skip in ['Message...', 'Search', 'Send message', 'Active']):
                             continue
+
 
                         chat_cards.append((card, card_text, box['y']))
                     except Exception:

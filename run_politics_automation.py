@@ -238,7 +238,7 @@ def run_politics_daily_automation(max_reels=10, target_chat_id=None, notify_call
     if notify_callback:
         notify_callback(f"🔍 <b>Politics:</b> @baatleaderki chat se reels fetch kar rha hu...")
 
-    reels = get_politics_reels_from_chat(max_count=25)
+    reels = get_politics_reels_from_chat(max_count=max(max_reels, 25))
     if not reels:
         print("No shared reels found in @baatleaderki chat.")
         msg_text = "⚠️ <b>Politics Update:</b> @baatleaderki chat me koi shared reels nahi mili!"

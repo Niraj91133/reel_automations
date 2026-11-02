@@ -1,16 +1,22 @@
-name: Daily Instagram Reel Automation
+name: Startup Road Cloud Reel Automation
 
 on:
   schedule:
-    # Runs everyday at 16:30 UTC = 10:00 PM IST
-    - cron: '30 16 * * *'
+    # Runs everyday at 00:30 UTC (6:00 AM IST) and 10:30 UTC (4:00 PM IST)
+    - cron: '30 0 * * *'
+    - cron: '30 10 * * *'
   workflow_dispatch:
+    inputs:
+      reel_count:
+        description: 'Number of reels to generate & publish'
+        required: true
+        default: '5'
 
 permissions:
   contents: write
 
 jobs:
-  process-reels:
+  process-and-publish:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -31,27 +37,21 @@ jobs:
           pip install yt-dlp pillow google-genai requests playwright
           playwright install --with-deps chromium
 
-      - name: Run Pipeline 1: Startup Channel (im_raaaj_ -> Bot 1)
+      - name: Run Startup Road Pipeline (im_raaaj_ -> @startup_road)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PAGE_ACCESS_TOKEN: ${{ secrets.PAGE_ACCESS_TOKEN || 'EAAhE6xjRCjsBSZCd3fgqJoUWapdxBk04aDy4ufC7Dt2g79hhSLH2f5M0OZCbYSLtr3ZAZB5Q4ovYCBUORa8G5zeB4l2ZBfdYjBOTjXAwKFq9cZBfYZBEWjIvjH0E17kceTkpTwZAsVKatVNA2TBfhh9ilzMY1y4wXepzD1dXgBAtx0xTDoy11O20zhgH0ZAuDyfFm3B1pl0g1NTvZBLvkeZBmpccEft84iLLCdI5QKk6cJs7QZDZD' }}
+          INSTAGRAM_ACCOUNT_ID: "17841464149880503"
           TELEGRAM_BOT_TOKEN: "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A"
           TELEGRAM_CHAT_ID: "711598335"
         run: |
           . venv/bin/activate
-          python run_dm_automation.py 10 || true
+          COUNT="${{ github.event.inputs.reel_count || '5' }}"
+          python run_dm_automation.py "$COUNT" || true
 
-      - name: Run Pipeline 2: Politics Channel (baatleaderki -> News Bot)
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          POLITICS_BOT_TOKEN: "8997893199:AAEUxCeRiVupFV9KElzdsni2kTre7klWteM"
-          POLITICS_CHAT_ID: "5903254012"
-        run: |
-          . venv/bin/activate
-          python run_politics_automation.py 10 || true
-
-      - name: Commit & Push Updated Databases (To prevent duplicates)
+      - name: Commit & Push Updated Databases (Prevent duplicates)
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git add reels_history.db politics_history.db
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto: Update history DBs [skip ci]" && git push)
+          git add reels_history.db
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto: Update history DB [skip ci]" && git push)

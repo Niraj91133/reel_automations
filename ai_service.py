@@ -16,75 +16,71 @@ def extract_audio_from_video(video_path, output_audio_path="temp_audio.mp3"):
         "-acodec", "libmp3lame",
         "-ar", "16000",
         "-ac", "1",
-        "-b:a", "64k",
+        "-b:a", "32k",
         output_audio_path
     ]
+
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if os.path.exists(output_audio_path):
         return output_audio_path
     return None
 
 def analyze_reel_content(video_file_path, creator_username="creator", category="startup"):
-    client = genai.Client(api_key=GEMINI_API_KEY, http_options=types.HttpOptions(timeout=25000))
+    client = genai.Client(api_key=GEMINI_API_KEY, http_options=types.HttpOptions(timeout=180.0))
     audio_path = extract_audio_from_video(video_file_path, "reel_speech.mp3")
 
-    if category == "politics":
-        category_context = """
-        CATEGORY: Politics / National Affairs / Legal / Geopolitics / Deshhit (India).
-        SEO KEYWORDS THEME: Indian politics, constitutional rights, governance analysis, Supreme Court, economic policy, national issues, parliament debates.
-        TONE: Hard-hitting, analytical, patriotic, investigative, highly engaging.
-        """
-        sample_tags = "#IndianPolitics #CurrentAffairs #Bharat #DeshHit #SupremeCourt #LegalRights #Constitution #NationalNews"
-    else:
-        category_context = """
-        CATEGORY: Startup / Business / Entrepreneurship / Case Studies / Wealth Building.
-        SEO KEYWORDS THEME: High-margin business ideas, founder playbook, marketing breakdown, no-code AI, profitable side hustles, startup case study, revenue models.
-        TONE: Actionable, value-dense, high-curiosity, aspirational, practical masterclass.
-        """
-        sample_tags = "#StartupIndia #BusinessCaseStudy #Entrepreneurship #BusinessIdeas #WealthBuilding #MarketingStrategy #FounderPlaybook"
+
+    category_context = """
+    BRAND / CHANNEL: Startup Road • The Founder Mindset (@startup_road).
+    NICHE: High-Growth Startups, Business Case Studies, Entrepreneurship, Zero-to-One, Founder Mindset, Revenue Breakdowns.
+    SEO KEYWORDS THEME: High-margin business models, founder secrets, scalable startup systems, marketing breakdown, revenue formulas, business case study India, unit economics.
+    TONE: Actionable, value-dense, high-curiosity, aspirational, practical masterclass for aspiring founders and business minds.
+    """
+    sample_tags = "#StartupRoad #FounderMindset #StartupIndia #BusinessCaseStudy #Entrepreneurship #BusinessIdeas #WealthBuilding #MarketingStrategy"
 
     prompt = f"""
-    You are an elite Instagram Reels Viral Content Strategist & Growth Hacker who has scaled multiple pages to 10M+ reach.
-    Listen to this audio track very carefully. The speaker is talking in Hindi / Hinglish / English.
+    You are the Head of Viral Content & Reels Growth for @startup_road (Startup Stories, Founder Mindset & Business Insights).
+    Listen to this audio track very carefully. The speaker is talking in Hindi, Hinglish, or English.
     The original creator/speaker is @{creator_username}.
 
     {category_context}
 
-    YOUR MISSION: Craft a viral Instagram Reel metadata package designed to maximize:
-    1. Watch Time & Retention (Open loops & scroll-stopping hook)
-    2. Instagram Search Engine Optimization (SEO) (Weaving in high-search-intent keywords in the first 2 lines)
-    3. Saves & Shares (Actionable structured breakdown that viewers must save)
-    4. Comment Velocity (Polarizing or discussion-provoking closing question)
+    YOUR MISSION: Craft a viral Instagram Reel metadata package based STRICTLY on what the speaker says:
+    1. Watch Time & Retention: Extract the single most surprising fact, number, or business lesson in the audio for the hook.
+    2. Instagram Search Engine Optimization (SEO): Weave high-search-intent keywords in the first 2 lines.
+    3. Saves & Shares: Provide an actionable 3-point structured breakdown of the speaker's advice that viewers MUST save.
+    4. Comment Velocity: Ask a sharp, discussion-provoking question at the end.
 
     STRICT JSON FIELD INSTRUCTIONS:
 
     1. "hook_pill":
-       - 3 to 4 words ONLY (ALL CAPS or Title Case).
-       - Extreme high-contrast curiosity badge for the top sticker (e.g. "₹82L REVENUE FORMULA", "DON'T START BEFORE THIS", "SUPREME COURT VERDICT", "3 NO-CODE AI TOOLS").
+       - 3 to 4 words ONLY (ALL CAPS).
+       - High-contrast curiosity sticker badge (e.g. "₹82L REVENUE FORMULA", "ZERO TO 1 PLAYBOOK", "AVOID THIS MISTAKE", "SCALING TO 10X").
 
     2. "main_title":
-       - Exactly 2 lines separated by \\n (maximum 8-10 words total).
-       - Must contain the highest-volume search phrase spoken by the speaker in Title Case.
-       - Ultra-specific (Never use vague titles like "Important Life Lesson").
+       - Exactly 2 lines separated by \\n (maximum 7-9 words total).
+       - Must capture the core idea of what is spoken in the audio in Title Case.
+       - Ultra-specific to the topic spoken (DO NOT use generic titles like "Important Business Lesson").
 
     3. "sub_quote":
-       - An authentic, memorable punchline actually spoken by the speaker in the audio, enclosed in double quotes.
+       - An authentic, powerful punchline actually spoken by the speaker in the audio, in double quotes.
 
     4. "caption":
        - Write a brutal, viral, high-converting Instagram SEO caption strictly structured as:
          
-         [1-Sentence Scroll-Stopping Hook containing high-volume search keywords and an open loop] 👇
+         [1-Sentence Scroll-Stopping Hook about the exact business topic in audio] 👇
          
-         📌 The Core Breakdown:
-         • [Actionable Point 1 - Specific fact, number, or business/policy mechanic from audio]
-         • [Actionable Point 2 - The exact execution step or core insight explained]
-         • [Actionable Point 3 - The outcome, consequence, or strategic takeaway]
+         📌 The Founder Breakdown:
+         • [Point 1: Specific execution step or mechanism explained by speaker]
+         • [Point 2: Core business model, unit economics, or market insight]
+         • [Point 3: Key takeaway or strategic advantage]
          
-         💡 Key Takeaway: [1 punchy contrarian sentence or golden rule from the speaker]
+         💡 Golden Rule: [1 punchy quote or golden takeaway from the audio]
          
-         Save this reel for later 📌 | What are your thoughts on this? Tell us below 👇
+         Save this reel for later 📌 | What are your thoughts on this strategy? Drop them below 👇
          
          Credits & Speaker: @{creator_username}
+         Follow @startup_road for daily founder playbooks & business insights.
          
          {sample_tags}
 
@@ -99,69 +95,74 @@ def analyze_reel_content(video_file_path, creator_username="creator", category="
 
     data = None
     if audio_path and os.path.exists(audio_path):
-        print(f"Passing speech audio ({os.path.getsize(audio_path)} bytes) to Gemini AI for Viral SEO analysis ({category.upper()})...")
-        with open(audio_path, "rb") as f:
-            audio_bytes = f.read()
+        print(f"Passing speech audio ({os.path.getsize(audio_path)} bytes) to Gemini AI via Google Files API for @startup_road Viral SEO analysis...", flush=True)
+        uploaded_file = None
+        try:
+            # Use Google GenAI Files API to prevent socket write timeouts on Windows
+            uploaded_file = client.files.upload(file=audio_path)
+            
+            for model_name in ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.5-flash-lite"]:
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=[uploaded_file, prompt]
+                    )
+                    text = response.text.strip().replace("```json", "").replace("```", "").strip()
+                    data = json.loads(text)
+                    print(f"✅ Gemini successfully analyzed audio with {model_name} (Custom SEO formatted for @startup_road)!", flush=True)
+                    break
+                except Exception as e:
+                    print(f"Audio analysis note with {model_name}: {e}", flush=True)
+                    continue
+        except Exception as e_upload:
+            print(f"Google Files API upload error: {e_upload}, trying direct bytes fallback...", flush=True)
+            if audio_path and os.path.exists(audio_path):
+                try:
+                    with open(audio_path, "rb") as f:
+                        audio_bytes = f.read()
+                    audio_part = types.Part.from_bytes(data=audio_bytes, mime_type="audio/mp3")
+                    for model_name in ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"]:
+                        try:
+                            response = client.models.generate_content(
+                                model=model_name,
+                                contents=[audio_part, prompt]
+                            )
+                            text = response.text.strip().replace("```json", "").replace("```", "").strip()
+                            data = json.loads(text)
+                            print(f"✅ Gemini successfully analyzed audio via direct bytes with {model_name}!", flush=True)
+                            break
+                        except Exception as e_inner:
+                            print(f"Direct bytes note with {model_name}: {e_inner}", flush=True)
+                except Exception as e_direct:
+                    print(f"Direct bytes fallback error: {e_direct}", flush=True)
+        finally:
+            if uploaded_file and hasattr(uploaded_file, "name"):
+                try: client.files.delete(name=uploaded_file.name)
+                except: pass
+            if os.path.exists(audio_path):
+                try: os.remove(audio_path)
+                except: pass
 
-        audio_part = types.Part.from_bytes(
-            data=audio_bytes,
-            mime_type="audio/mp3"
-        )
-
-        for model_name in ["gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-flash-latest", "gemini-3-flash-preview"]:
-            try:
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=[audio_part, prompt]
-                )
-                text = response.text.strip().replace("```json", "").replace("```", "").strip()
-                data = json.loads(text)
-                print(f"Gemini successfully analyzed spoken audio with {model_name} (Viral SEO formatted)!")
-                break
-            except Exception as e:
-                print(f"Audio analysis error with {model_name}:", e)
-                continue
-
-        if os.path.exists(audio_path):
-            try: os.remove(audio_path)
-            except: pass
 
     if not data:
-        # Dynamic fallback based on creator username so videos never share identical duplicate titles
-        if category == "politics":
-            data = {
-                "hook_pill": "Desh Ki Awaz",
-                "main_title": f"Badi Baat Deshhit Ki\nBy @{creator_username}",
-                "sub_quote": f'"Rashtrahit aur loktantra me har nagrik ka jagruk hona zaroori hai."',
-                "caption": (
-                    f"Important perspectives and national discussion shared by @{creator_username} 👇\n\n"
-                    f"📌 Key Highlights:\n"
-                    f"• Civic Awareness: Understanding key issues shaping the nation today.\n"
-                    f"• Public Interest: Why informed citizens drive positive reform.\n"
-                    f"• National Perspective: Analyzing policies and their ground reality.\n\n"
-                    f"💡 Core Takeaway: A vibrant democracy thrives on dialogue and awareness.\n\n"
-                    f"Save this reel for later 📌 | What are your thoughts on this? Tell us below 👇\n\n"
-                    f"Credits & Speaker: @{creator_username}\n\n"
-                    f"{sample_tags}"
-                )
-            }
-        else:
-            data = {
-                "hook_pill": "Founder Insights",
-                "main_title": f"The Strategic Playbook\nFrom @{creator_username}",
-                "sub_quote": f'"Execution and customer focus beat theory every single day."',
-                "caption": (
-                    f"Key business and entrepreneurial breakdown from @{creator_username} 👇\n\n"
-                    f"📌 Key Breakdown:\n"
-                    f"• Strategic Growth: Building scalable systems with strong unit economics.\n"
-                    f"• Practical Execution: Turning market insights into high-margin products.\n"
-                    f"• Long-Term Value: Cultivating customer trust and sustainable advantage.\n\n"
-                    f"💡 Core Takeaway: Real success comes from disciplined execution.\n\n"
-                    f"Save this reel for later 📌 | Would you try this strategy? Drop your thoughts below 👇\n\n"
-                    f"Credits & Speaker: @{creator_username}\n\n"
-                    f"{sample_tags}"
-                )
-            }
+        # Dynamic fallback tailored to creator and @startup_road
+        data = {
+            "hook_pill": "FOUNDER PLAYBOOK",
+            "main_title": f"The Growth Blueprint\nFrom @{creator_username}",
+            "sub_quote": f'"Disciplined execution beats raw talent every single day."',
+            "caption": (
+                f"High-impact business insights from @{creator_username} 👇\n\n"
+                f"📌 The Founder Breakdown:\n"
+                f"• Strategic Growth: Building scalable systems with strong unit economics.\n"
+                f"• Practical Execution: Turning market insights into high-margin products.\n"
+                f"• Long-Term Value: Cultivating customer trust and sustainable advantage.\n\n"
+                f"💡 Golden Rule: Focus on retention and value creation first.\n\n"
+                f"Save this reel for later 📌 | What are your thoughts on this strategy? Drop them below 👇\n\n"
+                f"Credits & Speaker: @{creator_username}\n"
+                f"Follow @startup_road for daily founder playbooks & business insights.\n\n"
+                f"{sample_tags}"
+            )
+        }
 
     return data
 
