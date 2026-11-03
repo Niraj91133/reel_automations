@@ -251,34 +251,41 @@ def scout_money_making_reels(target_count=10, notify_callback=None):
 
         # Step 2: Deliver into @im_raaaj_ DM chat
         print(f"\n📨 Delivering {len(discovered_candidates)} 'Comment XYZ / Earning' reels to @im_raaaj_ DM chat...", flush=True)
-        page.goto(STARTUP_THREAD_URL, timeout=45000, wait_until='networkidle')
-        time.sleep(4)
+        page.goto(STARTUP_THREAD_URL, timeout=35000, wait_until='domcontentloaded')
+        time.sleep(3)
 
         not_now_dm = page.query_selector("button:has-text('Not Now')")
         if not_now_dm:
             try: not_now_dm.click()
             except: pass
 
-        input_box_dm = page.query_selector('div[role="textbox"]')
-        if not input_box_dm:
-            input_box_dm = page.query_selector('div[contenteditable="true"]')
-
         sent_count = 0
-        if input_box_dm:
-            for item in discovered_candidates:
-                try:
-                    reel_link = item["url"]
-                    creator_name = item["creator"]
-                    views_info = item["views"]
+        for item in discovered_candidates:
+            try:
+                input_box_dm = page.query_selector('div[role="textbox"]') or page.query_selector('div[contenteditable="true"]')
+                if not input_box_dm:
+                    time.sleep(1)
+                    input_box_dm = page.query_selector('div[role="textbox"]') or page.query_selector('div[contenteditable="true"]')
 
-                    input_box_dm.click()
-                    time.sleep(0.4)
-                    page.keyboard.type(reel_link, delay=25)
-                    time.sleep(0.4)
+                if not input_box_dm:
+                    continue
+
+                reel_link = item["url"]
+                creator_name = item["creator"]
+                views_info = item["views"]
+
+                input_box_dm.click()
+                time.sleep(0.4)
+                page.keyboard.type(reel_link, delay=25)
+                time.sleep(1.0)
+                send_btn = page.query_selector('div[role="button"]:has-text("Send"), button:has-text("Send"), svg[aria-label="Send"]')
+                if send_btn:
+                    send_btn.click()
+                else:
                     page.keyboard.press("Enter")
-                    time.sleep(2.5)
+                time.sleep(3.0)
 
-                    mark_scouted(item["shortcode"], creator_name, reel_link, views_info)
+                mark_scouted(item["shortcode"], creator_name, reel_link, views_info)
                     sent_count += 1
                     print(f"  ✅ [Sent {sent_count}/{len(discovered_candidates)}] Delivered to @im_raaaj_: {reel_link} (Views: {views_info} | @{creator_name})", flush=True)
                 except Exception as e:

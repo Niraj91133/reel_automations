@@ -55,8 +55,18 @@ def get_shared_reels_from_chat(max_count=10):
     fresh_reels = []
     seen_in_session = set()
 
+    chromium_args = [
+        "--disable-dev-shm-usage",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+        "--renderer-process-limit=2",
+        "--blink-settings=imagesEnabled=false",
+        "--mute-audio",
+        "--disable-background-networking"
+    ]
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, args=chromium_args)
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             viewport={"width": 1280, "height": 900}
@@ -64,8 +74,16 @@ def get_shared_reels_from_chat(max_count=10):
         context.add_cookies(cookies)
         page = context.new_page()
 
+        # Anti-Crash Memory Saver: Block images, video streams, and fonts
+        def block_heavy(route):
+            if route.request.resource_type in ["image", "media", "font"]:
+                route.abort()
+            else:
+                route.continue_()
+        page.route("**/*", block_heavy)
+
         try:
-            page.goto(STARTUP_THREAD_URL, timeout=45000, wait_until="networkidle")
+            page.goto(STARTUP_THREAD_URL, timeout=35000, wait_until="domcontentloaded")
             time.sleep(3)
 
             not_now = page.query_selector("button:has-text('Not Now')")

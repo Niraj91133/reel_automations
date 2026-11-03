@@ -23,6 +23,7 @@ def ensure_video_for_delivery(video_path):
     import subprocess
     cmd = [
         "ffmpeg", "-y",
+        "-threads", "2",
         "-i", video_path,
         "-c:v", "libx264",
         "-crf", "28",
@@ -38,10 +39,11 @@ def ensure_video_for_delivery(video_path):
             crf_31_path = f"c31_{os.path.basename(video_path)}"
             cmd2 = [
                 "ffmpeg", "-y",
+                "-threads", "2",
                 "-i", video_path,
                 "-c:v", "libx264",
                 "-crf", "31",
-                "-preset", "fast",
+                "-preset", "faster",
                 "-c:a", "aac",
                 "-b:a", "96k",
                 crf_31_path

@@ -49,9 +49,10 @@ def get_latest_reels_from_profile(username="uxwithraaj", max_count=10):
     print(f"Found {len(reels)} reels for @{username}")
     return reels
 
-def download_reel_video(reel_url, output_path="downloaded_reel.mp4"):
+def download_reel_video(reel_url, output_path="downloaded_reel.mp4", return_meta=False):
     """
-    Downloads highest quality reel video using yt-dlp with authenticated cookies.
+    Downloads highest quality reel video using yt-dlp with authenticated cookies,
+    and optionally extracts original description, title, view_count, and creator metadata.
     """
     print(f"Downloading reel via yt-dlp: {reel_url}")
     ydl_opts = {
@@ -63,15 +64,24 @@ def download_reel_video(reel_url, output_path="downloaded_reel.mp4"):
         'no_warnings': True,
         'overwrites': True
     }
+    meta = {}
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([reel_url])
+            info = ydl.extract_info(reel_url, download=True)
+            if info:
+                meta = {
+                    "title": info.get("title", ""),
+                    "description": info.get("description", ""),
+                    "like_count": info.get("like_count", 0),
+                    "view_count": info.get("view_count", 0),
+                    "creator": info.get("uploader", "")
+                }
         if os.path.exists(output_path):
             print(f"Successfully downloaded: {output_path} ({os.path.getsize(output_path)} bytes)")
-            return output_path
+            return (output_path, meta) if return_meta else output_path
     except Exception as e:
         print("Download error:", e)
-    return None
+    return (None, meta) if return_meta else None
 
 if __name__ == '__main__':
     reels = get_latest_reels_from_profile("uxwithraaj", 5)

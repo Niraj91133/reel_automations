@@ -10,4 +10,5 @@ __pycache__/
 ffmpeg.exe
 ffprobe.exe
 PERMANENT_PAGE_TOKEN.txt
+scratch/
 

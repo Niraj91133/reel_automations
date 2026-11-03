@@ -1,0 +1,24 @@
+{
+  "channel_id": "trading_pulse",
+  "display_name": "Trading Road",
+  "instagram_username": "trading_road_",
+  "email": "tradingroad24@gmail.com",
+  "category": "trading",
+  "description": "Chart Patterns, Price Action, Trading Psychology & Risk Management",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "AQ.Ab8RN6L_xQmU1J8gKZGTwwtNFax7rY8LbPKXui1XX4Qr6sqvAA",
+    "instagram_account_id": "17841479926101159",
+    "page_access_token": "EAAhE6xjRCjsBSxITZAnDFZAK9A5DaQoUi5e51mZAzUM35bylfPN0DSRifJjn7LLVsC7CZBGa6f8Vy6QqylhHdGbFqVPNWYpZAHb69I5cbHoEU4QKnS28uVAbCxKoZBQOGZA5efhpXa4nocQso1tdoTg2ESDnY6j2s9CPYZBfWxLToSL0asp7G5EpRIc2z1FuhsWYp4fZB8levkNHq3ZCl3FM582Pjq9pOpYqrCT5jbSQG8yuO1aQZDZD",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  },
+  "content_settings": {
+    "dm_target_chat": "im_raaaj_",
+    "default_hook_pill": "TRADER TRUTH",
+    "tag_text": "TRADING ALPHA:",
+    "theme_color_primary": [14, 165, 233, 255],
+    "theme_color_accent": [239, 68, 68, 255],
+    "daily_post_limit": 15
+  }
+}

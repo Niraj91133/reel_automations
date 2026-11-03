@@ -99,7 +99,8 @@ def run_chat_automation(max_reels=10, target_chat_id=None, notify_callback=None)
 
         temp_video = f"temp_{shortcode}.mp4"
         print(f"\n📥 Downloading Reel ({idx}/{total_today}): {reel_url}...")
-        downloaded = download_reel_video(reel_url, temp_video)
+        res = download_reel_video(reel_url, temp_video, return_meta=True)
+        downloaded, meta = res if isinstance(res, tuple) else (res, {})
 
         if downloaded and os.path.exists(downloaded):
             try:
@@ -111,7 +112,8 @@ def run_chat_automation(max_reels=10, target_chat_id=None, notify_callback=None)
                     username=creator,
                     reel_index=idx,
                     total_reels=total_today,
-                    target_chat_id=chat_id
+                    target_chat_id=chat_id,
+                    meta=meta
                 )
                 if success:
                     processed_count += 1
@@ -123,7 +125,11 @@ def run_chat_automation(max_reels=10, target_chat_id=None, notify_callback=None)
                     notify_callback(f"⚠️ Error in reel {shortcode}: {e}")
             finally:
                 if os.path.exists(temp_video):
-                    os.remove(temp_video)
+                    try: os.remove(temp_video)
+                    except: pass
+                import gc
+                gc.collect()
+                time.sleep(3) # Safe cooldown between video renders
         else:
             print(f"Could not download reel {shortcode}")
 

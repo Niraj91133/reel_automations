@@ -1,0 +1,24 @@
+{
+  "channel_id": "healthy_diet",
+  "display_name": "Gudtree",
+  "instagram_username": "gudtree_",
+  "email": "gudtree@gmail.com",
+  "category": "health",
+  "description": "Clean Packaged Foods, Diet Knowledge, Hidden Ingredients, Nutrition Truth",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "AQ.Ab8RN6LmmqOO4T6TzFpFA91B53GR4PQWIW3flrWWW7DG1UcNnw",
+    "instagram_account_id": "17841478828143472",
+    "page_access_token": "EAAhE6xjRCjsBS6c09eGSFle6BOhSlfg0WfOl14kMxCD9eQPW6fLkZB1P3sPUHZBhZAtTeVowwf7LnJxdxZB30yz5ZA1SFzq3dEl6TAPmMOPo4h9ZB1Rul1ROixxwwZB89QafSYIygfXgIXZB47hUbboAUd8wRD5mkcZC5vRO4bkOp04nZC8RBGAVWmM8pfB3xE57aRCMbxEDBEZCZCSVjvr19ONTP2kDg0GGwxqcgUZBrLXTss8ZBAZCQZDZD",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  },
+  "content_settings": {
+    "dm_target_chat": "im_raaaj_",
+    "default_hook_pill": "HEALTH TRUTH",
+    "tag_text": "DIET & HEALTH:",
+    "theme_color_primary": [16, 185, 129, 255],
+    "theme_color_accent": [255, 255, 255, 255],
+    "daily_post_limit": 15
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "channel_id": "startup_road",
+  "display_name": "Startup Road",
+  "category": "startup",
+  "description": "Business, Startup Lessons, Founder Interviews & Hustle Psychology",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "AQ.Ab8RN6Jr6PeTkcHjbHdcXpRsOV-2tkC3UNhNod8kAn-6_4acWw",
+    "instagram_account_id": "17841464149880503",
+    "page_access_token": "EAAhE6xjRCjsBS9QW3YqZCbdjNM6vFgREntYNLVmYctuKqhvHSYm7tZBBZBQlSZA6TKg0zKn7oZBO3iFKuomLKuJIZAZAiZCmF176vGyrLYTlB2QrDXmfZBrFKMZCqcTgBg52ljuWymuTvBWpLFEZBDWFapjByjSiNd8G7aESyqOKCEZBQTqkEGUYgrrcZCPR3C5dbnCK75AIF",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  },
+  "content_settings": {
+    "dm_target_chat": "im_raaaj_",
+    "default_hook_pill": "STARTUP SECRETS",
+    "tag_text": "STARTUP:",
+    "theme_color_primary": [225, 29, 72, 255],
+    "theme_color_accent": [255, 255, 255, 255],
+    "daily_post_limit": 20
+  }
+}

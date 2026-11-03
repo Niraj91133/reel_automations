@@ -1,0 +1,12 @@
+{
+  "channels": [
+    "startup_road",
+    "healthy_diet",
+    "trading_pulse",
+    "viral_finds"
+  ],
+  "default_model": "gemini-3.1-flash-lite",
+  "meta_app_version": "v21.0",
+  "master_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+  "admin_chat_id": "711598335"
+}

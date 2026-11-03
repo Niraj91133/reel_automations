@@ -34,16 +34,17 @@ def process_video_with_template(
         circle_img_path=circle_img_path
     )
 
-    print("Rendering Ultra-HD video with FFmpeg (CRF 17, Lanczos scaling)...")
+    print("Rendering Ultra-HD video with FFmpeg (Low CPU, safe threads)...")
     # Ultra-HD Filter Graph
     cmd = [
         "ffmpeg", "-y",
+        "-threads", "2",
         "-i", input_video_path,
         "-loop", "1", "-i", base_layer_path,
         "-loop", "1", "-i", circle_layer_path,
         "-filter_complex",
         (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease:flags=lanczos,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease:flags=bicubic,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
             "[vid][1:v]overlay=0:0[with_base];"
             "[2:v]fade=t=out:st=4.3:d=0.7:alpha=1[circle_faded];"
             "[with_base][circle_faded]overlay=0:0:enable='between(t,0,5)'[v_out]"
@@ -51,10 +52,10 @@ def process_video_with_template(
         "-map", "[v_out]",
         "-map", "0:a?",
         "-c:v", "libx264",
-        "-preset", "medium", # High quality preset
-        "-crf", "22",        # Studio-grade crisp quality (stays safely under Telegram 50MB limit)
+        "-preset", "fast",
+        "-crf", "23",
         "-c:a", "aac",
-        "-b:a", "256k",      # High fidelity audio
+        "-b:a", "192k",
         "-shortest",
         output_video_path
     ]
