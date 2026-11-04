@@ -36,6 +36,35 @@ CHANNEL_DISPLAY = {
     "viral_finds": ("🛍️ Trending Road", "@trending_road")
 }
 
+def resolve_channel(query):
+    """Normalizes natural names or abbreviations to standard channel_id."""
+    if not query:
+        return "startup_road"
+    q = str(query).lower().strip().replace("@", "").replace("-", "_").replace(" ", "_")
+    alias_map = {
+        "startup": "startup_road",
+        "startup_road": "startup_road",
+        "startuproad": "startup_road",
+        "gudtree": "healthy_diet",
+        "gudtree_": "healthy_diet",
+        "health": "healthy_diet",
+        "diet": "healthy_diet",
+        "healthy_diet": "healthy_diet",
+        "healthydiet": "healthy_diet",
+        "trading": "trading_pulse",
+        "trading_pulse": "trading_pulse",
+        "tradingpulse": "trading_pulse",
+        "trading_road": "trading_pulse",
+        "tradingroad": "trading_pulse",
+        "trending": "viral_finds",
+        "viral": "viral_finds",
+        "viral_finds": "viral_finds",
+        "viralfinds": "viral_finds",
+        "trending_road": "viral_finds",
+        "finds": "viral_finds"
+    }
+    return alias_map.get(q, q)
+
 def send_telegram(chat_id, text, parse_mode="HTML", reply_markup=None):
     url = f"https://api.telegram.org/bot{MASTER_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": str(chat_id), "text": text, "parse_mode": parse_mode}
@@ -84,12 +113,13 @@ def get_main_menu_markup():
     }
 
 def get_channel_menu_markup(ch_id):
-    """Submenu for a specific channel offering Hunt, Cloud-Schedule, or Direct Post."""
+    """Submenu for a specific channel offering Hunt, Cloud-Schedule, Make/Ready, or Direct Post."""
     name, uname = CHANNEL_DISPLAY.get(ch_id, (ch_id, ""))
     return {
         "inline_keyboard": [
             [
-                {"text": "📅 Cloud-Schedule 25 for Tomorrow", "callback_data": f"sched:25:{ch_id}"}
+                {"text": "⚡ Make & Ready 30 Reels", "callback_data": f"make:30:{ch_id}"},
+                {"text": "📅 Cloud-Schedule 25", "callback_data": f"sched:25:{ch_id}"}
             ],
             [
                 {"text": "🏹 Hunt 5 Reels (Send to Raj)", "callback_data": f"hunt:5:{ch_id}"},
@@ -145,15 +175,28 @@ def run_isolated_job(channel_id, limit=1, notify_chat_id=None, is_preview=False)
             send_telegram(chat_id, f"⚠️ Ek process already chal raha hai (<b>{current_job_name}</b>). Wait karo.")
             return
         is_processing = True
-        current_job_name = f"POSTING: {channel_id}"
+        current_job_name = f"PROCESSING: {channel_id} ({limit} reels)"
 
     try:
         cfg = get_channel_config(channel_id)
         name, uname = CHANNEL_DISPLAY.get(channel_id, (channel_id, ""))
-        mode_str = "Preview on TG" if is_preview else "Direct Feed Post"
-        send_telegram(chat_id, f"🚀 <b>Processing 1 Reel for [{name}]</b> ({mode_str})...")
-        count = process_channel_pipeline(channel_id, max_reels=limit)
-        send_telegram(chat_id, f"✅ <b>Job Finished:</b> [{name}] processed {count} reel(s).", reply_markup=get_main_menu_markup())
+        mode_str = "🎬 Preview on Telegram (No IG Post)" if is_preview else "🚀 Live Feed Post (Instagram + Telegram)"
+        send_telegram(
+            chat_id,
+            f"🚀 <b>Starting [{name}] Processing Pipeline!</b>\n"
+            f"• Target Reels: <b>{limit}</b>\n"
+            f"• Mode: <b>{mode_str}</b>\n"
+            f"• Sourcing: Raj-approved reels from @im_raaaj_ / inbox\n\n"
+            f"<i>Video rendering in progress. Updates yahan aayenge 👇</i>"
+        )
+        count = process_channel_pipeline(channel_id, max_reels=limit, dry_run=is_preview)
+        send_telegram(
+            chat_id,
+            f"✅ <b>Job Finished for [{name}]!</b>\n"
+            f"Total <b>{count}</b> reel(s) successfully processed & delivered.\n"
+            f"Destination: {'Telegram Preview Only' if is_preview else 'Instagram LIVE & Telegram'}",
+            reply_markup=get_main_menu_markup()
+        )
     except Exception as e:
         send_telegram(chat_id, f"❌ <b>Job Error [{channel_id}]:</b> {e}", reply_markup=get_main_menu_markup())
     finally:
@@ -314,6 +357,16 @@ def handle_telegram_updates():
                             t.daemon = True
                             t.start()
 
+                        elif cq_data.startswith("make:"):
+                            parts = cq_data.split(":")
+                            count = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 30
+                            target_ch = parts[2]
+                            is_prev = (delivery_mode == "preview")
+                            answer_callback(cq_id, f"Processing {count} reels for {target_ch}...")
+                            t = threading.Thread(target=run_isolated_job, args=(target_ch, count, from_chat, is_prev))
+                            t.daemon = True
+                            t.start()
+
                         elif cq_data.startswith("post:"):
                             parts = cq_data.split(":")
                             is_prev = (parts[1] == "preview")
@@ -335,21 +388,110 @@ def handle_telegram_updates():
                         cmd_parts = text.split()
                         cmd = cmd_parts[0].lower()
 
-                        if cmd in ["/start", "/menu", "/help", "/status", "/dash"]:
+                        if cmd in ["/start", "/menu", "/dash"]:
                             send_telegram(chat_id, get_channel_summary(), reply_markup=get_main_menu_markup())
 
-                        elif cmd == "/schedule_tomorrow":
+                        elif cmd in ["/help", "/commands"]:
+                            help_text = (
+                                "📖 <b>TELEGRAM QUICK COMMANDS GUIDE</b>\n"
+                                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                                "⚡ <b>Make / Ready Reels (Render & Produce):</b>\n"
+                                "• <code>/make startup 30</code> (Startup Road - 30 reels)\n"
+                                "• <code>/make gudtree 30</code> (Gudtree - 30 reels)\n"
+                                "• <code>/make trading 30</code> (Trading Road - 30 reels)\n"
+                                "• <code>/make trending 30</code> (Trending Road - 30 reels)\n"
+                                "<i>(Shortcut: simply type <code>startup 30</code> or <code>gudtree 30</code>)</i>\n\n"
+                                "🏹 <b>Viral Hunting (Scout from Competitors to Raj):</b>\n"
+                                "• <code>/hunt startup 30</code> (ya 80)\n"
+                                "• <code>/hunt gudtree 30</code>\n"
+                                "• <code>/hunt trading 30</code>\n"
+                                "• <code>/hunt trending 30</code>\n"
+                                "• <code>/hunt_all</code> (Hunt for all 4 channels)\n\n"
+                                "📅 <b>Meta Cloud-Scheduling (For Tomorrow):</b>\n"
+                                "• <code>/schedule startup 25</code>\n"
+                                "• <code>/schedule gudtree 25</code>\n"
+                                "• <code>/schedule_tomorrow</code> (Schedule all 4 channels)\n\n"
+                                "⚙️ <b>Settings & Mode:</b>\n"
+                                "• <code>/mode direct</code> (Live Instagram Feed Post + Telegram)\n"
+                                "• <code>/mode preview</code> (Delivered to Telegram ONLY - No IG Post)\n"
+                                "• <code>/status</code> (Real-time account & queue status)\n"
+                                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                                "<i>Ya niche /menu bhejkar 1-Click buttons use karein!</i>"
+                            )
+                            send_telegram(chat_id, help_text, reply_markup=get_main_menu_markup())
+
+                        elif cmd in ["/status"]:
+                            send_telegram(chat_id, get_channel_summary(), reply_markup=get_main_menu_markup())
+
+                        elif cmd in ["/schedule_tomorrow", "/sched_all"]:
                             t = threading.Thread(target=run_all_cloud_schedules, args=(chat_id,))
                             t.daemon = True
                             t.start()
 
-                        elif cmd == "/hunt":
-                            target_ch = cmd_parts[1].lower() if len(cmd_parts) > 1 else "startup_road"
-                            hunt_lim = int(cmd_parts[2]) if len(cmd_parts) > 2 and cmd_parts[2].isdigit() else 80
+                        elif cmd in ["/hunt_all", "/huntall"]:
+                            t = threading.Thread(target=run_all_hunts, args=(chat_id,))
+                            t.daemon = True
+                            t.start()
+
+                        elif cmd in ["/make", "/process", "/create", "/render"]:
+                            target_raw = cmd_parts[1] if len(cmd_parts) > 1 else "startup"
+                            target_ch = resolve_channel(target_raw)
+                            count = int(cmd_parts[2]) if len(cmd_parts) > 2 and cmd_parts[2].isdigit() else 30
+                            is_prev = (delivery_mode == "preview")
                             if target_ch in list_available_channels():
-                                t = threading.Thread(target=run_hunt_job, args=(target_ch, hunt_lim, chat_id))
+                                t = threading.Thread(target=run_isolated_job, args=(target_ch, count, chat_id, is_prev))
                                 t.daemon = True
                                 t.start()
+                            else:
+                                send_telegram(chat_id, f"❌ Channel '{target_raw}' nahi mila!\nValid: <code>startup</code>, <code>gudtree</code>, <code>trading</code>, <code>trending</code>")
+
+                        elif cmd in ["/hunt", "/scout"]:
+                            target_raw = cmd_parts[1] if len(cmd_parts) > 1 else "startup"
+                            target_ch = resolve_channel(target_raw)
+                            count = int(cmd_parts[2]) if len(cmd_parts) > 2 and cmd_parts[2].isdigit() else 80
+                            if target_ch in list_available_channels():
+                                t = threading.Thread(target=run_hunt_job, args=(target_ch, count, chat_id))
+                                t.daemon = True
+                                t.start()
+                            else:
+                                send_telegram(chat_id, f"❌ Channel '{target_raw}' nahi mila!\nValid: <code>startup</code>, <code>gudtree</code>, <code>trading</code>, <code>trending</code>")
+
+                        elif cmd in ["/schedule", "/sched"]:
+                            target_raw = cmd_parts[1] if len(cmd_parts) > 1 else "startup"
+                            target_ch = resolve_channel(target_raw)
+                            count = int(cmd_parts[2]) if len(cmd_parts) > 2 and cmd_parts[2].isdigit() else 25
+                            if target_ch in list_available_channels():
+                                t = threading.Thread(target=run_cloud_schedule_job, args=(target_ch, count, chat_id))
+                                t.daemon = True
+                                t.start()
+                            else:
+                                send_telegram(chat_id, f"❌ Channel '{target_raw}' nahi mila!\nValid: <code>startup</code>, <code>gudtree</code>, <code>trading</code>, <code>trending</code>")
+
+                        elif cmd in ["/post"]:
+                            target_raw = cmd_parts[1] if len(cmd_parts) > 1 else "startup"
+                            target_ch = resolve_channel(target_raw)
+                            count = int(cmd_parts[2]) if len(cmd_parts) > 2 and cmd_parts[2].isdigit() else 1
+                            if target_ch in list_available_channels():
+                                t = threading.Thread(target=run_isolated_job, args=(target_ch, count, chat_id, False))
+                                t.daemon = True
+                                t.start()
+
+                        elif cmd in ["/mode"]:
+                            if len(cmd_parts) > 1 and cmd_parts[1].lower() in ["direct", "preview"]:
+                                delivery_mode = cmd_parts[1].lower()
+                            else:
+                                delivery_mode = "preview" if delivery_mode == "direct" else "direct"
+                            mode_name = "🚀 DIRECT POST (Instagram LIVE & Telegram)" if delivery_mode == "direct" else "🎬 PREVIEW ONLY (Telegram Delivered, Not on Instagram)"
+                            send_telegram(chat_id, f"🔄 Delivery mode switched to:\n<b>{mode_name}</b>", reply_markup=get_main_menu_markup())
+
+                        # Natural shortcut syntax: "startup 30", "gudtree 30", "trading 30", "trending 30"
+                        elif len(cmd_parts) >= 2 and resolve_channel(cmd_parts[0]) in list_available_channels() and cmd_parts[1].isdigit():
+                            target_ch = resolve_channel(cmd_parts[0])
+                            count = int(cmd_parts[1])
+                            is_prev = (delivery_mode == "preview")
+                            t = threading.Thread(target=run_isolated_job, args=(target_ch, count, chat_id, is_prev))
+                            t.daemon = True
+                            t.start()
 
         except Exception as e:
             time.sleep(5)
