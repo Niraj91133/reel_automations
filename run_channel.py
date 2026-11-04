@@ -44,11 +44,14 @@ def get_channel_candidate_reels(channel_config, max_count=5):
     if candidates:
         return candidates
 
-    # If no local inbox video, fallback to DM scraper
-    dm_target = channel_config.get("content_settings", {}).get("dm_target_chat", "im_raaaj_")
-    print(f"[{channel_config['display_name']}] Checking Instagram DMs from chat: @{dm_target}...")
+    # If no local inbox video, fetch Raj-approved reels from chat
+    dm_target = channel_config.get("hunting_settings", {}).get("dm_target_chat") or channel_config.get("content_settings", {}).get("dm_target_chat", "im_raaaj_")
+    print(f"[{channel_config['display_name']}] Checking Raj-approved reels from chat: @{dm_target}...")
     try:
-        shared = get_shared_reels_from_chat(max_count=max_count)
+        from core.niche_hunter import fetch_approved_reels_from_raj
+        shared = fetch_approved_reels_from_raj(channel_config, max_count=max_count)
+        if not shared:
+            shared = get_shared_reels_from_chat(max_count=max_count)
         for item in shared:
             candidates.append({
                 "shortcode": item.get("shortcode"),
@@ -157,15 +160,22 @@ def process_channel_pipeline(channel_id, max_reels=1, dry_run=False):
 
             # 5. Instagram Auto-Publishing (Official Meta Graph API)
             live_permalink = None
+            first_comment = config.get("content_settings", {}).get("first_comment_template")
             if sent and public_cdn_url and not dry_run:
                 if publisher.is_configured():
                     print(f"🚀 Publishing to Instagram feed...")
-                    pub_res = publisher.publish_reel(public_cdn_url, caption, creator_username=creator)
+                    pub_res = publisher.publish_reel(
+                        public_video_url=public_cdn_url,
+                        caption=caption,
+                        creator_username=creator,
+                        first_comment=first_comment
+                    )
                     if pub_res and "permalink" in pub_res:
                         live_permalink = pub_res["permalink"]
                         print(f"🏆 Reel LIVE on Instagram: {live_permalink}")
+                        first_cm_note = f"\n💬 <b>First Comment:</b> {first_comment}" if first_comment else ""
                         hub.send_message(
-                            f"🎉 <b>Reel LIVE on Instagram [{display_name}]!</b>\n\n🔗 <b>Watch:</b> {live_permalink}"
+                            f"🎉 <b>Reel LIVE on Instagram [{display_name}]!</b>\n\n🔗 <b>Watch:</b> {live_permalink}{first_cm_note}"
                         )
                 else:
                     print(f"ℹ️ Instagram not configured for {channel_id}. Saved to Telegram approval queue.")

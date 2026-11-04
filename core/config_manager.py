@@ -55,6 +55,16 @@ def get_channel_config(channel_id):
 
     return config
 
+def save_channel_config(channel_id, new_config):
+    """Saves updated channel config back to configs/{channel_id}.json."""
+    config_file = CONFIGS_DIR / f"{channel_id}.json"
+    # Remove transient runtime info before saving to disk
+    save_data = dict(new_config)
+    save_data.pop("runtime", None)
+    with open(config_file, "w", encoding="utf-8") as f:
+        json.dump(save_data, f, indent=2, ensure_ascii=False)
+    return True
+
 def list_available_channels():
     master = load_master_config()
     return master.get("channels", [])

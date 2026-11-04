@@ -9,16 +9,43 @@
   "credentials": {
     "gemini_api_key": "AQ.Ab8RN6LmmqOO4T6TzFpFA91B53GR4PQWIW3flrWWW7DG1UcNnw",
     "instagram_account_id": "17841478828143472",
-    "page_access_token": "EAAhE6xjRCjsBS6c09eGSFle6BOhSlfg0WfOl14kMxCD9eQPW6fLkZB1P3sPUHZBhZAtTeVowwf7LnJxdxZB30yz5ZA1SFzq3dEl6TAPmMOPo4h9ZB1Rul1ROixxwwZB89QafSYIygfXgIXZB47hUbboAUd8wRD5mkcZC5vRO4bkOp04nZC8RBGAVWmM8pfB3xE57aRCMbxEDBEZCZCSVjvr19ONTP2kDg0GGwxqcgUZBrLXTss8ZBAZCQZDZD",
+    "page_access_token": "EAAhE6xjRCjsBS8u0MofTYW25bWdVkb5BWtX2ZBxKZAU8G3kDUjrWgtMGKvwn0dePCT45YilJX2kyyt3C0go5WwA9wNQq8b2UfZCyCyToOuZCx8a8h27QuZBQI9gfpljS6hOQHoAjXvKzpir5MhEtznyhXl8a8v92bWKI4hEoeo9K3mGfZBuI749ZASGxHVZBKySRYyeh6N6j",
     "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
     "telegram_chat_id": "711598335"
   },
-  "content_settings": {
+  "hunting_settings": {
     "dm_target_chat": "im_raaaj_",
+    "hunt_target_daily": 80,
+    "min_views": 25000,
+    "prioritize_comment_cta": true,
+    "keywords": [
+      "food label truth hindi",
+      "palm oil food reality",
+      "healthy snacks india",
+      "clean eating food",
+      "protein diet truth",
+      "packaged food scam"
+    ],
+    "hashtags": [
+      "#cleaneatingindia",
+      "#healthyfoodtruth",
+      "#foodlabels",
+      "#healthysnacks",
+      "#nutritiontips",
+      "#nosugar"
+    ]
+  },
+  "content_settings": {
     "default_hook_pill": "HEALTH TRUTH",
     "tag_text": "DIET & HEALTH:",
+    "first_comment_template": "Comment 'HEALTH' to get our clean packaged snacks checklist! 🥗",
     "theme_color_primary": [16, 185, 129, 255],
     "theme_color_accent": [255, 255, 255, 255],
-    "daily_post_limit": 15
+    "daily_post_limit": 25
+  },
+  "schedule_settings": {
+    "start_hour": 6,
+    "end_hour": 21,
+    "interval_minutes": 30
   }
 }

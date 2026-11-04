@@ -9,16 +9,43 @@
   "credentials": {
     "gemini_api_key": "AQ.Ab8RN6IX8_d0nK5yy8MubaZgd9Q6woB7NtZOL4VhFoO3zFKKLg",
     "instagram_account_id": "17841477704155531",
-    "page_access_token": "EAAhE6xjRCjsBS6wGEOFm2WfLIxSZC8k3Lz4YogVvkqa3vYZAxbXYUPq2MZCFHfFvZBSbqa29yoTNm62BWWlIE0YruxoCTl6E9w3VlDKRyZAFpiYkZBjNYagcZBp4uBk3BKfY73ZCeyMoOn4trWcvvP3ZC56ZAiWy8rTySl6ZCXZCu1ZAe5KXZB514LGZCvPzvW3XI5CDUX75g4jBCnYZAaibyZALQ7esHrMC1pyuSCK8ndrsT0k0MsfyjQAZDZD",
+    "page_access_token": "EAAhE6xjRCjsBSyt0U7tiKpDnCZAnuo97e7a68cAkFVuyV0mGWDlMZBrrEAZBzQZAqlKiLr7LgziSmuxw37If5nH3TrZC4TN9nobDky47GEUZC110AAEjiejXifSTDUlAyfktN49Vt8LSGM8giJSzcSc4MpWjbEGIBME6marCICzulantwNWfwTlR1UgfsFZAbrMAsdWu4Cs",
     "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
     "telegram_chat_id": "711598335"
   },
-  "content_settings": {
+  "hunting_settings": {
     "dm_target_chat": "im_raaaj_",
+    "hunt_target_daily": 80,
+    "min_views": 25000,
+    "prioritize_comment_cta": true,
+    "keywords": [
+      "smart gadgets you need",
+      "amazon problem solver products",
+      "cool home gadgets india",
+      "best amazon finds 2026",
+      "unique tech gadgets",
+      "amazon kitchen finds"
+    ],
+    "hashtags": [
+      "#amazonfinds",
+      "#smartgadgets",
+      "#coolgadgets",
+      "#amazonmusthaves",
+      "#techgadgets",
+      "#homefinds"
+    ]
+  },
+  "content_settings": {
     "default_hook_pill": "VIRAL FINDS",
     "tag_text": "SMART GADGET:",
+    "first_comment_template": "Comment 'LINK' and I'll DM you the direct Amazon purchase link! 🛍️",
     "theme_color_primary": [168, 85, 247, 255],
     "theme_color_accent": [234, 179, 8, 255],
-    "daily_post_limit": 20
+    "daily_post_limit": 25
+  },
+  "schedule_settings": {
+    "start_hour": 6,
+    "end_hour": 21,
+    "interval_minutes": 30
   }
 }

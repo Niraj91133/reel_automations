@@ -10,6 +10,7 @@ class InstagramPublisher:
     """
     Multi-tenant Instagram Graph API publisher.
     Fully isolated per channel using distinct Account IDs and Access Tokens.
+    Supports auto-publishing, user tagging, and automated first comments.
     """
     def __init__(self, instagram_account_id, page_access_token):
         self.account_id = str(instagram_account_id)
@@ -23,8 +24,8 @@ class InstagramPublisher:
             not self.token.startswith("YOUR_")
         )
 
-    def create_reel_container(self, video_url, caption, creator_username=None):
-        """Step 1: Initializes the Reel Media Container on Meta's servers."""
+    def create_reel_container(self, video_url, caption, creator_username=None, scheduled_publish_time=None):
+        """Step 1: Initializes the Reel Media Container on Meta's servers (supports cloud scheduling)."""
         url = f"{BASE_URL}/{self.account_id}/media"
         payload = {
             "media_type": "REELS",
@@ -34,7 +35,11 @@ class InstagramPublisher:
             "access_token": self.token
         }
         
-        if creator_username and creator_username.lower() != "creator":
+        if scheduled_publish_time:
+            # Unix timestamp for future cloud publish (between 15 mins and 75 days)
+            payload["scheduled_publish_time"] = int(scheduled_publish_time)
+
+        if creator_username and creator_username.lower() not in ["creator", "approved_creator"]:
             clean_tag = creator_username.replace("@", "").strip()
             import json
             payload["user_tags"] = json.dumps([{"username": clean_tag, "x": 0.5, "y": 0.5}])
@@ -45,7 +50,6 @@ class InstagramPublisher:
         if resp.status_code == 200 and "id" in data:
             return data["id"]
         elif "user_tags" in payload:
-            # If user_tags failed, retry without tag
             payload.pop("user_tags", None)
             resp2 = requests.post(url, data=payload, timeout=60)
             data2 = resp2.json()
@@ -109,13 +113,39 @@ class InstagramPublisher:
             pass
         return None
 
-    def publish_reel(self, public_video_url, caption, creator_username=None):
-        """Full publishing workflow returning permalink."""
+    def post_first_comment(self, media_id, comment_text):
+        """Posts an engagement-boosting first comment via Meta Graph API."""
+        if not media_id or not comment_text or not self.is_configured():
+            return None
+        url = f"{BASE_URL}/{media_id}/comments"
+        payload = {
+            "message": comment_text,
+            "access_token": self.token
+        }
+        try:
+            resp = requests.post(url, data=payload, timeout=30)
+            data = resp.json()
+            if resp.status_code == 200 and "id" in data:
+                print(f"💬 [Meta API] Auto-posted first comment: '{comment_text[:40]}...' (ID: {data['id']})")
+                return data["id"]
+            else:
+                print(f"⚠️ [Meta API Comment Note] {data.get('error', {}).get('message', resp.text)}")
+        except Exception as e:
+            print(f"Error posting first comment: {e}")
+        return None
+
+    def publish_reel(self, public_video_url, caption, creator_username=None, first_comment=None, scheduled_publish_time=None):
+        """Full publishing workflow returning permalink and posting first comment or cloud scheduling."""
         if not self.is_configured():
             print(f"⚠️ Channel Instagram credentials not configured. Skipping auto-publish.")
             return None
 
-        container_id = self.create_reel_container(public_video_url, caption, creator_username)
+        container_id = self.create_reel_container(
+            video_url=public_video_url,
+            caption=caption,
+            creator_username=creator_username,
+            scheduled_publish_time=scheduled_publish_time
+        )
         if not container_id:
             return None
             
@@ -127,7 +157,15 @@ class InstagramPublisher:
             return None
             
         permalink = self.get_reel_permalink(media_id)
+
+        # Automated first comment (for immediate posts)
+        if first_comment and not scheduled_publish_time:
+            time.sleep(2)
+            self.post_first_comment(media_id, first_comment)
+
         return {
             "media_id": media_id,
-            "permalink": permalink or f"https://www.instagram.com/reel/"
+            "permalink": permalink or f"https://www.instagram.com/reel/",
+            "scheduled_publish_time": scheduled_publish_time,
+            "is_scheduled": bool(scheduled_publish_time)
         }

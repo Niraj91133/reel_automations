@@ -175,19 +175,26 @@ def run_channel_autopilot(channel_id):
         caption_formatted = f"<b>[{display_name}]</b>\n\n{caption}"
         sent, cdn_url = hub.send_video_with_cdn_url(rendered_video, caption_formatted)
 
-        # 6. Official Meta Graph API Direct Auto-Post
+        # 6. Official Meta Graph API Direct Auto-Post + First Comment
         live_permalink = None
+        first_comment = config.get("content_settings", {}).get("first_comment_template")
         if sent and cdn_url and publisher.is_configured():
             print(f"🚀 [Meta Graph API] AUTO-PUBLISHING directly to @{username} feed...")
-            pub_res = publisher.publish_reel(cdn_url, caption, creator_username=creator)
+            pub_res = publisher.publish_reel(
+                public_video_url=cdn_url,
+                caption=caption,
+                creator_username=creator,
+                first_comment=first_comment
+            )
             if pub_res and "permalink" in pub_res:
                 live_permalink = pub_res["permalink"]
                 print(f"🏆 SUCCESS! Reel is LIVE on Instagram: {live_permalink}")
+                first_cm_note = f"\n💬 <b>First Comment:</b> {first_comment}" if first_comment else ""
                 hub.send_message(
                     f"🎉 <b>Reel LIVE on Instagram!</b>\n\n"
                     f"👤 <b>Account:</b> @{username}\n"
                     f"🎬 <b>Title:</b> {main_title}\n"
-                    f"🔗 <b>Watch Reel:</b> {live_permalink}"
+                    f"🔗 <b>Watch Reel:</b> {live_permalink}{first_cm_note}"
                 )
 
         # 7. Record in Database
