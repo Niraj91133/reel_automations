@@ -33,14 +33,25 @@
       "#candlestickpatterns",
       "#optionstrading",
       "#tradingmindset"
-    ]
+    ],
+    "cookie_file": "cookies/trading_pulse_cookies.txt"
   },
   "content_settings": {
     "default_hook_pill": "TRADER TRUTH",
     "tag_text": "TRADING ALPHA:",
-    "first_comment_template": "Comment 'CHART' for our free price action candlestick PDF! 📈",
-    "theme_color_primary": [14, 165, 233, 255],
-    "theme_color_accent": [239, 68, 68, 255],
+    "first_comment_template": "Comment 'CHART' for our free price action candlestick PDF! \ud83d\udcc8",
+    "theme_color_primary": [
+      14,
+      165,
+      233,
+      255
+    ],
+    "theme_color_accent": [
+      239,
+      68,
+      68,
+      255
+    ],
     "daily_post_limit": 25
   },
   "schedule_settings": {

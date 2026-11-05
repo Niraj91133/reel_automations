@@ -31,14 +31,25 @@
       "#entrepreneurmindset",
       "#makeinindia",
       "#startupstories"
-    ]
+    ],
+    "cookie_file": "cookies/startup_road_cookies.txt"
   },
   "content_settings": {
     "default_hook_pill": "STARTUP SECRETS",
     "tag_text": "STARTUP:",
-    "first_comment_template": "Comment 'STARTUP' below and I will send you the complete framework! 🚀",
-    "theme_color_primary": [225, 29, 72, 255],
-    "theme_color_accent": [255, 255, 255, 255],
+    "first_comment_template": "Comment 'STARTUP' below and I will send you the complete framework! \ud83d\ude80",
+    "theme_color_primary": [
+      225,
+      29,
+      72,
+      255
+    ],
+    "theme_color_accent": [
+      255,
+      255,
+      255,
+      255
+    ],
     "daily_post_limit": 25
   },
   "schedule_settings": {

@@ -33,14 +33,25 @@
       "#healthysnacks",
       "#nutritiontips",
       "#nosugar"
-    ]
+    ],
+    "cookie_file": "cookies/healthy_diet_cookies.txt"
   },
   "content_settings": {
     "default_hook_pill": "HEALTH TRUTH",
     "tag_text": "DIET & HEALTH:",
-    "first_comment_template": "Comment 'HEALTH' to get our clean packaged snacks checklist! 🥗",
-    "theme_color_primary": [16, 185, 129, 255],
-    "theme_color_accent": [255, 255, 255, 255],
+    "first_comment_template": "Comment 'HEALTH' to get our clean packaged snacks checklist! \ud83e\udd57",
+    "theme_color_primary": [
+      16,
+      185,
+      129,
+      255
+    ],
+    "theme_color_accent": [
+      255,
+      255,
+      255,
+      255
+    ],
     "daily_post_limit": 25
   },
   "schedule_settings": {

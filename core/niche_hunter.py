@@ -221,10 +221,42 @@ def hunt_niche_reels(channel_config, target_count=80, headless=True):
     print(f"✅ Hunted {len(hunted_candidates)} high-potential candidates for [{display_name}]!")
     return hunted_candidates
 
+def get_channel_cookies(channel_id):
+    """Retrieves isolated session cookies for the specified channel."""
+    cfile = os.path.join(BASE_DIR, f"cookies/{channel_id}_cookies.txt")
+    if os.path.exists(cfile) and os.path.getsize(cfile) > 10:
+        return parse_cookie_file(cfile)
+    return parse_cookie_file(COOKIE_FILE)
+
+def open_raj_chat(page):
+    """Navigates to inbox and clicks the chat with Raj (राज or im_raaaj_)."""
+    page.goto('https://www.instagram.com/direct/inbox/', timeout=35000, wait_until='domcontentloaded')
+    time.sleep(3)
+    not_now = page.query_selector("button:has-text('Not Now')")
+    if not_now:
+        try: not_now.click()
+        except: pass
+
+    # Find and click Raj in inbox list
+    items = page.query_selector_all('div[role="listitem"], div[role="button"], span')
+    for it in items:
+        try:
+            txt = it.inner_text().strip()
+            if txt in ["राज", "im_raaaj_"] or ("राज" in txt and len(txt) < 30):
+                it.click()
+                time.sleep(3)
+                return True
+        except:
+            pass
+    # Fallback to direct thread if startup_road
+    page.goto('https://www.instagram.com/direct/t/101996904536119/', timeout=25000, wait_until='domcontentloaded')
+    time.sleep(3)
+    return True
+
 def send_hunted_reels_to_raj_chat(channel_config, candidates, max_to_send=80):
     """
     Sends the hunted reels directly into the Instagram DM thread with Raj (@im_raaaj_).
-    Records sent reels in database to prevent re-sending.
+    Uses per-channel cookies to ensure reels arrive from that specific account!
     """
     if not candidates:
         print("No candidates to send.")
@@ -235,10 +267,8 @@ def send_hunted_reels_to_raj_chat(channel_config, candidates, max_to_send=80):
     dm_target = channel_config.get("hunting_settings", {}).get("dm_target_chat", "im_raaaj_")
     db = ChannelDatabase(channel_config["runtime"]["db_path"])
 
-    print(f"\n📤 [DM Sender] Sending hunted reels from [{display_name}] to @{dm_target}...")
-    cookies = parse_cookie_file(COOKIE_FILE)
-
-    thread_url = "https://www.instagram.com/direct/t/101996904536119/" # Startup road / default thread
+    print(f"\n📤 [DM Sender] Sending hunted reels from [{display_name}] to @{dm_target} using {channel_id} session...")
+    cookies = get_channel_cookies(channel_id)
 
     sent_count = 0
     with sync_playwright() as p:
@@ -251,13 +281,7 @@ def send_hunted_reels_to_raj_chat(channel_config, candidates, max_to_send=80):
         page = ctx.new_page()
 
         try:
-            page.goto(thread_url, timeout=40000, wait_until='domcontentloaded')
-            time.sleep(3)
-
-            not_now = page.query_selector("button:has-text('Not Now')")
-            if not_now:
-                try: not_now.click()
-                except: pass
+            open_raj_chat(page)
 
             for item in candidates[:max_to_send]:
                 shortcode = item["shortcode"]
@@ -334,8 +358,7 @@ def fetch_approved_reels_from_raj(channel_config, max_count=30, hours=24, auto_l
     db = ChannelDatabase(channel_config["runtime"]["db_path"])
 
     print(f"\n📥 [Approved Picker] Reading Raj-approved reels from chat for [{display_name}]...")
-    cookies = parse_cookie_file(COOKIE_FILE)
-    thread_url = "https://www.instagram.com/direct/t/101996904536119/"
+    cookies = get_channel_cookies(channel_id)
 
     approved_reels = []
     seen = set()
@@ -350,13 +373,7 @@ def fetch_approved_reels_from_raj(channel_config, max_count=30, hours=24, auto_l
         page = ctx.new_page()
 
         try:
-            page.goto(thread_url, timeout=35000, wait_until='domcontentloaded')
-            time.sleep(3)
-
-            not_now = page.query_selector("button:has-text('Not Now')")
-            if not_now:
-                try: not_now.click()
-                except: pass
+            open_raj_chat(page)
 
             # Scroll up slightly to fetch recent history
             for _ in range(6):

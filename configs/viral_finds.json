@@ -33,14 +33,25 @@
       "#amazonmusthaves",
       "#techgadgets",
       "#homefinds"
-    ]
+    ],
+    "cookie_file": "cookies/viral_finds_cookies.txt"
   },
   "content_settings": {
     "default_hook_pill": "VIRAL FINDS",
     "tag_text": "SMART GADGET:",
-    "first_comment_template": "Comment 'LINK' and I'll DM you the direct Amazon purchase link! 🛍️",
-    "theme_color_primary": [168, 85, 247, 255],
-    "theme_color_accent": [234, 179, 8, 255],
+    "first_comment_template": "Comment 'LINK' and I'll DM you the direct Amazon purchase link! \ud83d\udecd\ufe0f",
+    "theme_color_primary": [
+      168,
+      85,
+      247,
+      255
+    ],
+    "theme_color_accent": [
+      234,
+      179,
+      8,
+      255
+    ],
     "daily_post_limit": 25
   },
   "schedule_settings": {
