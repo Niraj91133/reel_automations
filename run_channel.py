@@ -28,8 +28,20 @@ def get_channel_candidate_reels(channel_config, max_count=5):
     inbox_dir = os.path.join(workspace_dir, "inbox")
     os.makedirs(inbox_dir, exist_ok=True)
 
-    # Check local inbox directory first
-    local_videos = glob.glob(os.path.join(inbox_dir, "*.mp4"))
+    # Check local inbox directory first (both in active cache and project workspace)
+    local_videos = []
+    for idir in [inbox_dir, os.path.join(str(Path(__file__).resolve().parent), "workspaces", channel_id, "inbox")]:
+        if os.path.exists(idir):
+            local_videos.extend(glob.glob(os.path.join(idir, "*.mp4")))
+    # Deduplicate by stem
+    seen_stems = set()
+    unique_local = []
+    for vid in local_videos:
+        stem = Path(vid).stem
+        if stem not in seen_stems:
+            seen_stems.add(stem)
+            unique_local.append(vid)
+    local_videos = unique_local
     candidates = []
 
     for vid in local_videos[:max_count]:

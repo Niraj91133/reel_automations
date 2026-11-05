@@ -5,7 +5,14 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIGS_DIR = BASE_DIR / "configs"
 DATABASES_DIR = BASE_DIR / "databases"
-WORKSPACES_DIR = BASE_DIR / "workspaces"
+
+# Use high-performance local SSD cache outside OneDrive if available
+# This prevents Windows OneDrive from churning CPU to sync multi-megabyte temporary video files
+LOCAL_CACHE = Path("C:/reel_cache")
+if LOCAL_CACHE.exists():
+    WORKSPACES_DIR = LOCAL_CACHE
+else:
+    WORKSPACES_DIR = BASE_DIR / "workspaces"
 
 # Ensure runtime directories exist
 DATABASES_DIR.mkdir(parents=True, exist_ok=True)
