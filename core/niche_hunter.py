@@ -228,8 +228,9 @@ def get_channel_cookies(channel_id):
         return parse_cookie_file(cfile)
     return parse_cookie_file(COOKIE_FILE)
 
-def open_raj_chat(page):
-    """Navigates to inbox and clicks the chat with Raj (राज or im_raaaj_)."""
+def open_raj_chat(page, target_username="im_raaaj_"):
+    """Navigates to chat with target user (Raj: राज or im_raaaj_)."""
+    # 1. Try finding in inbox
     page.goto('https://www.instagram.com/direct/inbox/', timeout=35000, wait_until='domcontentloaded')
     time.sleep(3)
     not_now = page.query_selector("button:has-text('Not Now')")
@@ -237,18 +238,28 @@ def open_raj_chat(page):
         try: not_now.click()
         except: pass
 
-    # Find and click Raj in inbox list
     items = page.query_selector_all('div[role="listitem"], div[role="button"], span')
     for it in items:
         try:
             txt = it.inner_text().strip()
-            if txt in ["राज", "im_raaaj_"] or ("राज" in txt and len(txt) < 30):
+            if txt in ["राज", target_username] or ("राज" in txt and len(txt) < 30):
                 it.click()
                 time.sleep(3)
-                return True
+                if page.query_selector('div[role="textbox"]') or page.query_selector('div[contenteditable="true"]'):
+                    return True
         except:
             pass
-    # Fallback to direct thread if startup_road
+
+    # 2. Direct Profile Navigation (Works 100% reliably for any account)
+    page.goto(f'https://www.instagram.com/{target_username}/', timeout=35000, wait_until='domcontentloaded')
+    time.sleep(3)
+    msg_btn = page.query_selector("div[role='button']:has-text('Message'), button:has-text('Message')")
+    if msg_btn:
+        msg_btn.click()
+        time.sleep(3)
+        return True
+
+    # 3. Legacy fallback
     page.goto('https://www.instagram.com/direct/t/101996904536119/', timeout=25000, wait_until='domcontentloaded')
     time.sleep(3)
     return True
