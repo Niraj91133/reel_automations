@@ -268,12 +268,8 @@ def send_hunted_reels_to_raj_chat(channel_config, candidates, max_to_send=80):
                     tb.click()
                     page.keyboard.type(reel_url)
                     time.sleep(0.5)
-
-                    send_btn = page.query_selector('div[role="button"]:has-text("Send"), svg[aria-label="Send"]')
-                    if send_btn:
-                        send_btn.click()
-                    else:
-                        page.keyboard.press("Enter")
+                    page.keyboard.press("Enter")
+                    time.sleep(1.5)
 
                     sent_count += 1
                     db.mark_reel_hunted(
