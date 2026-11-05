@@ -151,7 +151,19 @@ class InstagramPublisher:
             
         if not self.wait_for_processing(container_id):
             return None
-            
+
+        if scheduled_publish_time:
+            # In Meta Graph API: If scheduled_publish_time is set, DO NOT call publish_container!
+            # Meta will automatically publish the container at scheduled_publish_time.
+            print(f"📅 [Meta Cloud] Reel scheduled successfully! Container ID: {container_id} (Epoch: {scheduled_publish_time})")
+            return {
+                "media_id": container_id,
+                "container_id": container_id,
+                "permalink": f"https://www.instagram.com/reel/",
+                "scheduled_publish_time": scheduled_publish_time,
+                "is_scheduled": True
+            }
+
         media_id = self.publish_container(container_id)
         if not media_id:
             return None
@@ -159,13 +171,13 @@ class InstagramPublisher:
         permalink = self.get_reel_permalink(media_id)
 
         # Automated first comment (for immediate posts)
-        if first_comment and not scheduled_publish_time:
+        if first_comment:
             time.sleep(2)
             self.post_first_comment(media_id, first_comment)
 
         return {
             "media_id": media_id,
             "permalink": permalink or f"https://www.instagram.com/reel/",
-            "scheduled_publish_time": scheduled_publish_time,
-            "is_scheduled": bool(scheduled_publish_time)
+            "scheduled_publish_time": None,
+            "is_scheduled": False
         }
