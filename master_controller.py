@@ -521,23 +521,41 @@ def scheduler_24h_loop():
         1: "viral_finds"
     }
 
+    hunted_today = set()
+    scheduled_today = set()
+    current_day = None
+
     while True:
         try:
             now = datetime.now()
             today_str = now.strftime("%Y-%m-%d")
+            
+            # Reset daily trackers on new day
+            if current_day != today_str:
+                current_day = today_str
+                hunted_today.clear()
+                scheduled_today.clear()
 
             if scheduler_enabled:
-                # 1. MORNING HUNTING (06:00 AM - 10:00 AM)
-                if now.hour in HUNT_HOURS and now.minute == 0:
-                    ch_to_hunt = HUNT_HOURS[now.hour]
-                    print(f"⏰ [06-10 AM Hunt Clock] Triggering hunting for: {ch_to_hunt}...")
-                    run_hunt_job(ch_to_hunt, limit=80)
+                # 1. MORNING HUNTING (06:00 AM - 10:30 AM)
+                # Catch-up enabled: Even if PC woke up late, catches up missed morning hunts
+                if 6 <= now.hour <= 10:
+                    for target_hour, ch in HUNT_HOURS.items():
+                        if now.hour >= target_hour and ch not in hunted_today:
+                            hunted_today.add(ch)
+                            print(f"⏰ [06-10 AM Hunt Clock] Triggering hunting for: {ch}...")
+                            run_hunt_job(ch, limit=80)
+                            break
 
                 # 2. NIGHTLY PRE-BAKING & CLOUD-SCHEDULING (10:00 PM - 02:00 AM)
-                elif now.hour in SCHED_HOURS and now.minute == 0:
-                    ch_to_sched = SCHED_HOURS[now.hour]
-                    print(f"⏰ [10 PM - 02 AM Cloud-Scheduler Clock] Triggering tomorrow's cloud scheduling for: {ch_to_sched}...")
-                    run_cloud_schedule_job(ch_to_sched, limit=25)
+                elif now.hour >= 22 or now.hour < 2:
+                    for target_hour, ch in SCHED_HOURS.items():
+                        is_time = (now.hour == target_hour) or (target_hour >= 22 and now.hour >= target_hour) or (target_hour < 2 and now.hour == target_hour)
+                        if is_time and ch not in scheduled_today:
+                            scheduled_today.add(ch)
+                            print(f"⏰ [10 PM - 02 AM Cloud-Scheduler Clock] Triggering cloud scheduling for: {ch}...")
+                            run_cloud_schedule_job(ch, limit=25)
+                            break
 
                 # 3. 02:00 AM NOTIFICATION: All channels done for tomorrow
                 elif now.hour == 2 and now.minute == 5 and last_scheduled_day != today_str:
@@ -550,7 +568,7 @@ def scheduler_24h_loop():
                         reply_markup=get_main_menu_markup()
                     )
 
-            time.sleep(45) # Check every 45 seconds
+            time.sleep(30) # Check every 30 seconds
 
         except Exception as e:
             print(f"Master scheduler clock error: {e}")
