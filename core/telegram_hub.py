@@ -45,9 +45,23 @@ class TelegramHub:
         url = f"https://api.telegram.org/bot{self.bot_token}/sendVideo"
         success = False
         public_url = None
+        upload_path = video_path
+        temp_comp = None
         
         try:
-            with open(video_path, "rb") as video_file:
+            # Strictly enforce < 19.5MB for Telegram getFile CDN compatibility
+            if os.path.exists(video_path) and os.path.getsize(video_path) > 19.5 * 1024 * 1024:
+                temp_comp = video_path + ".tg_comp.mp4"
+                import subprocess
+                cmd = ["ffmpeg", "-y", "-i", video_path, "-c:v", "h264_mf", "-b:v", "1800k", "-c:a", "aac", "-b:a", "128k", temp_comp]
+                sub_res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if sub_res.returncode != 0 or not os.path.exists(temp_comp):
+                    cmd_cpu = ["ffmpeg", "-y", "-i", video_path, "-threads", "2", "-c:v", "libx264", "-crf", "28", "-preset", "faster", "-c:a", "aac", "-b:a", "128k", temp_comp]
+                    subprocess.run(cmd_cpu, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if os.path.exists(temp_comp) and os.path.getsize(temp_comp) < os.path.getsize(video_path):
+                    upload_path = temp_comp
+
+            with open(upload_path, "rb") as video_file:
                 files = {"video": video_file}
                 data = {
                     "chat_id": target_chat,
@@ -63,7 +77,7 @@ class TelegramHub:
                 resp_obj = r.json()
             else:
                 # Retry plain text if HTML tags failed
-                with open(video_path, "rb") as video_file:
+                with open(upload_path, "rb") as video_file:
                     files = {"video": video_file}
                     clean_caption = caption[:1024].replace("<b>", "").replace("</b>", "").replace("<i>", "").replace("</i>", "")
                     data = {
@@ -90,5 +104,9 @@ class TelegramHub:
 
         except Exception as e:
             print(f"Error sending video to Telegram: {e}")
+        finally:
+            if temp_comp and os.path.exists(temp_comp):
+                try: os.remove(temp_comp)
+                except: pass
 
         return success, public_url
