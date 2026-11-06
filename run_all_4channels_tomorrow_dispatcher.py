@@ -24,20 +24,20 @@ CHANNELS = [
     ("viral_finds", "🛍️ Trending Road", "@trending_road")
 ]
 
-# 30 Slots across 15 hours (07:00 AM - 10:00 PM) ~ 31 minutes apart
-def generate_30_slots(start_hour=7, end_hour=22, total_slots=30):
+# 30 Slots across 07:00 AM - 09:50 PM (~30.7 minutes apart, finishing before 10:00 PM nightly editing window)
+def generate_30_slots(total_slots=30):
     slots = []
-    total_minutes = (end_hour - start_hour) * 60
-    interval = total_minutes / (total_slots - 1)
-    
+    start_total = 7 * 60       # 07:00 AM
+    end_total = 21 * 60 + 50   # 09:50 PM
+    interval = (end_total - start_total) / (total_slots - 1)
     for i in range(total_slots):
-        slot_mins = int(i * interval)
-        h = start_hour + (slot_mins // 60)
-        m = slot_mins % 60
+        m_total = int(start_total + i * interval)
+        h = m_total // 60
+        m = m_total % 60
         slots.append((i + 1, h, m))
     return slots
 
-SCHEDULE_SLOTS = generate_30_slots(7, 22, 30)
+SCHEDULE_SLOTS = generate_30_slots(30)
 
 def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, posted_set):
     key = f"{channel_id}_{slot_num}"
@@ -121,6 +121,11 @@ def run_all_4channels_dispatcher():
         if current_day != today_str:
             current_day = today_str
             posted_today.clear()
+
+        # Posting window is strictly 07:00 AM to 10:00 PM (10 PM to 2 AM is pre-baking window)
+        if now.hour < 7 or now.hour >= 22:
+            time.sleep(30)
+            continue
 
         # Check each slot
         for slot_num, slot_hour, slot_min in SCHEDULE_SLOTS:
