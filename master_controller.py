@@ -16,6 +16,8 @@ from core.database import ChannelDatabase
 from run_channel import process_channel_pipeline
 from core.niche_hunter import hunt_niche_reels, send_hunted_reels_to_raj_chat
 from core.cloud_scheduler import cloud_schedule_channel_for_tomorrow
+from core.full_autopilot import run_3_channels_autopilot_cycle, run_channel_autopilot
+from prebake_autopilot_channels import prebake_channel_reels, prebake_all_4_channels
 
 sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
 
@@ -94,6 +96,9 @@ def get_main_menu_markup():
     return {
         "inline_keyboard": [
             [
+                {"text": "🤖 Run 3-Channel Autopilot Cycle", "callback_data": "action:autopilot_now"}
+            ],
+            [
                 {"text": "💼 Startup Road", "callback_data": "menu:ch:startup_road"},
                 {"text": "🥗 Gudtree", "callback_data": "menu:ch:healthy_diet"}
             ],
@@ -123,7 +128,7 @@ def get_channel_menu_markup(ch_id):
             ],
             [
                 {"text": "🏹 Hunt 5 Reels (Send to Raj)", "callback_data": f"hunt:5:{ch_id}"},
-                {"text": "🏹 Hunt 80 Daily Target", "callback_data": f"hunt:80:{ch_id}"}
+                {"text": "🏹 Hunt 30 Best Daily Target", "callback_data": f"hunt:30:{ch_id}"}
             ],
             [
                 {"text": "🚀 Direct Auto-Post 1 Reel", "callback_data": f"post:direct:{ch_id}"},
@@ -147,8 +152,8 @@ def get_channel_summary():
             db = ChannelDatabase(cfg["runtime"]["db_path"])
             today_count = db.get_today_count()
             today_hunted = db.get_today_hunted_count()
-            daily_limit = cfg.get("content_settings", {}).get("daily_post_limit", 25)
-            hunt_target = cfg.get("hunting_settings", {}).get("hunt_target_daily", 80)
+            daily_limit = cfg.get("content_settings", {}).get("daily_post_limit", 30)
+            hunt_target = cfg.get("hunting_settings", {}).get("hunt_target_daily", 30)
             
             lines.append(f"<b>{name}</b> ({uname})")
             lines.append(f"• Scheduled/Posts: <b>{today_count}/{daily_limit}</b> | Hunted: <b>{today_hunted}/{hunt_target}</b>")
@@ -158,13 +163,33 @@ def get_channel_summary():
             lines.append(f"❌ Error reading {ch_id}: {e}")
 
     lines.append("🕒 <b>24H Production Cycle:</b>")
-    lines.append("• 06:00 - 10:00 AM: 🏹 Morning Viral Hunt (80 reels/ch)")
+    lines.append("• 06:00 - 10:00 AM: 🏹 Morning Viral Hunt (30 best reels/ch)")
     lines.append("• 11:00 AM - 09:00 PM: ☕ Raj Curation Window")
-    lines.append("• 10:00 PM - 02:00 AM: 🌙 Night Cloud-Scheduling (25 reels/ch)")
+    lines.append("• 10:00 PM - 02:00 AM: 🌙 Nightly Auto-Bake (30 reels/ch)")
     lines.append(f"• Auto-Scheduler: {'🟢 ACTIVE' if scheduler_enabled else '🔴 PAUSED'}")
     lines.append("━━━━━━━━━━━━━━━━━━━━━━")
     lines.append("<i>Neeche buttons par click karke direct control karein 👇</i>")
     return "\n".join(lines)
+
+def run_autopilot_cycle_job(notify_chat_id=None):
+    chat_id = notify_chat_id or ADMIN_CHAT_ID
+    send_telegram(
+        chat_id,
+        "🤖 <b>Starting 3-Channel 100% Autopilot Cycle!</b>\n\n"
+        "• Channels: 📈 Trading Road, 🥗 Gudtree, 🛍️ Trending Road\n"
+        "• Exclusion: 💼 Startup Road (Manual / Curated Mode)\n"
+        "• Mode: Zero human review (Auto-Hunt ➔ Auto-Edit ➔ Auto-Post)\n\n"
+        "<i>Processing started... Live permalinks aate rahenge!</i>"
+    )
+    try:
+        run_3_channels_autopilot_cycle()
+        send_telegram(
+            chat_id,
+            "🎉 <b>3-Channel Autopilot Cycle Finished!</b>\nCheck feed links above.",
+            reply_markup=get_main_menu_markup()
+        )
+    except Exception as e:
+        send_telegram(chat_id, f"❌ Autopilot cycle error: {e}", reply_markup=get_main_menu_markup())
 
 def run_isolated_job(channel_id, limit=1, notify_chat_id=None, is_preview=False):
     global is_processing, current_job_name
@@ -204,7 +229,7 @@ def run_isolated_job(channel_id, limit=1, notify_chat_id=None, is_preview=False)
             is_processing = False
             current_job_name = ""
 
-def run_hunt_job(channel_id, limit=80, notify_chat_id=None):
+def run_hunt_job(channel_id, limit=30, notify_chat_id=None):
     global is_processing, current_job_name
     chat_id = notify_chat_id or ADMIN_CHAT_ID
 
@@ -232,7 +257,7 @@ def run_hunt_job(channel_id, limit=80, notify_chat_id=None):
             is_processing = False
             current_job_name = ""
 
-def run_cloud_schedule_job(channel_id, limit=25, notify_chat_id=None):
+def run_cloud_schedule_job(channel_id, limit=30, notify_chat_id=None):
     global is_processing, current_job_name
     chat_id = notify_chat_id or ADMIN_CHAT_ID
 
@@ -241,20 +266,21 @@ def run_cloud_schedule_job(channel_id, limit=25, notify_chat_id=None):
             send_telegram(chat_id, f"⚠️ Ek process already chal raha hai (<b>{current_job_name}</b>). Wait karo.")
             return
         is_processing = True
-        current_job_name = f"CLOUD SCHEDULING: {channel_id}"
+        current_job_name = f"PRE-BAKING: {channel_id}"
 
     try:
         cfg = get_channel_config(channel_id)
         name, _ = CHANNEL_DISPLAY.get(channel_id, (channel_id, ""))
-        send_telegram(chat_id, f"🌙 <b>Starting Cloud-Scheduling for [{name}]</b> (Target: {limit} reels for tomorrow)...")
-        count = cloud_schedule_channel_for_tomorrow(channel_id, target_count=limit, notify_telegram=False)
+        send_telegram(chat_id, f"🌙 <b>Starting 10 PM Pre-Baking for [{name}]</b> (Target: {limit} reels for tomorrow)...")
+        baked = prebake_channel_reels(channel_id, count=limit)
+        count = len(baked)
         send_telegram(
             chat_id,
-            f"✅ <b>[{name}] Scheduled!</b>\n{count} reels successfully loaded on Meta Cloud for tomorrow between 07:00 AM - 10:00 PM.",
+            f"✅ <b>[{name}] Pre-Baked & Ready!</b>\n{count} reels successfully rendered on GPU for tomorrow between 07:00 AM - 10:00 PM.",
             reply_markup=get_main_menu_markup()
         )
     except Exception as e:
-        send_telegram(chat_id, f"❌ <b>Cloud Schedule Error [{channel_id}]:</b> {e}", reply_markup=get_main_menu_markup())
+        send_telegram(chat_id, f"❌ <b>Pre-Baking Error [{channel_id}]:</b> {e}", reply_markup=get_main_menu_markup())
     finally:
         with job_lock:
             is_processing = False
@@ -281,7 +307,7 @@ def run_all_hunts(notify_chat_id=None):
     channels = list_available_channels()
     chat_id = notify_chat_id or ADMIN_CHAT_ID
     for ch in channels:
-        run_hunt_job(ch, limit=80, notify_chat_id=chat_id)
+        run_hunt_job(ch, limit=30, notify_chat_id=chat_id)
         time.sleep(15)
 
 def handle_telegram_updates():
@@ -328,6 +354,12 @@ def handle_telegram_updates():
                         elif cq_data == "action:hunt_all":
                             answer_callback(cq_id, "Starting hunt for all...")
                             t = threading.Thread(target=run_all_hunts, args=(from_chat,))
+                            t.daemon = True
+                            t.start()
+
+                        elif cq_data == "action:autopilot_now":
+                            answer_callback(cq_id, "Starting 3-channel autopilot cycle...")
+                            t = threading.Thread(target=run_autopilot_cycle_job, args=(from_chat,))
                             t.daemon = True
                             t.start()
 
@@ -423,6 +455,11 @@ def handle_telegram_updates():
                         elif cmd in ["/status"]:
                             send_telegram(chat_id, get_channel_summary(), reply_markup=get_main_menu_markup())
 
+                        elif cmd in ["/autopilot", "/autopilot_now"]:
+                            t = threading.Thread(target=run_autopilot_cycle_job, args=(chat_id,))
+                            t.daemon = True
+                            t.start()
+
                         elif cmd in ["/schedule_tomorrow", "/sched_all"]:
                             t = threading.Thread(target=run_all_cloud_schedules, args=(chat_id,))
                             t.daemon = True
@@ -448,7 +485,7 @@ def handle_telegram_updates():
                         elif cmd in ["/hunt", "/scout"]:
                             target_raw = cmd_parts[1] if len(cmd_parts) > 1 else "startup"
                             target_ch = resolve_channel(target_raw)
-                            count = int(cmd_parts[2]) if len(cmd_parts) > 2 and cmd_parts[2].isdigit() else 80
+                            count = int(cmd_parts[2]) if len(cmd_parts) > 2 and cmd_parts[2].isdigit() else 30
                             if target_ch in list_available_channels():
                                 t = threading.Thread(target=run_hunt_job, args=(target_ch, count, chat_id))
                                 t.daemon = True
@@ -537,14 +574,14 @@ def scheduler_24h_loop():
                 scheduled_today.clear()
 
             if scheduler_enabled:
-                # 1. MORNING HUNTING (06:00 AM - 10:30 AM)
+                # 1. MORNING HUNTING (06:00 AM - 02:00 PM)
                 # Catch-up enabled: Even if PC woke up late, catches up missed morning hunts
-                if 6 <= now.hour <= 10:
+                if 6 <= now.hour <= 14:
                     for target_hour, ch in HUNT_HOURS.items():
                         if now.hour >= target_hour and ch not in hunted_today:
                             hunted_today.add(ch)
                             print(f"⏰ [06-10 AM Hunt Clock] Triggering hunting for: {ch}...")
-                            run_hunt_job(ch, limit=80)
+                            run_hunt_job(ch, limit=30)
                             break
 
                 # 2. NIGHTLY PRE-BAKING & CLOUD-SCHEDULING (10:00 PM - 02:00 AM)
@@ -553,8 +590,8 @@ def scheduler_24h_loop():
                         is_time = (now.hour == target_hour) or (target_hour >= 22 and now.hour >= target_hour) or (target_hour < 2 and now.hour == target_hour)
                         if is_time and ch not in scheduled_today:
                             scheduled_today.add(ch)
-                            print(f"⏰ [10 PM - 02 AM Cloud-Scheduler Clock] Triggering cloud scheduling for: {ch}...")
-                            run_cloud_schedule_job(ch, limit=25)
+                            print(f"⏰ [10 PM - 02 AM Pre-Baking Clock] Triggering pre-baking for: {ch}...")
+                            run_cloud_schedule_job(ch, limit=30)
                             break
 
                 # 3. 02:00 AM NOTIFICATION: All channels done for tomorrow
@@ -562,8 +599,8 @@ def scheduler_24h_loop():
                     last_scheduled_day = today_str
                     send_telegram(
                         ADMIN_CHAT_ID,
-                        "🎉 <b>ALL 4 ACCOUNTS SCHEDULED ON META CLOUD FOR TODAY!</b>\n\n"
-                        "Saare 100 reels Meta ke servers par lock ho chuke hain aur din bhar post hote rahenge.\n"
+                        "🎉 <b>ALL 4 ACCOUNTS FULLY PRE-BAKED (120 REELS)!</b>\n\n"
+                        "Saare 120 reels Ultra-HD format me lock ho chuke hain aur din bhar 07:00 AM se 10:00 PM tak post hote rahenge.\n"
                         "🛌 <b>Aap ab laptop band (shut down) kar sakte hain!</b>",
                         reply_markup=get_main_menu_markup()
                     )
@@ -578,6 +615,18 @@ if __name__ == "__main__":
     print("==================================================")
     print("  MULTI-ACCOUNT AUTOMATION MASTER CONTROLLER      ")
     print("==================================================")
+
+    # Startup notification to Admin Telegram
+    try:
+        send_telegram(
+            ADMIN_CHAT_ID,
+            "🚀 <b>Master Controller Online!</b>\n"
+            "🏹 Morning Viral Hunting catch-up start ho gaya hai.\n\n"
+            "<i>Neeche buttons par click karke direct control karein 👇</i>",
+            reply_markup=get_main_menu_markup()
+        )
+    except Exception as e:
+        print(f"Startup Telegram notify note: {e}")
 
     t_sched = threading.Thread(target=scheduler_24h_loop)
     t_sched.daemon = True

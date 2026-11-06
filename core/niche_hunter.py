@@ -66,7 +66,7 @@ def has_comment_cta_signal(text):
     signals = ["comment", "dm", "link in bio", "bhejo", "comment karo", "send you", "type ", "drop a"]
     return any(s in lower for s in signals)
 
-def hunt_niche_reels(channel_config, target_count=80, headless=True):
+def hunt_niche_reels(channel_config, target_count=30, headless=True):
     """
     Hunts high-engagement viral reels using:
     1. Audience Demand Keywords (via Instagram search)
@@ -90,9 +90,9 @@ def hunt_niche_reels(channel_config, target_count=80, headless=True):
     print(f"========================================================")
     print(f"Keywords: {len(keywords)} | Hashtags: {len(hashtags)} | Min Views: {min_views:,}")
 
-    cookies = parse_cookie_file(COOKIE_FILE)
+    cookies = get_channel_cookies(channel_id)
     if not cookies:
-        print("❌ Error: cookies.txt missing or empty!")
+        print(f"❌ Error: Cookies missing or empty for {channel_id}!")
         return []
 
     hunted_candidates = []
@@ -216,10 +216,11 @@ def hunt_niche_reels(channel_config, target_count=80, headless=True):
 
         browser.close()
 
-    # Sort candidates: Prioritize reels with 'Comment karo' CTA first, then high views
+    # Sort candidates: Prioritize reels with 'Comment karo' CTA first, then high views (Best Picks Only)
     hunted_candidates.sort(key=lambda x: (x["has_comment_cta"], parse_views_count(x["views_text"])), reverse=True)
-    print(f"✅ Hunted {len(hunted_candidates)} high-potential candidates for [{display_name}]!")
-    return hunted_candidates
+    best_picks = hunted_candidates[:target_count]
+    print(f"✅ Hunted {len(best_picks)} best-pick candidates for [{display_name}]!")
+    return best_picks
 
 def get_channel_cookies(channel_id):
     """Retrieves isolated session cookies for the specified channel."""
@@ -369,59 +370,20 @@ def fetch_approved_reels_from_raj(channel_config, max_count=30, hours=24, auto_l
     db = ChannelDatabase(channel_config["runtime"]["db_path"])
 
     print(f"\n📥 [Approved Picker] Reading Raj-approved reels from chat for [{display_name}]...")
-    cookies = get_channel_cookies(channel_id)
-
-    approved_reels = []
-    seen = set()
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        ctx = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            viewport={"width": 1280, "height": 900}
-        )
-        ctx.add_cookies(cookies)
-        page = ctx.new_page()
-
-        try:
-            open_raj_chat(page)
-
-            # Scroll up slightly to fetch recent history
-            for _ in range(6):
-                page.evaluate("window.scrollBy(0, -600)")
-                time.sleep(1)
-
-            links = page.query_selector_all('a[href*="/reel/"]')
-            for link in reversed(links):
-                if len(approved_reels) >= max_count:
-                    break
-                href = link.get_attribute("href") or ""
-                m = re.search(r'/reel/([^/?]+)', href)
-                if not m:
-                    continue
-                code = m.group(1).strip()
-                if code in seen or db.is_reel_processed(code):
-                    continue
-
-                seen.add(code)
+    
+    # Use dm_scraper battle-tested extraction
+    try:
+        from dm_scraper import get_shared_reels_from_chat
+        shared = get_shared_reels_from_chat(max_count=max_count)
+        approved_reels = []
+        for item in shared:
+            code = item["shortcode"]
+            if not db.is_reel_processed(code):
                 db.mark_reel_approved(code)
-                reel_url = f"https://www.instagram.com/reel/{code}/"
-                approved_reels.append({
-                    "shortcode": code,
-                    "url": reel_url,
-                    "creator": "approved_creator"
-                })
-        except Exception as e:
-            print(f"Error fetching approved reels: {e}")
-        finally:
-            browser.close()
-
-    # Automatically like all finalized reels on Instagram
-    if auto_like and approved_reels:
-        print(f"❤️ Verifying & Auto-Liking {len(approved_reels)} approved reels on Instagram...")
-        for reel in approved_reels:
-            like_reel_if_not_liked(cookies, reel["url"])
-
-    print(f"🎯 Picked {len(approved_reels)} Raj-approved reels for production!")
-    return approved_reels
+                approved_reels.append(item)
+        print(f"🎯 Picked {len(approved_reels)} fresh Raj-approved reels for production!")
+        return approved_reels
+    except Exception as e:
+        print(f"Error using dm_scraper in picker: {e}")
+        return []
 

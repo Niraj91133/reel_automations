@@ -15,7 +15,7 @@
   },
   "hunting_settings": {
     "dm_target_chat": "im_raaaj_",
-    "hunt_target_daily": 80,
+    "hunt_target_daily": 30,
     "min_views": 25000,
     "prioritize_comment_cta": true,
     "keywords": [

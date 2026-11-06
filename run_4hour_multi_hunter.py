@@ -51,13 +51,11 @@ def hunt_single_fresh_reel(page, channel_id, db):
     random.shuffle(creators)
 
     # 1. Check top creators
-    for creator in creators[:5]:
+    for creator in creators[:6]:
         try:
             url = f"https://www.instagram.com/{creator}/reels/"
             page.goto(url, timeout=25000, wait_until='domcontentloaded')
-            page.wait_for_timeout(3500)
-            page.evaluate("window.scrollBy(0, 800)")
-            page.wait_for_timeout(1500)
+            page.wait_for_timeout(4000)
 
             links = page.query_selector_all('a[href*="/reel/"]')
             for link in links[:12]:
@@ -90,8 +88,8 @@ def hunt_single_fresh_reel(page, channel_id, db):
         try:
             url = f"https://www.instagram.com/explore/tags/{clean_tag}/"
             page.goto(url, timeout=25000, wait_until='domcontentloaded')
-            page.wait_for_timeout(3500)
-            page.evaluate("window.scrollBy(0, 1000)")
+            page.wait_for_timeout(4000)
+            page.evaluate("window.scrollBy(0, 800)")
             page.wait_for_timeout(1500)
 
             links = page.query_selector_all('a[href*="/reel/"], a[href*="/p/"]')
@@ -120,40 +118,48 @@ def open_raj_chat_for_channel(page, channel_id):
     """Directly opens chat with Raj for whichever channel is logged in."""
     if channel_id == "healthy_diet":
         page.goto('https://www.instagram.com/im_raaaj_/', timeout=30000, wait_until='domcontentloaded')
-        page.wait_for_timeout(3000)
-        btn = page.locator("div[role='button']:has-text('Message'), button:has-text('Message')").first
-        if btn.is_visible(timeout=5000):
+        page.wait_for_timeout(3500)
+        btn = page.query_selector("div[role='button']:has-text('Message'), button:has-text('Message')")
+        if btn:
             btn.click()
-            page.wait_for_timeout(3000)
+            page.wait_for_timeout(3500)
             return True
     else:
-        page.goto('https://www.instagram.com/direct/inbox/', timeout=30000, wait_until='domcontentloaded')
-        page.wait_for_timeout(3000)
-        item = page.locator("span:has-text('राज'), div:has-text('राज'), span:has-text('im_raaaj_')").first
-        if item.is_visible(timeout=5000):
-            item.click()
-            page.wait_for_timeout(3000)
+        # startup_road, trading_pulse, and viral_finds direct thread
+        page.goto('https://www.instagram.com/direct/t/101996904536119/', timeout=30000, wait_until='domcontentloaded')
+        page.wait_for_timeout(3500)
+        tb = page.query_selector('div[role="textbox"]') or page.query_selector('div[contenteditable="true"]')
+        if tb:
             return True
 
-    # Fallback to direct thread
-    page.goto('https://www.instagram.com/direct/t/101996904536119/', timeout=30000, wait_until='domcontentloaded')
-    page.wait_for_timeout(3000)
+        # Fallback to inbox
+        page.goto('https://www.instagram.com/direct/inbox/', timeout=30000, wait_until='domcontentloaded')
+        page.wait_for_timeout(3500)
+        elems = page.query_selector_all("span:has-text('राज')")
+        if elems:
+            elems[0].click()
+            page.wait_for_timeout(3500)
+            return True
+
     return True
 
 def send_reel_in_raj_chat(page, reel_url):
     """Types the reel URL and sends it into the active chat."""
     try:
-        tb = page.locator('div[role="textbox"], div[contenteditable="true"]').first
-        tb.wait_for(state="visible", timeout=8000)
-        tb.click()
-        page.keyboard.type(reel_url)
-        time.sleep(0.5)
-        page.keyboard.press("Enter")
-        time.sleep(2)
-        return True
+        tb = page.query_selector('div[role="textbox"]') or page.query_selector('div[contenteditable="true"]')
+        if tb:
+            tb.click()
+            page.wait_for_timeout(500)
+            page.keyboard.type(reel_url)
+            page.wait_for_timeout(500)
+            page.keyboard.press("Enter")
+            page.wait_for_timeout(2500)
+            return True
+        else:
+            print("Chat textbox element not found.")
     except Exception as e:
         print(f"Error typing into chat: {e}")
-        return False
+    return False
 
 def run_4hour_continuous_hunt(duration_hours=4.0):
     start_time = datetime.now()

@@ -49,14 +49,15 @@ def get_latest_reels_from_profile(username="uxwithraaj", max_count=10):
     print(f"Found {len(reels)} reels for @{username}")
     return reels
 
-def download_reel_video(reel_url, output_path="downloaded_reel.mp4", return_meta=False):
+def download_reel_video(reel_url, output_path="downloaded_reel.mp4", return_meta=False, cookie_file=None):
     """
     Downloads highest quality reel video using yt-dlp with authenticated cookies,
     and optionally extracts original description, title, view_count, and creator metadata.
     """
     print(f"Downloading reel via yt-dlp: {reel_url}")
+    cfile = cookie_file or (COOKIE_FILE if os.path.exists(COOKIE_FILE) else None)
     ydl_opts = {
-        'cookiefile': COOKIE_FILE if os.path.exists(COOKIE_FILE) else None,
+        'cookiefile': cfile if cfile and os.path.exists(cfile) else None,
         'outtmpl': output_path,
         'format': 'bestvideo+bestaudio/best',
         'merge_output_format': 'mp4',

@@ -74,6 +74,20 @@ def get_channel_candidate_reels(channel_config, max_count=5):
     except Exception as e:
         print(f"Note on DM fetching for {channel_id}: {e}")
 
+    # Fallback: Use hunted reels from the channel's local pool if chat had no fresh items
+    if not candidates:
+        db = ChannelDatabase(channel_config["runtime"]["db_path"])
+        unprocessed = db.get_unprocessed_hunted_reels(limit=max_count)
+        if unprocessed:
+            print(f"[{channel_config['display_name']}] Sourced {len(unprocessed)} reels from hunted viral pool.")
+            for shortcode, creator, views_text in unprocessed:
+                candidates.append({
+                    "shortcode": shortcode,
+                    "url": f"https://www.instagram.com/reel/{shortcode}/",
+                    "creator": creator or "creator",
+                    "is_local": False
+                })
+
     return candidates
 
 def process_channel_pipeline(channel_id, max_reels=1, dry_run=False):
@@ -132,7 +146,8 @@ def process_channel_pipeline(channel_id, max_reels=1, dry_run=False):
             download_dir = os.path.join(workspace_dir, "downloads")
             os.makedirs(download_dir, exist_ok=True)
             dest_file = os.path.join(download_dir, f"{shortcode}.mp4")
-            raw_video_path = download_reel_video(item.get("url"), dest_file)
+            c_file = os.path.join(str(Path(__file__).resolve().parent), config.get("hunting_settings", {}).get("cookie_file", ""))
+            raw_video_path = download_reel_video(item.get("url"), dest_file, cookie_file=c_file)
 
         if not raw_video_path or not os.path.exists(raw_video_path):
             print(f"❌ Failed to obtain raw video for {shortcode}")

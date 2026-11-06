@@ -85,9 +85,20 @@ def cloud_schedule_channel_for_tomorrow(channel_id, target_count=25, notify_tele
     # 1. Fetch Raj-approved reels from chat
     approved_candidates = fetch_approved_reels_from_raj(config, max_count=target_count)
     if not approved_candidates:
-        print(f"⚠️ No fresh Raj-approved reels found for {display_name}.")
+        print(f"ℹ️ No reels in chat thread; falling back to hunted pool in DB for {display_name}...")
+        unprocessed = db.get_unprocessed_hunted_reels(limit=target_count)
+        if unprocessed:
+            for shortcode, creator, views_text in unprocessed:
+                approved_candidates.append({
+                    "shortcode": shortcode,
+                    "url": f"https://www.instagram.com/reel/{shortcode}/",
+                    "creator": creator or "creator"
+                })
+
+    if not approved_candidates:
+        print(f"⚠️ No fresh candidate reels found for {display_name}.")
         if notify_telegram:
-            hub.send_message(f"⚠️ No fresh approved reels found in chat for {display_name}. Please ensure Raj shared reels back!")
+            hub.send_message(f"⚠️ No fresh candidate reels found for {display_name}.")
         return 0
 
     # 2. Calculate tomorrow's exact schedule timestamps
@@ -107,7 +118,8 @@ def cloud_schedule_channel_for_tomorrow(channel_id, target_count=25, notify_tele
         # A. Download raw video
         download_dir = os.path.join(workspace_dir, "downloads")
         download_file_path = os.path.join(download_dir, f"{shortcode}.mp4")
-        raw_video = download_reel_video(reel_url, download_file_path)
+        cookie_file = os.path.join(BASE_DIR, config.get("hunting_settings", {}).get("cookie_file", ""))
+        raw_video = download_reel_video(reel_url, download_file_path, cookie_file=cookie_file)
 
         if not raw_video or not os.path.exists(raw_video):
             print(f"❌ Failed to download {shortcode}. Skipping.")

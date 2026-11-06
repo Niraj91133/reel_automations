@@ -1,7 +1,8 @@
 import os
 import sys
 import time
-import requests
+import random
+import re
 from pathlib import Path
 from datetime import datetime
 
@@ -17,63 +18,62 @@ from core.ai_service import analyze_reel_for_channel
 from core.video_engine import render_channel_video
 from core.publisher import InstagramPublisher
 from core.telegram_hub import TelegramHub
-from core.niche_scout import NICHE_DISCOVERY_PROFILES, parse_cookie_file, COOKIE_FILE, is_shortcode_scouted, parse_views_count
+from core.niche_scout import NICHE_DISCOVERY_PROFILES, parse_views_count
+from core.niche_hunter import get_channel_cookies
 from scraper import download_reel_video
 from playwright.sync_api import sync_playwright
 
 def scout_single_viral_reel_for_channel(channel_id):
-    """Scouts 1 fresh high-view viral reel for a specific channel."""
-    niche_key = channel_id
-    if niche_key not in NICHE_DISCOVERY_PROFILES:
-        return None
+    """
+    Scouts 1 fresh high-view viral reel for a specific channel.
+    Checks top niche creators and fallback hashtags.
+    Guarantees the reel was never processed or published before.
+    """
+    config = get_channel_config(channel_id)
+    db = ChannelDatabase(config["runtime"]["db_path"])
 
-    profile = NICHE_DISCOVERY_PROFILES[niche_key]
-    creators = list(profile["creators"])
-    import random
+    profile = NICHE_DISCOVERY_PROFILES.get(channel_id, {})
+    creators = list(profile.get("creators", []))
     random.shuffle(creators)
 
-    cookies = parse_cookie_file(COOKIE_FILE)
+    cookies = get_channel_cookies(channel_id)
     chromium_args = [
         "--disable-dev-shm-usage",
         "--no-sandbox",
         "--disable-gpu",
         "--disable-software-rasterizer",
         "--renderer-process-limit=2",
-        "--blink-settings=imagesEnabled=false",
         "--mute-audio"
     ]
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, args=chromium_args)
         ctx = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
             viewport={"width": 1280, "height": 900}
         )
         ctx.add_cookies(cookies)
         page = ctx.new_page()
 
-        # Block images/media/fonts to reduce RAM by 85%
-        def block_heavy(route):
-            if route.request.resource_type in ["image", "media", "font"]:
-                route.abort()
-            else:
-                route.continue_()
-        page.route("**/*", block_heavy)
-
         candidate = None
-        for creator in creators:
+
+        # 1. Search top creators
+        for creator in creators[:6]:
             try:
                 url = f"https://www.instagram.com/{creator}/reels/"
                 page.goto(url, timeout=25000, wait_until='domcontentloaded')
-                time.sleep(2)
+                page.wait_for_timeout(3500)
+                page.evaluate("window.scrollBy(0, 800)")
+                page.wait_for_timeout(1500)
 
                 links = page.query_selector_all('a[href*="/reel/"]')
-                for link in links[:8]:
-                    href = link.get_attribute("href")
-                    if not href or "/reel/" not in href:
+                for link in links[:12]:
+                    href = link.get_attribute("href") or ""
+                    m = re.search(r'/reel/([^/?]+)', href)
+                    if not m:
                         continue
-
-                    code = href.split("/reel/")[1].split("/")[0].strip()
-                    if not code or is_shortcode_scouted(code):
+                    code = m.group(1).strip()
+                    if db.is_reel_processed(code):
                         continue
 
                     card_text = link.inner_text().strip().replace('\n', ' ')
@@ -90,8 +90,44 @@ def scout_single_viral_reel_for_channel(channel_id):
                         break
                 if candidate:
                     break
-            except:
+            except Exception:
                 pass
+
+        # 2. Fallback to Hashtags if creators didn't return
+        if not candidate:
+            hashtags = list(config.get("hunting_settings", {}).get("hashtags", []))
+            random.shuffle(hashtags)
+            for tag in hashtags[:4]:
+                clean_tag = tag.replace('#', '').strip()
+                try:
+                    url = f"https://www.instagram.com/explore/tags/{clean_tag}/"
+                    page.goto(url, timeout=25000, wait_until='domcontentloaded')
+                    page.wait_for_timeout(3500)
+                    page.evaluate("window.scrollBy(0, 800)")
+                    page.wait_for_timeout(1500)
+
+                    links = page.query_selector_all('a[href*="/reel/"], a[href*="/p/"]')
+                    for link in links[:10]:
+                        href = link.get_attribute("href") or ""
+                        m = re.search(r'/(?:reel|p)/([^/?]+)', href)
+                        if not m:
+                            continue
+                        code = m.group(1).strip()
+                        if db.is_reel_processed(code):
+                            continue
+
+                        card_text = link.inner_text().strip().replace('\n', ' ')
+                        candidate = {
+                            "shortcode": code,
+                            "creator": f"#{clean_tag}",
+                            "url": f"https://www.instagram.com/reel/{code}/",
+                            "views": card_text or "Trending"
+                        }
+                        break
+                    if candidate:
+                        break
+                except Exception:
+                    pass
 
         browser.close()
         return candidate
@@ -99,16 +135,15 @@ def scout_single_viral_reel_for_channel(channel_id):
 def run_channel_autopilot(channel_id):
     """
     100% Hands-Off Autopilot for a Single Channel:
-    1. AI Scout researches viral reel
-    2. Downloads raw video
+    1. AI Scout discovers viral reel
+    2. Downloads raw video to local cache
     3. Gemini AI writes hook & caption
-    4. FFmpeg renders Ultra-HD branded reel
+    4. Hardware FFmpeg renders 9:16 branded reel in ~5 seconds
     5. Official Meta Graph API publishes directly to live Instagram feed
-    6. Telegram receives confirmation & permalink
+    6. Telegram receives confirmation & live permalink
     """
     config = get_channel_config(channel_id)
     display_name = config.get("display_name", channel_id)
-    username = config.get("instagram_username", channel_id)
     workspace_dir = config["runtime"]["workspace_dir"]
     db = ChannelDatabase(config["runtime"]["db_path"])
 
@@ -123,7 +158,7 @@ def run_channel_autopilot(channel_id):
     )
 
     print(f"\n========================================================")
-    print(f"🤖 FULL AUTOPILOT RUN: [{display_name}] (@{username})")
+    print(f"🤖 FULL AUTOPILOT PIPELINE: [{display_name}]")
     print(f"========================================================")
 
     # 1. AI Scout
@@ -140,15 +175,18 @@ def run_channel_autopilot(channel_id):
 
     # 2. Download
     download_dir = os.path.join(workspace_dir, "downloads")
+    os.makedirs(download_dir, exist_ok=True)
     download_file_path = os.path.join(download_dir, f"{shortcode}.mp4")
-    raw_video = download_reel_video(reel_url, download_file_path)
+    
+    cookie_file = os.path.join(BASE_DIR, f"cookies/{channel_id}_cookies.txt")
+    raw_video = download_reel_video(reel_url, download_file_path, cookie_file=cookie_file)
     if not raw_video or not os.path.exists(raw_video):
         print(f"❌ Failed to download {shortcode}")
         return False
 
     try:
         # 3. AI Hook Synthesis
-        print(f"🤖 Calling dedicated Gemini AI for [{display_name}]...")
+        print(f"🤖 Calling Gemini AI for [{display_name}] content synthesis...")
         ai_data = analyze_reel_for_channel(
             video_file_path=raw_video,
             channel_config=config,
@@ -160,8 +198,8 @@ def run_channel_autopilot(channel_id):
         sub_quote = ai_data.get("sub_quote", "")
         caption = ai_data.get("caption", f"Insights from @{creator}")
 
-        # 4. Branded Video Render
-        print(f"🎨 Rendering branded video with {display_name} theme...")
+        # 4. Branded Video Render (GPU Hardware Accelerated)
+        print(f"🎨 Rendering branded video with {display_name} theme (GPU)...")
         rendered_video, job_id = render_channel_video(
             input_video_path=raw_video,
             channel_config=config,
@@ -179,7 +217,7 @@ def run_channel_autopilot(channel_id):
         live_permalink = None
         first_comment = config.get("content_settings", {}).get("first_comment_template")
         if sent and cdn_url and publisher.is_configured():
-            print(f"🚀 [Meta Graph API] AUTO-PUBLISHING directly to @{username} feed...")
+            print(f"🚀 [Meta Graph API] AUTO-PUBLISHING directly to live feed...")
             pub_res = publisher.publish_reel(
                 public_video_url=cdn_url,
                 caption=caption,
@@ -191,15 +229,15 @@ def run_channel_autopilot(channel_id):
                 print(f"🏆 SUCCESS! Reel is LIVE on Instagram: {live_permalink}")
                 first_cm_note = f"\n💬 <b>First Comment:</b> {first_comment}" if first_comment else ""
                 hub.send_message(
-                    f"🎉 <b>Reel LIVE on Instagram!</b>\n\n"
-                    f"👤 <b>Account:</b> @{username}\n"
+                    f"🎉 <b>Autopilot Reel LIVE on Instagram!</b>\n\n"
+                    f"📺 <b>Channel:</b> {display_name}\n"
                     f"🎬 <b>Title:</b> {main_title}\n"
                     f"🔗 <b>Watch Reel:</b> {live_permalink}{first_cm_note}"
                 )
 
         # 7. Record in Database
         db.mark_reel_processed(shortcode, creator, main_title, live_permalink)
-        print(f"✅ [{display_name}] Autopilot run complete!")
+        print(f"✅ [{display_name}] Autopilot run complete!\n")
         return True
 
     except Exception as e:
@@ -210,47 +248,29 @@ def run_channel_autopilot(channel_id):
             try: os.remove(raw_video)
             except: pass
 
-def run_channel_batch(channel_id, count=1):
-    """Processes multiple reels for a single channel sequentially with cooldown."""
-    import gc
-    success_count = 0
-    for r_idx in range(1, count + 1):
-        print(f"\n🎬 Reel [{r_idx}/{count}] for {channel_id}...")
-        ok = run_channel_autopilot(channel_id)
-        if ok:
-            success_count += 1
-        gc.collect()
-        if r_idx < count:
-            print(f"⏳ Pausing 5s before next reel...")
-            time.sleep(5)
-    return success_count
-
-def run_all_autopilot(reels_per_channel=1):
-    """Runs autopilot across all channels sequentially with cooldown."""
-    import gc
-    channels = list_available_channels()
-    for idx, ch in enumerate(channels, 1):
-        print(f"\n========================================================")
-        print(f"▶ [{idx}/{len(channels)}] Channel Autopilot: {ch} (Target: {reels_per_channel} reels)")
-        print(f"========================================================")
-        run_channel_batch(ch, count=reels_per_channel)
-        gc.collect()
-        if idx < len(channels):
-            print("\n❄️ Pausing 15s to let CPU & RAM cool down before next channel...")
-            time.sleep(15)
+def run_3_channels_autopilot_cycle():
+    """
+    Runs 1 complete autopilot cycle across the 3 selected channels:
+    - Trading Road (trading_pulse)
+    - Gudtree (healthy_diet)
+    - Trending Road (viral_finds)
+    Excludes Startup Road completely!
+    """
+    AUTOPILOT_CHANNELS = ["trading_pulse", "healthy_diet", "viral_finds"]
+    results = {}
+    for ch in AUTOPILOT_CHANNELS:
+        success = run_channel_autopilot(ch)
+        results[ch] = success
+        time.sleep(10)
+    return results
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    target = "all"
-    count = 1
+    target = args[0] if args else "3_channels"
 
-    for a in args:
-        if a.isdigit():
-            count = int(a)
-        elif a in ["all", "startup_road", "healthy_diet", "trading_pulse", "viral_finds"]:
-            target = a
-
-    if target == "all":
-        run_all_autopilot(reels_per_channel=count)
+    if target in ["3_channels", "all_3", "autopilot"]:
+        run_3_channels_autopilot_cycle()
+    elif target in ["trading_pulse", "healthy_diet", "viral_finds"]:
+        run_channel_autopilot(target)
     else:
-        run_channel_batch(target, count=count)
+        print(f"Usage: python core/full_autopilot.py [3_channels | trading_pulse | healthy_diet | viral_finds]")

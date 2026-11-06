@@ -172,3 +172,21 @@ class ChannelDatabase:
             return cursor.fetchall()
         finally:
             conn.close()
+
+    def get_unprocessed_hunted_reels(self, limit=10):
+        conn = self._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT shortcode, creator, views_text 
+                FROM hunted_reels 
+                WHERE shortcode NOT IN (SELECT shortcode FROM processed_reels)
+                ORDER BY has_comment_cta DESC, id DESC 
+                LIMIT ?
+                """,
+                (limit,)
+            )
+            return cursor.fetchall()
+        finally:
+            conn.close()
