@@ -39,6 +39,35 @@ def generate_30_slots(total_slots=30):
 
 SCHEDULE_SLOTS = generate_30_slots(30)
 
+def find_safe_backup_reel(channel_id, queue_dir, db, posted_set):
+    """
+    Auto-Backfill Safety Net:
+    Scans the queue directory for ANY unposted, 100% compliant reel.
+    Guarantees you NEVER lose daily post quotas due to rejections!
+    """
+    from core.compliance_guard import is_reel_compliant
+
+    all_vids = sorted(glob.glob(os.path.join(queue_dir, "ready_*.mp4")))
+    for vf in all_vids:
+        if vf.endswith(".tg_comp.mp4"):
+            continue
+        mf = vf.rsplit(".", 1)[0] + ".json"
+        if not os.path.exists(mf):
+            continue
+        try:
+            with open(mf, 'r', encoding='utf-8') as f:
+                meta = json.load(f)
+            shortcode = meta.get("shortcode")
+            if not shortcode or db.is_reel_processed(shortcode):
+                continue
+            is_safe, _ = is_reel_compliant(meta.get("title", ""), meta.get("hook_pill", ""), meta.get("caption", ""))
+            if is_safe:
+                print(f"🔄 [Auto-Backfill Safety Net] Using backup reel: '{meta.get('title')}'")
+                return vf, meta
+        except:
+            continue
+    return None, None
+
 def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, posted_set):
     key = f"{channel_id}_{slot_num}"
     if key in posted_set:
@@ -64,26 +93,39 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, 
     vid_files = glob.glob(vid_pattern)
     meta_files = glob.glob(meta_pattern)
 
-    if not vid_files or not meta_files:
-        print(f"[{display_name}] No pre-baked video found for slot #{slot_num}. Trying fallback...")
+    candidate_vid = None
+    candidate_meta = None
+
+    if vid_files and meta_files:
+        try:
+            with open(meta_files[0], 'r', encoding='utf-8') as f:
+                m = json.load(f)
+            shortcode = m.get("shortcode")
+            if shortcode and not db.is_reel_processed(shortcode):
+                from core.compliance_guard import is_reel_compliant
+                is_safe, reason = is_reel_compliant(m.get("title", ""), m.get("hook_pill", ""), m.get("caption", ""))
+                if is_safe:
+                    candidate_vid = vid_files[0]
+                    candidate_meta = m
+                else:
+                    print(f"🛑 [Compliance Guard BLOCKED] Slot #{slot_num} rejected: {reason}. Finding safe backup...")
+        except Exception as e:
+            pass
+
+    # If slot video is missing or was rejected -> AUTO-BACKFILL!
+    if not candidate_vid:
+        candidate_vid, candidate_meta = find_safe_backup_reel(channel_id, queue_dir, db, posted_set)
+
+    if not candidate_vid or not candidate_meta:
+        print(f"[{display_name}] No compliant backup video found for slot #{slot_num}.")
         return False
 
-    vid_file = vid_files[0]
-    with open(meta_files[0], 'r', encoding='utf-8') as f:
-        meta = json.load(f)
-
+    vid_file = candidate_vid
+    meta = candidate_meta
     shortcode = meta.get("shortcode")
     title = meta.get("title", f"Post #{slot_num}")
     caption = meta.get("caption", f"Insights from {handle}")
     creator = meta.get("creator", "creator")
-
-    # Meta Compliance Pre-Flight Gatekeeper
-    from core.compliance_guard import is_reel_compliant
-    is_safe, reason = is_reel_compliant(title, meta.get("hook_pill", ""), caption)
-    if not is_safe:
-        print(f"🛑 [Compliance Guard BLOCKED] Slot #{slot_num} rejected: {reason}. Skipping unsafe reel.")
-        posted_set.add(key)
-        return False
 
     print(f"\n🚀 [{display_name}] Publishing Slot #{slot_num}/30: {title}...")
 
