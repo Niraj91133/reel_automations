@@ -3,6 +3,7 @@ import sys
 import time
 import glob
 import json
+import random
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -39,7 +40,7 @@ def generate_30_slots(total_slots=30):
 
 SCHEDULE_SLOTS = generate_30_slots(30)
 
-def find_safe_backup_reel(channel_id, queue_dir, db, posted_set):
+def find_safe_backup_reel(channel_id, queue_dir, db):
     """
     Auto-Backfill Safety Net:
     Scans the queue directory for ANY unposted, 100% compliant reel.
@@ -68,11 +69,7 @@ def find_safe_backup_reel(channel_id, queue_dir, db, posted_set):
             continue
     return None, None
 
-def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, posted_set):
-    key = f"{channel_id}_{slot_num}"
-    if key in posted_set:
-        return False
-
+def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
     config = get_channel_config(channel_id)
     if not config.get("enabled", True):
         return False
@@ -82,6 +79,7 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, 
     if is_locked:
         print(f"🛑 [Circuit Breaker Lock] {display_name} is locked: {lock_reason}. Skipping slot #{slot_num}.")
         return False
+
     creds = config.get("credentials", {})
     hub = TelegramHub(creds.get("telegram_bot_token"), creds.get("telegram_chat_id"))
     publisher = InstagramPublisher(creds.get("instagram_account_id"), creds.get("page_access_token"))
@@ -114,7 +112,7 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, 
 
     # If slot video is missing or was rejected -> AUTO-BACKFILL!
     if not candidate_vid:
-        candidate_vid, candidate_meta = find_safe_backup_reel(channel_id, queue_dir, db, posted_set)
+        candidate_vid, candidate_meta = find_safe_backup_reel(channel_id, queue_dir, db)
 
     if not candidate_vid or not candidate_meta:
         print(f"[{display_name}] No compliant backup video found for slot #{slot_num}.")
@@ -148,13 +146,14 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, 
                     f"🔗 <b>Watch Reel:</b> {link}"
                 )
                 db.mark_reel_processed(shortcode, creator, title, link)
-                posted_set.add(key)
                 return True
             else:
                 err_msg = pub_res.get("error", "Unknown error") if pub_res else "No response"
                 print(f"⚠️ [{display_name}] Meta API response note: {err_msg}")
+        else:
+            print(f"⚠️ [{display_name}] Telegram upload or publisher not configured properly.")
     except Exception as e:
-        print(f"❌ Error publishing {key}: {e}")
+        print(f"❌ Error publishing slot #{slot_num} for {channel_id}: {e}")
     return False
 
 def run_all_4channels_dispatcher():
@@ -166,39 +165,52 @@ def run_all_4channels_dispatcher():
         print(f"  • {name} ({handle}) ➔ 30 Reels / Day")
     print(f"\nTotal Posts per Day: {len(CHANNELS) * 30} Reels")
     print("Time Window: 07:00 AM - 10:00 PM (Every ~31 minutes)")
+    print("Architecture: Database-Backed Persistent Scheduler")
+    print("Anti-Spam Pacing: Minimum 7-min gap per channel")
     print("========================================================\n")
 
-    posted_today = set()
-    current_day = None
+    last_post_time = {}
 
     while True:
         now = datetime.now()
-        today_str = now.strftime("%Y-%m-%d")
-
-        # Reset trackers at midnight
-        if current_day != today_str:
-            current_day = today_str
-            posted_today.clear()
 
         # Posting window is strictly 07:00 AM to 10:00 PM (10 PM to 2 AM is pre-baking window)
         if now.hour < 7 or now.hour >= 22:
-            time.sleep(30)
+            time.sleep(60)
             continue
 
-        # Check each slot
-        for slot_num, slot_hour, slot_min in SCHEDULE_SLOTS:
-            if now.hour == slot_hour and now.minute >= slot_min:
-                # Dispatch for each of the 4 channels with a small stagger (15 seconds between accounts)
-                for ch_id, name, handle in CHANNELS:
-                    key = f"{ch_id}_{slot_num}"
-                    if key not in posted_today:
-                        cfg = get_channel_config(ch_id)
-                        queue_dir = os.path.join(cfg["runtime"]["workspace_dir"], "tomorrow_reels")
-                        publish_channel_slot(ch_id, name, handle, slot_num, queue_dir, posted_today)
-                        time.sleep(15)
+        # Calculate target slots that should be published by current wall-clock time
+        elapsed_slots = [
+            s for s, h, m in SCHEDULE_SLOTS 
+            if (now.hour > h) or (now.hour == h and now.minute >= m)
+        ]
+        target_slots_by_now = len(elapsed_slots)
 
-        time.sleep(20)
+        for ch_id, name, handle in CHANNELS:
+            cfg = get_channel_config(ch_id)
+            db = ChannelDatabase(cfg["runtime"]["db_path"])
+            posted_today_count = db.get_today_count()
+
+            # If this channel is behind the scheduled target and hasn't hit 30:
+            if posted_today_count < target_slots_by_now and posted_today_count < 30:
+                last_time = last_post_time.get(ch_id, 0)
+                # Ensure at least 420 seconds (7 minutes) gap between consecutive posts on the SAME channel
+                if time.time() - last_time >= 420:
+                    next_slot = posted_today_count + 1
+                    queue_dir = os.path.join(cfg["runtime"]["workspace_dir"], "tomorrow_reels")
+                    print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/30 (Target by now: {target_slots_by_now}). Dispatching Slot #{next_slot}...")
+                    
+                    success = publish_channel_slot(ch_id, name, handle, next_slot, queue_dir)
+                    if success:
+                        last_post_time[ch_id] = time.time()
+                        # Small stagger of 20 seconds between different channels
+                        time.sleep(20)
+                    else:
+                        # On temporary failure, back off 3 minutes before retrying this channel
+                        last_post_time[ch_id] = time.time() - 240
+
+        # Heartbeat check every 30 seconds
+        time.sleep(30)
 
 if __name__ == '__main__':
     run_all_4channels_dispatcher()
-

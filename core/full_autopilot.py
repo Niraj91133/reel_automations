@@ -192,6 +192,9 @@ def run_channel_autopilot(channel_id):
             channel_config=config,
             creator_username=creator
         )
+        if ai_data.get("rejected"):
+            print(f"⚠️ Skipping candidate {shortcode} for {display_name}: {ai_data.get('reason')}")
+            return False
 
         hook_pill = ai_data.get("hook_pill", "VIRAL LESSON")
         main_title = ai_data.get("main_title", "KEY TAKEAWAY")

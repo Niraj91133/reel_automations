@@ -77,16 +77,32 @@ class TelegramHub:
         temp_comp = None
         
         try:
-            # Strictly enforce < 19.5MB for Telegram getFile CDN compatibility
-            if os.path.exists(video_path) and os.path.getsize(video_path) > 19.5 * 1024 * 1024:
+            # Strictly enforce < 18MB for Telegram getFile CDN compatibility (<20MB limit)
+            if os.path.exists(video_path) and os.path.getsize(video_path) > 18 * 1024 * 1024:
                 temp_comp = video_path + ".tg_comp.mp4"
                 import subprocess
-                cmd = ["ffmpeg", "-y", "-i", video_path, "-c:v", "h264_mf", "-b:v", "1800k", "-c:a", "aac", "-b:a", "128k", temp_comp]
-                sub_res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                if sub_res.returncode != 0 or not os.path.exists(temp_comp):
-                    cmd_cpu = ["ffmpeg", "-y", "-i", video_path, "-threads", "2", "-c:v", "libx264", "-crf", "28", "-preset", "faster", "-c:a", "aac", "-b:a", "128k", temp_comp]
-                    subprocess.run(cmd_cpu, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                if os.path.exists(temp_comp) and os.path.getsize(temp_comp) < os.path.getsize(video_path):
+                probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", video_path]
+                try:
+                    dur_res = subprocess.run(probe_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+                    duration = float(dur_res.stdout.strip())
+                except:
+                    duration = 60.0
+
+                # Max target size: 16 MB = 16 * 8192 kbits = 131,072 kbits
+                target_kbits = 131072
+                calc_bitrate = int((target_kbits / max(duration, 1.0)) - 128)
+                safe_video_bitrate = max(400, min(1800, calc_bitrate))
+                max_rate = int(safe_video_bitrate * 1.25)
+                buf_size = safe_video_bitrate * 2
+
+                cmd_cpu = [
+                    "ffmpeg", "-y", "-i", video_path, "-threads", "2",
+                    "-c:v", "libx264", "-b:v", f"{safe_video_bitrate}k",
+                    "-maxrate", f"{max_rate}k", "-bufsize", f"{buf_size}k",
+                    "-preset", "faster", "-c:a", "aac", "-b:a", "128k", temp_comp
+                ]
+                subprocess.run(cmd_cpu, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if os.path.exists(temp_comp) and os.path.getsize(temp_comp) < 19 * 1024 * 1024:
                     upload_path = temp_comp
 
             with open(upload_path, "rb") as video_file:

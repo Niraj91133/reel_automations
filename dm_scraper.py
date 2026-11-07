@@ -6,7 +6,8 @@ import re
 import sqlite3
 from playwright.sync_api import sync_playwright
 
-COOKIE_FILE = "cookies.txt"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+COOKIE_FILE = os.path.join(BASE_DIR, "cookies.txt")
 STARTUP_THREAD_URL = "https://www.instagram.com/direct/t/101996904536119/"
 
 def parse_cookie_file(cookie_file):
@@ -30,9 +31,15 @@ def parse_cookie_file(cookie_file):
     return cookies
 
 def get_already_processed_shortcodes():
-    """Fetches already processed shortcodes from reels_history.db and politics_history.db."""
+    """Fetches already processed shortcodes from history databases."""
     processed = set()
-    for db_file, tbl in [("reels_history.db", "processed_reels"), ("politics_history.db", "processed_politics_reels")]:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    db_candidates = [
+        (os.path.join(base_dir, "databases", "startup_road_history.db"), "processed_reels"),
+        (os.path.join(base_dir, "reels_history.db"), "processed_reels"),
+        (os.path.join(base_dir, "politics_history.db"), "processed_politics_reels")
+    ]
+    for db_file, tbl in db_candidates:
         if os.path.exists(db_file):
             try:
                 conn = sqlite3.connect(db_file)
@@ -74,13 +81,13 @@ def get_shared_reels_from_chat(max_count=10):
         context.add_cookies(cookies)
         page = context.new_page()
 
-        # Anti-Crash Memory Saver: Block images, video streams, and fonts
-        def block_heavy(route):
-            if route.request.resource_type in ["image", "media", "font"]:
+        # Note: Do NOT abort fonts/images as it breaks Instagram's chat DOM mounting
+        def block_media_only(route):
+            if route.request.resource_type in ["media"]:
                 route.abort()
             else:
                 route.continue_()
-        page.route("**/*", block_heavy)
+        page.route("**/*", block_media_only)
 
         try:
             page.goto(STARTUP_THREAD_URL, timeout=35000, wait_until="domcontentloaded")

@@ -121,6 +121,16 @@ Ensure output matches the required JSON format exactly.
                     clean_txt = clean_json_response(response.text)
                     data = json.loads(clean_txt)
                     if "main_title" in data and "hook_pill" in data:
+                        # Language & Speech Gatekeeper (Strict Hindi & Voice requirement)
+                        is_hindi = data.get("is_hindi", True)
+                        has_speech = data.get("has_speech", True)
+                        if is_hindi is False:
+                            print(f"🛑 [Language Guard] REJECTED reel for {channel_config.get('channel_id')}: Audio is NOT in Hindi.")
+                            return {"rejected": True, "reason": "non_hindi_audio"}
+                        if has_speech is False:
+                            print(f"🛑 [Audio Guard] REJECTED reel for {channel_config.get('channel_id')}: Audio has NO clear human speech (only music/silence).")
+                            return {"rejected": True, "reason": "no_speech_music_only"}
+
                         # Meta Policy Compliance Validation
                         from core.compliance_guard import is_reel_compliant
                         is_safe, reason = is_reel_compliant(data.get("main_title", ""), data.get("hook_pill", ""), data.get("caption", ""))

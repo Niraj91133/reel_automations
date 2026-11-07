@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>Startup Road - The Zero-to-Hero Earning Playbook</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap');
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #060913;
+    color: #E2E8F0;
+    line-height: 1.45;
+  }
+
+  .page {
+    width: 210mm;
+    height: 297mm;
+    max-height: 297mm;
+    padding: 16mm 18mm;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+    background: #080C18;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: #FFFFFF;
+    font-weight: 700;
+  }
+
+  .gradient-text {
+    color: #F43F5E;
+  }
+
+  .green-gradient {
+    color: #10B981;
+  }
+
+  .gold-gradient {
+    color: #F59E0B;
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-red {
+    background: rgba(225, 29, 72, 0.15);
+    color: #FF6482;
+    border: 1px solid rgba(225, 29, 72, 0.3);
+  }
+
+  .badge-green {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34D399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-gold {
+    background: rgba(245, 158, 11, 0.15);
+    color: #FBBF24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  .badge-cyan {
+    background: rgba(14, 165, 233, 0.15);
+    color: #38BDF8;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+  }
+
+  /* Header Bar */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 14px;
+  }
+
+  .brand-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .brand-tag span {
+    color: #E11D48;
+  }
+
+  /* Footer Bar */
+  .page-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 11px;
+    color: #64748B;
+  }
+
+  /* Cards */
+  .card {
+    background: #0F172A;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .card-highlight {
+    background: #15162B;
+    border: 1px solid rgba(225, 29, 72, 0.3);
+  }
+
+  .card-green {
+    background: #0D1D23;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  .card-gold {
+    background: #1C1917;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  /* Image Containers */
+  .cartoon-img-container {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+    background: #0B1120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cartoon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Tables */
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 12px;
+  }
+
+  .custom-table th {
+    background: #1E293B;
+    color: #F8FAFC;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .custom-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #CBD5E1;
+  }
+
+  .custom-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Steps list */
+  .step-box {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: #E11D48;
+    color: #FFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .step-content {
+    flex: 1;
+  }
+
+  .step-title {
+    font-weight: 700;
+    color: #FFF;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  .step-desc {
+    font-size: 11.5px;
+    color: #94A3B8;
+  }
+
+  /* Key stat box */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 10px 0;
+  }
+
+  .stat-card {
+    background: #1E293B;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-size: 18px;
+    font-weight: 800;
+    color: #10B981;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1: COVER PAGE ================= -->
+<div class="page" style="padding: 18mm 20mm; justify-content: space-between;">
+  <div class="content" style="justify-content: space-between; height: 100%;">
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <span class="badge badge-red">🚀 STARTUP ROAD OFFICIAL • 2026 EDITION</span>
+        <span style="font-size: 11px; font-weight: 700; color: #94A3B8; letter-spacing: 1px;">@STARTUP_ROAD</span>
+      </div>
+
+      <h1 style="font-size: 38px; line-height: 1.1; margin-bottom: 10px;">
+        THE <span class="gradient-text">ZERO-TO-HERO</span><br>EARNING PLAYBOOK
+      </h1>
+      <p style="font-size: 14px; color: #94A3B8; margin-bottom: 16px;">
+        Ghar Baithe Zero Investment Se <strong style="color: #F8FAFC;">₹50,000/Month Earning</strong> Ka 100% Practical Blueprint (No Coding • Hindi / Hinglish)
+      </p>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+        <span class="badge badge-green">✔ 5 Proven Business Models</span>
+        <span class="badge badge-gold">✔ Exact Profit Math</span>
+        <span class="badge badge-cyan">✔ 100% Free AI Tools</span>
+      </div>
+    </div>
+
+    <!-- Center Hero Cartoon -->
+    <div style="display: flex; justify-content: center; margin: 10px 0;">
+      <div class="cartoon-img-container" style="width: 150mm; height: 135mm; border: 3px solid rgba(225, 29, 72, 0.4);">
+        <img class="cartoon-img" src="file:///C:/Users/DHEERAJ/OneDrive/Desktop/Bittu Bhaiya/reel_automations-main/reel_automations-main/playbook_assets/hero_entrepreneur.jpg" alt="Entrepreneur Cartoon">
+      </div>
+    </div>
+
+    <!-- Cover Footer -->
+    <div class="card card-highlight" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; margin-bottom: 0;">
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: #FFF;">Curated by Startup Road • The Founder Mindset</div>
+        <div style="font-size: 10.5px; color: #94A3B8;">114,000+ Indian Hustlers & Creators Community</div>
+      </div>
+      <div style="text-align: right;">
+        <span class="badge badge-gold">FREE ACTION GUIDE</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 2: CHAPTER 1 - THE REALITY CHECK ================= -->
+<div class="page">
+  <div class="content">
+    <div class="page-header">
+      <span class="brand-tag">CHAPTER 01 <span>//</span> THE MINDSET SHIFT</span>
+      <span class="brand-tag">STARTUP ROAD PLAYBOOK</span>
+    </div>
+
+    <h2 style="font-size: 24px; margin-bottom: 6px;">The Reality Check: <span class="gradient-text">Job vs Micro-Business</span></h2>
+    <p style="font-size: 12px; color: #94A3B8; margin-bottom: 14px;">
+      Aapko kisine nahi bataya ki college degree ke baad ₹20,000 ki job se ameer banna mathematically impossible hai. Yahan dekho real difference:
+    </p>
+
+    <!-- Comparison Table -->
+    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 14px;">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th style="color: #F87171;">9-to-5 Traditional Job</th>
+            <th style="color: #34D399;">Digital Micro-Business</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Income Ceiling</strong></td>
+            <td>₹15k - ₹30k Fixed (Yearly 5-10% hike)</td>
+            <td><strong>₹50k - ₹2 Lakh+ (Unlimited scale)</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Initial Capital</strong></td>
+            <td>3-4 Years College Fees (₹3L - ₹10L)</td>
+            <td><strong>₹0 se ₹5,000 Maximum</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Time Required</strong></td>
+            <td>9-10 Hours Daily + Travel</td>
+            <td><strong>2-3 Hours Daily (Night / Weekend)</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Who Wins?</strong></td>
+            <td>Company Owner / Boss</td>
+            <td><strong>Aap aur Aapki Family</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size: 16px; margin: 12px 0 8px 0; color: #F59E0B;">⚡ 3 Golden Rules To Hit Your First ₹50,000:</h3>
+
+    <div class="card card-green" style="margin-bottom: 10px;">
+      <div style="font-size: 13px; font-weight: 700; color: #34D399; margin-bottom: 4px;">
+        1. High Margin Beats High Volume (Calculated Math)
+      </div>
+      <div style="font-size: 11.5px; color: #CBD5E1;">
+        Agar aap ₹50 ka profit kama kar 1,000 customer dhoondhoge toh thak jaoge. Par agar aap ₹500 profit ka ek product ya service doge, toh mahine me sirf <strong>100 sales = ₹50,000 PURE PROFIT!</strong>
+      </div>
+    </div>
+
+    <div class="card card-highlight" style="margin-bottom: 10px;">
+      <div style="font-size: 13px; font-weight: 700; color: #FF6482; margin-bottom: 4px;">
+        2. Distribution Is King (Product Sabke Paas Hai, Bechna Sikho)
+      </div>
+      <div style="font-size: 11.5px; color: #CBD5E1;">
+        Product koi bhi factory se banwa sakta hai. Jeetata wahi hai jisko <strong>Instagram Reels, WhatsApp, aur Direct Outreach</strong> se audience ko connect karna aata hai.
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 10px; border-left: 3px solid #0EA5E9;">
+      <div style="font-size: 13px; font-weight: 700; color: #38BDF8; margin-bottom: 4px;">
+        3. 24-Hour Execution Rule (Sochna Band, Shuru Karo)
+      </div>
+      <div style="font-size: 11.5px; color: #CBD5E1;">
+        99% log sirf videos dekhte rehte hain aur kabhi action nahi lete. Jo banda agle 24 ghante me pehla trial post ya outreach karega, wahi result dekhega.
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>Startup Road • The Founder Mindset</span>
+      <span>Page 02</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 3: CHAPTER 2 - MARGIN ARBITRAGE ================= -->
+<div class="page">
+  <div class="content">
+    <div class="page-header">
+      <span class="brand-tag">CHAPTER 02 <span>//</span> BLUEPRINT #1</span>
+      <span class="brand-tag">STARTUP ROAD PLAYBOOK</span>
+    </div>
+
+    <h2 style="font-size: 22px; margin-bottom: 4px;">
+      Blueprint 1: <span class="green-gradient">Margin Arbitrage (Saste Me Lo, Premium Me Becho)</span>
+    </h2>
+    <p style="font-size: 11.5px; color: #94A3B8; margin-bottom: 10px;">
+      Mandi ya wholesale se saste me bulk uthao, aesthetic pouch & logo lagao, aur online 2X-3X margin par becho.
+    </p>
+
+    <!-- 2 Column Layout with Box Image -->
+    <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; margin-bottom: 10px;">
+      <div>
+        <div class="card card-green" style="margin-bottom: 8px;">
+          <div style="font-size: 12.5px; font-weight: 700; color: #34D399; margin-bottom: 6px;">
+            📦 Case Study: Gourmet Flavored Makhana / Saffron
+          </div>
+          <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">
+            • <strong>Raw Sourcing:</strong> Bihar mandi / IndiaMART par raw makhana ₹650 - ₹750/kg milta hai.<br>
+            • <strong>Value Addition:</strong> Peri-Peri ya Himalayan Salt flavor coat karo.<br>
+            • <strong>Packaging:</strong> Matte black zip-pouch (₹12) + Glossy sticker (₹4).<br>
+            • <strong>Selling:</strong> Instagram Reels aur festive gift hampers me 250g ka pack <strong>₹450</strong> me bikta hai (₹1,800/kg)!
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-val" style="color: #F87171;">₹195</div>
+            <div class="stat-lbl">Cost / Pack</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" style="color: #60A5FA;">₹450</div>
+            <div class="stat-lbl">Selling Price</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val">₹255</div>
+            <div class="stat-lbl">Net Profit (130%)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cartoon-img-container" style="height: 60mm; border: 2px solid rgba(16, 185, 129, 0.4);">
+        <img class="cartoon-img" src="file:///C:/Users/DHEERAJ/OneDrive/Desktop/Bittu Bhaiya/reel_automations-main/reel_automations-main/playbook_assets/box_arbitrage.jpg" alt="Box Profit Arbitrage">
+      </div>
+    </div>
+
+    <!-- 4 Step Launch Framework -->
+    <h3 style="font-size: 14px; margin-bottom: 8px; color: #FFF;">🚀 4-Step Launch Framework:</h3>
+    
+    <div class="step-box">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">IndiaMART se 5Kg Sample Order Karo</div>
+        <div class="step-desc">Direct 100Kg mat lo. Kisi top-rated seller se bolo "Mujhe sample testing ke liye 5kg chahiye." Total investment: ~₹3,500.</div>
+      </div>
+    </div>
+
+    <div class="step-box">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Canva Par Clean Minimalist Label Banao</div>
+        <div class="step-desc">Canva free version me "Luxury organic packaging" search karo. Apna brand name likho aur local print shop se ₹3-₹4 me vinyl stickers nikalwao.</div>
+      </div>
+    </div>
+
+    <div class="step-box">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">5 ASMR Packing Reels Post Karo</div>
+        <div class="step-desc">Phone camera se clean background me pouch packing, weight checking, aur crunch sound ki reel banao. Caption me likho: "Order on WhatsApp 👇".</div>
+      </div>
+    </div>
+
+    <div class="step-box">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">WhatsApp Business & UPI QR Code</div>
+        <div class="step-desc">WhatsApp Business me catalogue add karo. Pehle 20 orders apne dosto, relatives aur college circle me deliver karke reviews collect karo.</div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>Startup Road • The Founder Mindset</span>
+      <span>Page 03</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 4: CHAPTER 3 - FACELESS AI MACHINE ================= -->
+<div class="page">
+  <div class="content">
+    <div class="page-header">
+      <span class="brand-tag">CHAPTER 03 <span>//</span> BLUEPRINT #2</span>
+      <span class="brand-tag">STARTUP ROAD PLAYBOOK</span>
+    </div>
+
+    <h2 style="font-size: 22px; margin-bottom: 4px;">
+      Blueprint 2: <span class="gradient-text">100% Faceless AI Content & Reel Machine</span>
+    </h2>
+    <p style="font-size: 11.5px; color: #94A3B8; margin-bottom: 10px;">
+      Bina camera khareede aur bina chehra dikhaye mahine ka ₹30,000 se ₹70,000 digital income stream kaise banaye.
+    </p>
+
+    <!-- Grid with Robot Image -->
+    <div style="display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 12px; margin-bottom: 10px;">
+      <div class="cartoon-img-container" style="height: 60mm; border: 2px solid rgba(14, 165, 233, 0.4);">
+        <img class="cartoon-img" src="file:///C:/Users/DHEERAJ/OneDrive/Desktop/Bittu Bhaiya/reel_automations-main/reel_automations-main/playbook_assets/robot_ai.jpg" alt="AI Creator Robot">
+      </div>
+
+      <div>
+        <div class="card card-highlight" style="margin-bottom: 8px;">
+          <div style="font-size: 12.5px; font-weight: 700; color: #FF6482; margin-bottom: 4px;">
+            🤖 Faceless Creators Ka Hidden Secret
+          </div>
+          <div style="font-size: 11px; color: #CBD5E1; line-height: 1.45;">
+            Top creators jo AI reels daalte hain, wo khud na camera ke aage aate hain na recording karte hain. Wo <strong>Curated Content + High-Interest Voiceover</strong> ka formula use karte hain.
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div style="font-size: 12px; font-weight: 700; color: #38BDF8; margin-bottom: 4px;">🎯 3 Earning Streams From Day 45:</div>
+          <div style="font-size: 10.5px; color: #94A3B8;">
+            1. <strong>Affiliate Tools Link:</strong> ₹10,000 - ₹25,000/mo<br>
+            2. <strong>Brand Promotions:</strong> ₹5,000 per sponsored reel<br>
+            3. <strong>Digital PDF / Guide Sales:</strong> ₹20,000 - ₹40,000/mo
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size: 14px; margin-bottom: 8px; color: #FFF;">🛠️ The 4-Tool Zero-Cost Tech Stack:</h3>
+
+    <div class="card" style="padding: 10px 14px; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+        <strong style="color: #34D399; font-size: 12px;">Step 1: Viral Scripting</strong>
+        <span class="badge badge-green">ChatGPT / Gemini AI (FREE)</span>
+      </div>
+      <div style="font-size: 11px; color: #94A3B8;">
+        Prompt: <em>"Write a 45-second high-curiosity Hindi reel script on 'How a 22-year-old student earned ₹1 Lakh using 1 AI tool'. Hook in first 3 seconds, simple conversational Hindi."</em>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 10px 14px; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+        <strong style="color: #60A5FA; font-size: 12px;">Step 2: Realistic Hindi Voice</strong>
+        <span class="badge badge-cyan">ElevenLabs / Clipchamp</span>
+      </div>
+      <div style="font-size: 11px; color: #94A3B8;">
+        Free account banao, Hindi script paste karo, natural Indian accent (e.g. 'Aarav' ya 'Aditi') choose karo. 10 second me clean audio MP3 download ho jayegi.
+      </div>
+    </div>
+
+    <div class="card" style="padding: 10px 14px; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+        <strong style="color: #FBBF24; font-size: 12px;">Step 3: 4K Visual B-Roll</strong>
+        <span class="badge badge-gold">Pexels.com + Leonardo.ai</span>
+      </div>
+      <div style="font-size: 11px; color: #94A3B8;">
+        Pexels se luxury lifestyle, coding, ya city lights ke vertical 9:16 clips free download karo jisme copyright zero hota hai.
+      </div>
+    </div>
+
+    <div class="card" style="padding: 10px 14px; margin-bottom: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+        <strong style="color: #FF6482; font-size: 12px;">Step 4: Auto-Captions & Sound Effects</strong>
+        <span class="badge badge-red">CapCut Desktop</span>
+      </div>
+      <div style="font-size: 11px; color: #94A3B8;">
+        CapCut me 'Auto-Captions' click karo, bold yellow-white font lagao, aur background me subtle trending beat dalke export karo. Ready to post!
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>Startup Road • The Founder Mindset</span>
+      <span>Page 04</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 5: CHAPTER 4 - LOCAL BUSINESS DIGITAL FLIP ================= -->
+<div class="page">
+  <div class="content">
+    <div class="page-header">
+      <span class="brand-tag">CHAPTER 04 <span>//</span> BLUEPRINT #3</span>
+      <span class="brand-tag">STARTUP ROAD PLAYBOOK</span>
+    </div>
+
+    <h2 style="font-size: 22px; margin-bottom: 4px;">
+      Blueprint 3: <span class="gold-gradient">The Local Business Digital Flip (Store Makeover)</span>
+    </h2>
+    <p style="font-size: 11.5px; color: #94A3B8; margin-bottom: 10px;">
+      Aapke shehar ke hazaron local cafes, salons aur shops ko online customers chahiye. Unhe digital setup karke do.
+    </p>
+
+    <!-- Grid with Shop 5-Stars Image -->
+    <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; margin-bottom: 10px;">
+      <div>
+        <div class="card card-gold" style="margin-bottom: 8px;">
+          <div style="font-size: 12.5px; font-weight: 700; color: #FBBF24; margin-bottom: 4px;">
+            🏪 Dukaandar Khushi Se Kyun Pay Karega?
+          </div>
+          <div style="font-size: 11px; color: #CBD5E1; line-height: 1.45;">
+            Local shopkeeper ko tech ya Instagram nahi aata, par unhe roz naye customer chahiye. Agar aap unke Google Map par 40 naye positive review aur achi photo daal doge, toh unka business 30% badh jata hai.
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-val" style="color: #FBBF24;">₹3,500</div>
+            <div class="stat-lbl">Per Map Setup</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" style="color: #34D399;">₹6,000</div>
+            <div class="stat-lbl">Monthly Retainer</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val">10 Clients</div>
+            <div class="stat-lbl">= ₹60,000/Mo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cartoon-img-container" style="height: 60mm; border: 2px solid rgba(245, 158, 11, 0.4);">
+        <img class="cartoon-img" src="file:///C:/Users/DHEERAJ/OneDrive/Desktop/Bittu Bhaiya/reel_automations-main/reel_automations-main/playbook_assets/shop_5stars.jpg" alt="Local Shop 5 Stars">
+      </div>
+    </div>
+
+    <h3 style="font-size: 14px; margin-bottom: 8px; color: #FFF;">🎯 2 Simple Services You Can Sell Today:</h3>
+
+    <div class="step-box">
+      <div class="step-num" style="background: #F59E0B;">A</div>
+      <div class="step-content">
+        <div class="step-title">Google Maps (GMB) 5-Star Booster Package (Charge: ₹2,500 - ₹4,000)</div>
+        <div class="step-desc">
+          • Shop ki HD photos click karke Google par dalo.<br>
+          • Timings, phone number, aur menu update karo.<br>
+          • Canva par ek sundar "Scan for 5-Star Review" acrylic QR standee bana kar counter par lagwa do.
+        </div>
+      </div>
+    </div>
+
+    <div class="step-box">
+      <div class="step-num" style="background: #10B981;">B</div>
+      <div class="step-content">
+        <div class="step-title">Local Cafe / Salon Reels Package (Charge: ₹5,000 - ₹8,000/Month)</div>
+        <div class="step-desc">
+          • Hafte me sirf 1 din jaakar 4 simple phone reels shoot karo (Food making, haircut transformation).<br>
+          • Trending sound ke sath unke Instagram handle par post karo.<br>
+          • Har mahine 10-12 reels ka monthly retainer lo. 5 local client = <strong>₹30,000 recurring monthly income!</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-green" style="margin-top: 6px; padding: 10px 14px; margin-bottom: 0;">
+      <strong style="color: #34D399; font-size: 12px;">💡 The "Free Sample" Secret Pitch:</strong>
+      <p style="font-size: 11px; color: #CBD5E1; margin-top: 3px;">
+        Pehle 3 cafes ko bolo: <em>"Bhaiya main aapki ek reel bilkul free bana raha hu. Agar 1 hafte me views aur customer aaye, tabhi mujhe aage contract dena, warna zero charge!"</em> 10 me se 7 log haan kar dete hain.
+      </p>
+    </div>
+
+    <div class="page-footer">
+      <span>Startup Road • The Founder Mindset</span>
+      <span>Page 05</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 6: CHAPTER 5 - HIGH INCOME SKILL STACK ================= -->
+<div class="page">
+  <div class="content">
+    <div class="page-header">
+      <span class="brand-tag">CHAPTER 05 <span>//</span> BLUEPRINT #4</span>
+      <span class="brand-tag">STARTUP ROAD PLAYBOOK</span>
+    </div>
+
+    <h2 style="font-size: 22px; margin-bottom: 4px;">
+      Blueprint 4: <span class="green-gradient">The Student High-Income Skill Stack</span>
+    </h2>
+    <p style="font-size: 11.5px; color: #94A3B8; margin-bottom: 12px;">
+      Agar aapke paas ₹0 investment hai, toh sabse pehle apni digital skills becho aur pehla ₹30k capital jama karo.
+    </p>
+
+    <!-- 3 High income skills -->
+    <div class="card card-green" style="margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <div style="font-size: 13px; font-weight: 700; color: #34D399;">1. Short-Form Video Editor (CapCut / Premiere)</div>
+        <span class="badge badge-green">Earning: ₹25k - ₹45k/Mo</span>
+      </div>
+      <div style="font-size: 11px; color: #CBD5E1; line-height: 1.45;">
+        Aaj har creator, podcaster aur business ko roz 1 reel chahiye. Agar aap fast pacing, sound design aur b-roll cutting seekh lo, toh creators <strong>₹500 se ₹1,200 per reel</strong> dete hain. Sirf 2 regular creator pakdo = ₹35,000/month fixed!
+      </div>
+    </div>
+
+    <div class="card card-highlight" style="margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <div style="font-size: 13px; font-weight: 700; color: #FF6482;">2. Instagram DM Automation & Funnel Specialist</div>
+        <span class="badge badge-red">Earning: ₹20k - ₹40k/Mo</span>
+      </div>
+      <div style="font-size: 11px; color: #CBD5E1; line-height: 1.45;">
+        Creators ke paas thousands comments aate hain "Link bhejo", "Price kya hai". ManyChat setup karke auto-reply funnel lagao. Har client se ₹3,000 - ₹5,000 setup fee charge karo. 1 din ka kaam hota hai.
+      </div>
+    </div>
+
+    <div class="card card-gold" style="margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <div style="font-size: 13px; font-weight: 700; color: #FBBF24;">3. Carousel & Lead Magnet Designer (Canva Pro)</div>
+        <span class="badge badge-gold">Earning: ₹15k - ₹30k/Mo</span>
+      </div>
+      <div style="font-size: 11px; color: #CBD5E1; line-height: 1.45;">
+        LinkedIn aur Instagram creators ke liye high-converting 10-slide carousels aur PDF guides design karo. Ek carousel ka rate ₹600 - ₹1,000 hota hai.
+      </div>
+    </div>
+
+    <h3 style="font-size: 14px; margin-bottom: 8px; color: #FFF;">📬 How To Get Clients On Instagram / LinkedIn (Copy-Paste Script):</h3>
+
+    <div class="card" style="background: rgba(30, 41, 59, 0.9); border: 1px dashed rgba(255, 255, 255, 0.2); padding: 12px;">
+      <div style="font-size: 11.5px; color: #F8FAFC; line-height: 1.5; font-style: italic;">
+        "Hey [Creator Name]! Loved your recent video on [Topic]. Noticed that the pacing and captions could be 2X punchier to retain more viewers till the end.<br><br>
+        Maine aapki ek purani reel ka <strong>30-second free sample edit</strong> kiya hai with sound effects and custom animations. Yahan link dekho: [Google Drive Link].<br><br>
+        Agar pasand aaye toh we can discuss 10 reels for this month. No pressure at all, keep crushing it!"
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>Startup Road • The Founder Mindset</span>
+      <span>Page 06</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 7: CHAPTER 6 - 7-DAY ACTION SPRINT ================= -->
+<div class="page">
+  <div class="content">
+    <div class="page-header">
+      <span class="brand-tag">CHAPTER 06 <span>//</span> ACTION PLAN</span>
+      <span class="brand-tag">STARTUP ROAD PLAYBOOK</span>
+    </div>
+
+    <h2 style="font-size: 22px; margin-bottom: 4px;">
+      The 7-Day Fast-Action Sprint <span class="gradient-text">(Day-by-Day Checklist)</span>
+    </h2>
+    <p style="font-size: 11.5px; color: #94A3B8; margin-bottom: 10px;">
+      Overthinking band karo. Agle 7 din me is checklist ko follow karke apna pehla ₹5,000 kamao.
+    </p>
+
+    <!-- Checklist Table -->
+    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 12px;">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th style="width: 18%;">Day</th>
+            <th style="width: 32%;">Target Milestone</th>
+            <th style="width: 50%;">Exact Action To Take</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-red">DAY 01</span></td>
+            <td><strong>Niche Selection</strong></td>
+            <td>In 4 blueprints me se 1 choose karo jisme aapka interest ho. Do cheezon me mat bhatko.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-gold">DAY 02</span></td>
+            <td><strong>Asset & Branding</strong></td>
+            <td>Canva par free logo banao, Instagram Business profile create karo aur bio optimize karo.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-cyan">DAY 03</span></td>
+            <td><strong>Content Batching</strong></td>
+            <td>Pehle 3 reels / samples create karke draft me save karo (ASMR packing ya AI video).</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-green">DAY 04</span></td>
+            <td><strong>Payment & Link Setup</strong></td>
+            <td>Cosmofeed ya Instamojo account banao taaki UPI payments instantly bank me aa sakein.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-red">DAY 05</span></td>
+            <td><strong>Cold Outreach Sprint</strong></td>
+            <td>20 targeted dukaandaron ya creators ko custom free sample bhej kar DM outreach karo.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-gold">DAY 06</span></td>
+            <td><strong>Follow-Up & Closing</strong></td>
+            <td>Jinhone reply kiya unhe call/chat par leke pehla order ya monthly retainer close karo.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-green">DAY 07</span></td>
+            <td><strong>First Earning & Proof</strong></td>
+            <td>Pehla ₹500 - ₹2,000 kama kar screenshot apne page par daalo social proof ke liye!</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size: 14px; margin-bottom: 8px; color: #FFF;">🧰 Free Tools Directory (Direct Resources):</h3>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0;">
+      <div class="card" style="padding: 8px 12px; margin-bottom: 0;">
+        <div style="font-weight: 700; color: #34D399; font-size: 11px;">🎨 Canva (canva.com)</div>
+        <div style="font-size: 10px; color: #94A3B8;">Stickers, logo, reels template aur packaging labels free me banane ke liye.</div>
+      </div>
+      <div class="card" style="padding: 8px 12px; margin-bottom: 0;">
+        <div style="font-weight: 700; color: #60A5FA; font-size: 11px;">💳 Cosmofeed / Instamojo</div>
+        <div style="font-size: 10px; color: #94A3B8;">Digital products aur services ke UPI payment link generate karne ke liye.</div>
+      </div>
+      <div class="card" style="padding: 8px 12px; margin-bottom: 0;">
+        <div style="font-weight: 700; color: #FBBF24; font-size: 11px;">✂️ CapCut Desktop</div>
+        <div style="font-size: 10px; color: #94A3B8;">Auto captions, zoom cuts, sound effects aur vertical export bina watermark.</div>
+      </div>
+      <div class="card" style="padding: 8px 12px; margin-bottom: 0;">
+        <div style="font-weight: 700; color: #FF6482; font-size: 11px;">📦 IndiaMART & TradeIndia</div>
+        <div style="font-size: 10px; color: #94A3B8;">Direct wholesale manufacturers aur packaging boxes bulk rate me dhoondhne ke liye.</div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>Startup Road • The Founder Mindset</span>
+      <span>Page 07</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 8: BACK COVER ================= -->
+<div class="page" style="padding: 22mm 22mm; text-align: center; justify-content: space-between;">
+  <div class="content" style="justify-content: space-between; align-items: center; height: 100%;">
+    <div>
+      <span class="badge badge-red" style="margin-bottom: 16px;">WELCOME TO THE 1% HUSTLERS</span>
+      <h2 style="font-size: 32px; line-height: 1.2; margin-bottom: 12px;">
+        "Ideas are cheap.<br><span class="gradient-text">Execution is the only currency</span><br>that matters."
+      </h2>
+      <p style="font-size: 13px; color: #94A3B8; max-width: 140mm; margin: 0 auto 20px auto;">
+        Duniya me hazaron log har roz naye ideas sochte hain, par jeet-ta wahi hai jo agle 24 ghante me pehla kadam uthata hai.
+      </p>
+    </div>
+
+    <!-- Center Card -->
+    <div class="card card-highlight" style="width: 140mm; padding: 22px; text-align: center; border: 2px solid rgba(225, 29, 72, 0.4);">
+      <div style="font-size: 20px; font-weight: 800; color: #FFF; margin-bottom: 6px; font-family: 'Space Grotesk', sans-serif;">
+        JOIN THE FOUNDERS CLUB
+      </div>
+      <p style="font-size: 12px; color: #CBD5E1; margin-bottom: 14px;">
+        Daily verified micro-business case studies, supplier contacts, and AI earning tricks ke liye hamare sath jude rahein.
+      </p>
+      <div style="display: inline-block; padding: 8px 24px; border-radius: 9999px; background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%); color: #FFF; font-weight: 700; font-size: 13px; letter-spacing: 0.5px;">
+        INSTAGRAM: @STARTUP_ROAD
+      </div>
+      <div style="font-size: 11px; color: #94A3B8; margin-top: 10px;">
+        114,000+ Followers • Daily Founder Playbooks
+      </div>
+    </div>
+
+    <!-- Footer Copyright -->
+    <div>
+      <p style="font-size: 11px; color: #64748B; margin-bottom: 4px;">
+        © 2026 Startup Road. All rights reserved. For personal implementation only.
+      </p>
+      <p style="font-size: 10px; color: #475569;">
+        Created with ❤️ for ambitious creators and hustlers across India.
+      </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

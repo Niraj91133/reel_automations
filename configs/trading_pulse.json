@@ -15,7 +15,7 @@
     },
     "hunting_settings": {
         "dm_target_chat": "im_raaaj_",
-        "hunt_target_daily": 30,
+        "hunt_target_daily": 0,
         "min_views": 25000,
         "prioritize_comment_cta": false,
         "keywords": [
@@ -34,12 +34,13 @@
             "#stockmarketeducation",
             "#tradingdiscipline"
         ],
-        "cookie_file": "cookies/trading_pulse_cookies.txt"
+        "cookie_file": "cookies/trading_pulse_cookies.txt",
+        "auto_send_dm": false
     },
     "content_settings": {
         "default_hook_pill": "RISK FIRST",
         "tag_text": "RISK MANAGEMENT:",
-        "first_comment_template": "Always define your stop loss and risk per trade. What chart pattern do you trust the most? 📊",
+        "first_comment_template": "Always define your stop loss and risk per trade. What chart pattern do you trust the most? \ud83d\udcca",
         "theme_color_primary": [
             14,
             165,

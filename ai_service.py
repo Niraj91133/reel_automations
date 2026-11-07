@@ -129,33 +129,39 @@ CREATOR'S REEL DESCRIPTION/NOTES:
 \"\"\"{original_description or original_title or 'High-impact business and startup lesson'}\"\"\"
 
 STRICT VIRAL HOOK & ENGAGEMENT RULES:
-1. FORBIDDEN: NEVER output generic corporate fluff like "The Growth Blueprint", "The Strategic Playbook", or "Important Business Lesson". Any generic title is strictly disqualified.
-2. HOOK PSYCHOLOGY: Must use EXACT NUMBERS, MONETARY VALUE, EXTREME CURIOSITY, or CONTRARIAN TRUTH (e.g. "₹23,000 CR MARKET", "EARN ₹1 LAKH/MO", "MRBEAST SECRET", "STOP WASTING TIME").
-3. "hook_pill": 2 to 4 words MAX, ALL CAPS (e.g. "₹23,000 CR MARKET", "DROPSHIP SECRET", "AI WEALTH HACK").
-4. "main_title": Exactly 2 short punchy lines separated by \\n (maximum 6-8 words total in Title Case or CAPS). Must specify the exact topic spoken.
-5. "sub_quote": 1 punchy, unforgettable spoken statement in double quotes.
-6. "comment_trigger": A single 1-word keyword in ALL CAPS for viewers to comment (e.g. "TEES", "AI", "SCALE", "BLUEPRINT", "ROAD").
-7. "caption": High-converting viral Instagram SEO caption structured strictly as:
+0. STRICT AUDIO & LANGUAGE FILTER:
+   - "is_hindi": The audio MUST be spoken in Hindi (or conversational Hinglish by Indian creator). If purely English or foreign language, set false.
+   - "has_speech": MUST have a clear human speaking voice explaining the topic. If only background music, trending song, beats, or silence, set false.
+1. DOMAIN FOCUS: How to Earn Money, Online Income, Side Hustles, AI Money Tools, Business Tricks & Ways in Hindi.
+2. FORBIDDEN: NEVER output generic corporate fluff like "The Growth Blueprint", "The Strategic Playbook", or "Important Business Lesson". Any generic title is strictly disqualified.
+3. HOOK PSYCHOLOGY: Must use EXACT NUMBERS, MONETARY VALUE, EXTREME CURIOSITY, or CONTRARIAN TRUTH (e.g. "₹23,000 CR MARKET", "EARN ₹1 LAKH/MO", "MRBEAST SECRET", "STOP WASTING TIME").
+4. "hook_pill": 2 to 4 words MAX, ALL CAPS (e.g. "EARNING TRICK", "MONEY HACK", "AI WEALTH HACK").
+5. "main_title": Exactly 2 short punchy lines separated by \\n (maximum 6-8 words total in Title Case or CAPS). Must specify the exact topic spoken.
+6. "sub_quote": 1 punchy, unforgettable spoken statement in double quotes.
+7. "comment_trigger": A single 1-word keyword in ALL CAPS for viewers to comment (e.g. "TRICK", "AI", "SCALE", "MONEY", "ROAD").
+8. "caption": High-converting viral Instagram SEO caption structured strictly as:
 
 [Line 1: Viral Scroll-Stopping Hook with emoji] 👇
 
-📌 The Founder Breakdown:
-• [Step 1: Specific mechanism or strategy explained by speaker]
-• [Step 2: Core unit economics or execution hack]
-• [Step 3: Strategic edge or leverage]
+📌 The Method Breakdown:
+• [Step 1: Specific trick or strategy explained by speaker]
+• [Step 2: Core mechanism or execution hack]
+• [Step 3: Strategic edge or website/tool used]
 
 💡 Golden Takeaway: [1 punchy golden takeaway]
 
-👇 Want the step-by-step PDF roadmap & free resources?
+👇 Want the step-by-step tools, links & guide?
 Comment "[INSERT comment_trigger HERE]" below and I'll DM you the breakdown instantly! 📩
 
 Credits & Speaker: @{creator_username}
-Follow @startup_road for daily founder playbooks & business insights.
+Follow @startup_road for daily earning tricks & business guides.
 
-#StartupRoad #FounderMindset #BusinessIdeas #WealthBuilding #Entrepreneurship #StartupIndia #BusinessCaseStudy
+#EarnMoneyOnline #PaiseKaiseKamaye #OnlineEarning #BusinessIdeas #StartupRoad #EarningTricks
 
 Return STRICT VALID JSON ONLY. No markdown backticks:
 {{
+  "is_hindi": true,
+  "has_speech": true,
   "hook_pill": "...",
   "main_title": "Line 1\\nLine 2",
   "sub_quote": "\\"...\\"",

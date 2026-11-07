@@ -51,8 +51,12 @@ def process_single_reel(video_file_path, reel_id, username="creator", reel_index
         original_description=orig_desc,
         original_title=orig_title
     )
-    hook_pill = ai_data.get("hook_pill", "STARTUP SECRETS")
-    main_title = ai_data.get("main_title", "HOW TO BUILD\nA SCALABLE STARTUP")
+    if ai_data.get("is_hindi") is False or ai_data.get("has_speech") is False:
+        print(f"🛑 [Language/Speech Guard] Skipping reel {reel_id}: Non-Hindi or Music-only audio detected.")
+        return False
+
+    hook_pill = ai_data.get("hook_pill", "EARNING TRICK")
+    main_title = ai_data.get("main_title", "HOW TO BUILD\nA SCALABLE BUSINESS")
     sub_quote = ai_data.get("sub_quote", '"Execution beats planning every time."')
     caption = ai_data.get("caption", f"Insights from @{username}\n\nCredits: @{username}")
 

@@ -133,6 +133,10 @@ def cloud_schedule_channel_for_tomorrow(channel_id, target_count=25, notify_tele
                 channel_config=config,
                 creator_username=creator
             )
+            if ai_data.get("rejected"):
+                print(f"⚠️ Skipping reel {shortcode} due to: {ai_data.get('reason')}")
+                continue
+
             hook_pill = ai_data.get("hook_pill", "KEY LESSON")
             main_title = ai_data.get("main_title", "IMPORTANT INSIGHT")
             sub_quote = ai_data.get("sub_quote", "")

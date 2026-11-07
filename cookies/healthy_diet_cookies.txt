@@ -8,7 +8,7 @@
 .instagram.com	TRUE	/	TRUE	1827140044	ps_n	1
 .instagram.com	TRUE	/	TRUE	1794470332	dpr	1.25
 .instagram.com	TRUE	/	TRUE	1794470332	wd	772x622
-.instagram.com	TRUE	/	TRUE	1828497947	csrftoken	5V6Fe0rjwshfb1EpwVwBgJDa84wAAFeD
-.instagram.com	TRUE	/	TRUE	1801713947	ds_user_id	78907779604
+.instagram.com	TRUE	/	TRUE	1828526673	csrftoken	5V6Fe0rjwshfb1EpwVwBgJDa84wAAFeD
+.instagram.com	TRUE	/	TRUE	1801742673	ds_user_id	78907779604
 .instagram.com	TRUE	/	TRUE	1825401496	sessionid	78907779604%3AHuMglr3JGczSkk%3A7%3AAYmS78gCCDBKI-GwsmcljKr3_0VUxvJidhylbJK4nw
-.instagram.com	TRUE	/	TRUE	0	rur	"CCO\05478907779604\0541825473946:01ffb352bb01c5d5ca2f5ff070d6bddf10197399047fb6ca454952c0866b2ceb13f22f8f"
+.instagram.com	TRUE	/	TRUE	0	rur	"CCO\05478907779604\0541825502672:01ffbc45e7e0b39eb3b9867fcd8aa5e82263e09034060b04614132f94bb145583695ce2f"
