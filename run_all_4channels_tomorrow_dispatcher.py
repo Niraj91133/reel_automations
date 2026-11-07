@@ -26,20 +26,23 @@ CHANNELS = [
     ("trading_road24", "📈 Trading Road 24", "@trading_road24")
 ]
 
-# 30 Slots across 07:00 AM - 09:50 PM (~30.7 minutes apart, finishing before 10:00 PM nightly editing window)
-def generate_30_slots(total_slots=30):
+# Slots from 07:00 AM to 11:30 PM (Every 30 minutes)
+def generate_30_slots():
     slots = []
     start_total = 7 * 60       # 07:00 AM
-    end_total = 21 * 60 + 50   # 09:50 PM
-    interval = (end_total - start_total) / (total_slots - 1)
-    for i in range(total_slots):
-        m_total = int(start_total + i * interval)
-        h = m_total // 60
-        m = m_total % 60
-        slots.append((i + 1, h, m))
+    end_total = 23 * 60 + 30   # 11:30 PM
+    interval = 30.0            # Exactly 30 minutes!
+    curr = start_total
+    idx = 1
+    while curr <= end_total:
+        h = int(curr) // 60
+        m = int(curr) % 60
+        slots.append((idx, h, m))
+        curr += interval
+        idx += 1
     return slots
 
-SCHEDULE_SLOTS = generate_30_slots(30)
+SCHEDULE_SLOTS = generate_30_slots()
 
 def find_safe_backup_reel(channel_id, queue_dir, db):
     """
@@ -116,6 +119,15 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
         candidate_vid, candidate_meta = find_safe_backup_reel(channel_id, queue_dir, db)
 
     if not candidate_vid or not candidate_meta:
+        print(f"🔄 [{display_name}] Queue empty for slot #{slot_num}! Triggering On-The-Fly Auto-Bake...")
+        try:
+            from prebake_autopilot_channels import prebake_channel_reels
+            prebake_channel_reels(channel_id, count=slot_num)
+            candidate_vid, candidate_meta = find_safe_backup_reel(channel_id, queue_dir, db)
+        except Exception as e_bake:
+            print(f"⚠️ Error during on-the-fly bake for {display_name}: {e_bake}")
+
+    if not candidate_vid or not candidate_meta:
         print(f"[{display_name}] No compliant backup video found for slot #{slot_num}.")
         return False
 
@@ -176,8 +188,8 @@ def run_all_4channels_dispatcher():
         try:
             now = datetime.now()
 
-            # Posting window is strictly 07:00 AM to 10:00 PM (10 PM to 2 AM is pre-baking window)
-            if now.hour < 7 or now.hour >= 22:
+            # Posting window is 07:00 AM to 11:59 PM (Every ~30 minutes)
+            if now.hour < 7:
                 time.sleep(60)
                 continue
 
@@ -194,14 +206,14 @@ def run_all_4channels_dispatcher():
                     db = ChannelDatabase(cfg["runtime"]["db_path"])
                     posted_today_count = db.get_today_count()
 
-                    # If this channel is behind the scheduled target and hasn't hit 30:
-                    if posted_today_count < target_slots_by_now and posted_today_count < 30:
+                    # If this channel is behind the scheduled target and hasn't hit target slots:
+                    if posted_today_count < target_slots_by_now and posted_today_count < len(SCHEDULE_SLOTS):
                         last_time = last_post_time.get(ch_id, 0)
-                        # Ensure at least 420 seconds (7 minutes) gap between consecutive posts on the SAME channel
+                        # Ensure safe pacing gap between consecutive posts on the SAME channel
                         if time.time() - last_time >= 420:
                             next_slot = posted_today_count + 1
                             queue_dir = os.path.join(cfg["runtime"]["workspace_dir"], "tomorrow_reels")
-                            print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/30 (Target by now: {target_slots_by_now}). Dispatching Slot #{next_slot}...")
+                            print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/{len(SCHEDULE_SLOTS)} (Target by now: {target_slots_by_now}). Dispatching Slot #{next_slot}...")
                             
                             success = publish_channel_slot(ch_id, name, handle, next_slot, queue_dir)
                             if success:
