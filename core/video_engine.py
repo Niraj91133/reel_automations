@@ -167,13 +167,15 @@ def render_channel_video(
         "-loop", "1", "-i", circle_layer_path,
         "-filter_complex",
         (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease:flags=fast_bilinear,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
+            "[0:v]eq=contrast=1.03:brightness=0.01:saturation=1.03,scale=1080:1920:force_original_aspect_ratio=decrease:flags=fast_bilinear,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
             "[vid][1:v]overlay=0:0[with_base];"
             "[2:v]fade=t=out:st=4.3:d=0.7:alpha=1[circle_faded];"
             "[with_base][circle_faded]overlay=0:0:enable='between(t,0,5)'[v_out]"
         ),
         "-map", "[v_out]",
         "-map", "0:a?",
+        "-af", "aresample=44100",
+        "-map_metadata", "-1",
         *enc_args,
         "-c:a", "aac",
         "-b:a", "192k",
@@ -195,13 +197,15 @@ def render_channel_video(
             "-loop", "1", "-i", circle_layer_path,
             "-filter_complex",
             (
-                "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease:flags=fast_bilinear,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
+                "[0:v]eq=contrast=1.03:brightness=0.01:saturation=1.03,scale=1080:1920:force_original_aspect_ratio=decrease:flags=fast_bilinear,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
                 "[vid][1:v]overlay=0:0[with_base];"
                 "[2:v]fade=t=out:st=4.3:d=0.7:alpha=1[circle_faded];"
                 "[with_base][circle_faded]overlay=0:0:enable='between(t,0,5)'[v_out]"
             ),
             "-map", "[v_out]",
             "-map", "0:a?",
+            "-af", "aresample=44100",
+            "-map_metadata", "-1",
             "-c:v", "libx264",
             "-preset", "fast",
             "-crf", "23",
