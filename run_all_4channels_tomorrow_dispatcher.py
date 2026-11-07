@@ -17,6 +17,8 @@ from core.config_manager import get_channel_config
 from core.publisher import InstagramPublisher
 from core.telegram_hub import TelegramHub
 from core.database import ChannelDatabase
+from core.channel_lock import channel_lock
+from core.garbage_collector import run_global_cleanup
 
 CHANNELS = [
     ("startup_road", "💼 Startup Road", "@startup_road"),
@@ -94,6 +96,21 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
     publisher = InstagramPublisher(creds.get("instagram_account_id"), creds.get("page_access_token"))
     db = ChannelDatabase(config["runtime"]["db_path"])
 
+    # Check Meta Daily Publishing Quota & Velocity Lock
+    import requests
+    try:
+        q_url = f"https://graph.facebook.com/v21.0/{creds.get('instagram_account_id')}/content_publishing_limit"
+        r_q = requests.get(q_url, params={"access_token": creds.get("page_access_token"), "fields": "quota_usage,config"}, timeout=5)
+        if r_q.status_code == 200:
+            q_data = r_q.json().get("data", [{}])[0]
+            usage = q_data.get("quota_usage", 0)
+            total = q_data.get("config", {}).get("quota_total", 100)
+            if usage >= total - 3:
+                print(f"🛑 [Quota Safety Lock] {display_name} has used {usage}/{total} today. Pausing to avoid Meta API restriction.")
+                return False
+    except Exception:
+        pass
+
     vid_pattern = os.path.join(queue_dir, f"ready_{slot_num:02d}_*.mp4")
     meta_pattern = os.path.join(queue_dir, f"ready_{slot_num:02d}_*.json")
 
@@ -157,30 +174,31 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
     print(f"\n🚀 [{display_name}] Publishing Slot #{slot_num}/30: {title}...")
 
     try:
-        sent, cdn_url = hub.send_video_with_cdn_url(vid_file, f"<b>[{display_name}]</b>\n\n{caption}")
-        if sent and cdn_url and publisher.is_configured():
-            first_comment = config.get("content_settings", {}).get("first_comment_template")
-            pub_res = publisher.publish_reel(
-                public_video_url=cdn_url,
-                caption=caption,
-                creator_username=creator,
-                first_comment=first_comment
-            )
-            if pub_res and "permalink" in pub_res:
-                link = pub_res["permalink"]
-                print(f"🎉 SUCCESS! [{display_name}] Slot #{slot_num} LIVE: {link}")
-                hub.send_message(
-                    f"🎉 <b>{display_name} Reel #{slot_num}/30 LIVE!</b>\n\n"
-                    f"🎬 <b>Title:</b> {title}\n"
-                    f"🔗 <b>Watch Reel:</b> {link}"
+        with channel_lock(channel_id):
+            sent, cdn_url = hub.send_video_with_cdn_url(vid_file, f"<b>[{display_name}]</b>\n\n{caption}")
+            if sent and cdn_url and publisher.is_configured():
+                first_comment = config.get("content_settings", {}).get("first_comment_template")
+                pub_res = publisher.publish_reel(
+                    public_video_url=cdn_url,
+                    caption=caption,
+                    creator_username=creator,
+                    first_comment=first_comment
                 )
-                db.mark_reel_processed(shortcode, creator, title, link)
-                return True
+                if pub_res and "permalink" in pub_res:
+                    link = pub_res["permalink"]
+                    print(f"🎉 SUCCESS! [{display_name}] Slot #{slot_num} LIVE: {link}")
+                    hub.send_message(
+                        f"🎉 <b>{display_name} Reel #{slot_num}/30 LIVE!</b>\n\n"
+                        f"🎬 <b>Title:</b> {title}\n"
+                        f"🔗 <b>Watch Reel:</b> {link}"
+                    )
+                    db.mark_reel_processed(shortcode, creator, title, link)
+                    return True
+                else:
+                    err_msg = pub_res.get("error", "Unknown error") if pub_res else "No response"
+                    print(f"⚠️ [{display_name}] Meta API response note: {err_msg}")
             else:
-                err_msg = pub_res.get("error", "Unknown error") if pub_res else "No response"
-                print(f"⚠️ [{display_name}] Meta API response note: {err_msg}")
-        else:
-            print(f"⚠️ [{display_name}] Telegram upload or publisher not configured properly.")
+                print(f"⚠️ [{display_name}] Telegram upload or publisher not configured properly.")
     except Exception as e:
         print(f"❌ Error publishing slot #{slot_num} for {channel_id}: {e}")
     return False
@@ -199,10 +217,19 @@ def run_all_4channels_dispatcher():
     print("========================================================\n")
 
     last_post_time = {}
+    last_cleanup_time = 0
 
     while True:
         try:
             now = datetime.now()
+
+            # Automatic Disk Space Garbage Collector (Runs every 4 hours)
+            if time.time() - last_cleanup_time > 14400:
+                try:
+                    run_global_cleanup()
+                    last_cleanup_time = time.time()
+                except Exception as e_clean:
+                    print(f"Note on cleanup: {e_clean}")
 
             # Posting window is 07:00 AM to 11:59 PM (Every ~30 minutes)
             if now.hour < 7:

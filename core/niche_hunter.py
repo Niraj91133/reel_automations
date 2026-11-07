@@ -139,6 +139,9 @@ def hunt_niche_reels(channel_config, target_count=30, headless=True):
             try:
                 page.goto(tag_url, timeout=30000, wait_until='domcontentloaded')
                 time.sleep(3)
+                if "accounts/login" in page.url or "challenge" in page.url:
+                    print(f"⚠️ [Session Check] Instagram session login or challenge detected for {channel_id}.")
+                    break
 
                 # Scroll once to load more top reels
                 page.evaluate("window.scrollBy(0, 1200)")

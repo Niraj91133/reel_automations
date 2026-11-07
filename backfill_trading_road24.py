@@ -18,6 +18,7 @@ from core.publisher import InstagramPublisher
 from core.telegram_hub import TelegramHub
 from core.database import ChannelDatabase
 from core.iron_shield import CircuitBreaker
+from core.channel_lock import channel_lock
 
 CHANNEL_ID = "trading_road24"
 ARCHIVE_DIR = r"C:\reel_cache\trading_road24\archive_posted"
@@ -58,12 +59,12 @@ def publish_next_backfill_reel(interactive=False):
         print(f"🛑 [Circuit Breaker Lock] Channel is locked: {reason}")
         return False, None, None
 
-    # 2. Check Meta Graph API Quota
+    # 2. Check Meta Graph API Quota & New Account Velocity Cap (Max 25/day for safety)
     usage, total = check_publishing_quota(ig_id, token)
     print(f"📊 Meta API Quota: {usage}/{total} used today.")
-    if usage >= total - 2:
-        print("🛑 Meta publishing quota near maximum for today. Sleeping to prevent rate limits.")
-        return False, None, None
+    if usage >= 28 or db.get_today_count() >= 25:
+        print("🛑 [New Account Safety Cap] @trading_road24 reached safe daily limit (25-28 reels) for today. Sleeping to prevent spam detection.")
+        return False, None, "DAILY_CAP_REACHED"
 
     # 3. Find candidate videos
     all_jsons = sorted(glob.glob(os.path.join(ARCHIVE_DIR, "ready_*.json")))
@@ -110,38 +111,39 @@ def publish_next_backfill_reel(interactive=False):
     print(f"📁 Video: {os.path.basename(target_vid)} ({os.path.getsize(target_vid)/(1024*1024):.2f} MB)")
 
     try:
-        # Step A: Telegram CDN Upload
-        sent, cdn_url = hub.send_video_with_cdn_url(
-            target_vid, 
-            caption=f"<b>[📈 Trading Road 24 - Backfill]</b>\n\n<b>Title:</b> {title}\n\n{caption[:300]}..."
-        )
-        if not sent or not cdn_url:
-            print("❌ Failed to obtain Telegram CDN URL.")
-            return False, sc, None
-
-        # Step B: Meta Graph API Publishing
-        first_comment = config.get("content_settings", {}).get("first_comment_template")
-        res = publisher.publish_reel(
-            public_video_url=cdn_url,
-            caption=caption,
-            creator_username=creator,
-            first_comment=first_comment
-        )
-
-        if res and "permalink" in res:
-            link = res["permalink"]
-            print(f"🎉 100% SUCCESS! Reel LIVE on Instagram: {link}")
-            db.mark_reel_processed(sc, creator, title, link)
-            hub.send_message(
-                f"🎉 <b>@trading_road24 Reel LIVE!</b>\n\n"
-                f"🎬 <b>Title:</b> {title}\n"
-                f"🔗 <b>Watch Reel:</b> {link}\n"
-                f"📊 <b>Quota Usage:</b> {usage + 1}/{total}"
+        with channel_lock(CHANNEL_ID):
+            # Step A: Telegram CDN Upload
+            sent, cdn_url = hub.send_video_with_cdn_url(
+                target_vid, 
+                caption=f"<b>[📈 Trading Road 24 - Backfill]</b>\n\n<b>Title:</b> {title}\n\n{caption[:300]}..."
             )
-            return True, sc, link
-        else:
-            err = res.get("error", "Unknown error") if res else "No response"
-            print(f"⚠️ Meta API Error: {err}")
+            if not sent or not cdn_url:
+                print("❌ Failed to obtain Telegram CDN URL.")
+                return False, sc, None
+
+            # Step B: Meta Graph API Publishing
+            first_comment = config.get("content_settings", {}).get("first_comment_template")
+            res = publisher.publish_reel(
+                public_video_url=cdn_url,
+                caption=caption,
+                creator_username=creator,
+                first_comment=first_comment
+            )
+
+            if res and "permalink" in res:
+                link = res["permalink"]
+                print(f"🎉 100% SUCCESS! Reel LIVE on Instagram: {link}")
+                db.mark_reel_processed(sc, creator, title, link)
+                hub.send_message(
+                    f"🎉 <b>@trading_road24 Reel LIVE!</b>\n\n"
+                    f"🎬 <b>Title:</b> {title}\n"
+                    f"🔗 <b>Watch Reel:</b> {link}\n"
+                    f"📊 <b>Quota Usage:</b> {usage + 1}/{total}"
+                )
+                return True, sc, link
+            else:
+                err = res.get("error", "Unknown error") if res else "No response"
+                print(f"⚠️ Meta API Error: {err}")
     except Exception as e:
         print(f"❌ Exception during backfill publish: {e}")
 
@@ -167,6 +169,10 @@ def run_paced_backfill(interval_seconds=300, max_posts=None):
         if link == "ALL_COMPLETED":
             print("🏆 All historical reels have been successfully backfilled!")
             break
+        elif link == "DAILY_CAP_REACHED":
+            print("🛑 Daily safety limit reached for today. Sleeping 1 hour to protect account reputation...")
+            time.sleep(3600)
+            continue
 
         if success:
             count += 1
