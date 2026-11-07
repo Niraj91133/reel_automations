@@ -12,10 +12,11 @@ STRICT AUDIO & LANGUAGE REQUIREMENTS:
 1. LANGUAGE: The audio MUST be spoken in Hindi (or natural Hinglish spoken by Indian creators). If the speaker is speaking purely in English or a foreign language, you MUST set "is_hindi": false.
 2. HUMAN SPEECH: There MUST be a clear human voice explaining/talking. If the video only has background music, beats, songs, or silence with text-on-screen, you MUST set "has_speech": false.
 
-CONTENT FOCUS:
-- Earning money online & offline (tricks, tools, websites, freelancing, AI apps, side businesses).
-- Practical business setups, margins, and hacks.
-- Realistic breakdowns that create extreme curiosity to watch till the end.
+CONTENT FOCUS (TWO CORE PILLARS):
+- Pillar 1: Ground Machines, Micro-Manufacturing & Laghu Udyog (packaging, printing, crushing, stamping, processing machines with setup costs & supplier details).
+- Pillar 2: App Ideas & Digital Micro-Businesses (practical AI tools, revenue-generating mobile apps, micro-SaaS ideas, automated online service setups).
+- Practical business models, profit margins, setup costs, and actionable execution tricks.
+- Realistic breakdowns that create extreme curiosity to watch till the end and comment for details.
 
 CRITICAL META COMPLIANCE & SAFETY RULES:
 - NEVER make fraudulent get-rich-quick claims (NEVER write "Guaranteed ₹10 Lakhs overnight", "100% Risk Free Profit").
