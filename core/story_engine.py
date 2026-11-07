@@ -59,6 +59,13 @@ CHANNEL_THEMES = {
         "badge_bg": (139, 92, 246),
         "badge_text": "🛍️ TRENDING ROAD • REEL SPOTLIGHT",
         "handle": "@trending_road"
+    },
+    "trading_road24": {
+        "bg_color": (9, 13, 22),         # Deep Navy #090d16
+        "border_color": (14, 165, 233),   # Cyan Blue #0ea5e9
+        "badge_bg": (14, 165, 233),
+        "badge_text": "📈 TRADING ROAD 24 • REEL SPOTLIGHT",
+        "handle": "@trading_road24"
     }
 }
 

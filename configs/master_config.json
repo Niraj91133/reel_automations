@@ -3,7 +3,8 @@
     "startup_road",
     "healthy_diet",
     "trading_pulse",
-    "viral_finds"
+    "viral_finds",
+    "trading_road24"
   ],
   "default_model": "gemini-3.1-flash-lite",
   "meta_app_version": "v21.0",

@@ -39,12 +39,13 @@ CHANNELS = [
     ("startup_road", "💼 Startup Road", "@startup_road"),
     ("trading_pulse", "📈 Trading Road", "@trading_road_"),
     ("healthy_diet", "🥗 Gudtree", "@gudtree_"),
-    ("viral_finds", "🛍️ Trending Road", "@trending_road")
+    ("viral_finds", "🛍️ Trending Road", "@trending_road"),
+    ("trading_road24", "📈 Trading Road 24", "@trading_road24")
 ]
 
 def run_story_dispatcher():
     print("========================================================")
-    print("  🌟 4-CHANNEL 20 STORIES/DAY AUTOMATED DISPATCHER")
+    print("  🌟 5-CHANNEL 20 STORIES/DAY AUTOMATED DISPATCHER")
     print("========================================================")
     print("Channels:")
     for ch_id, name, handle in CHANNELS:

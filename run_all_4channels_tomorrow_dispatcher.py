@@ -22,7 +22,8 @@ CHANNELS = [
     ("startup_road", "💼 Startup Road", "@startup_road"),
     ("trading_pulse", "📈 Trading Road", "@trading_road_"),
     ("healthy_diet", "🥗 Gudtree", "@gudtree_"),
-    ("viral_finds", "🛍️ Trending Road", "@trending_road")
+    ("viral_finds", "🛍️ Trending Road", "@trending_road"),
+    ("trading_road24", "📈 Trading Road 24", "@trading_road24")
 ]
 
 # 30 Slots across 07:00 AM - 09:50 PM (~30.7 minutes apart, finishing before 10:00 PM nightly editing window)
@@ -172,45 +173,53 @@ def run_all_4channels_dispatcher():
     last_post_time = {}
 
     while True:
-        now = datetime.now()
+        try:
+            now = datetime.now()
 
-        # Posting window is strictly 07:00 AM to 10:00 PM (10 PM to 2 AM is pre-baking window)
-        if now.hour < 7 or now.hour >= 22:
-            time.sleep(60)
-            continue
+            # Posting window is strictly 07:00 AM to 10:00 PM (10 PM to 2 AM is pre-baking window)
+            if now.hour < 7 or now.hour >= 22:
+                time.sleep(60)
+                continue
 
-        # Calculate target slots that should be published by current wall-clock time
-        elapsed_slots = [
-            s for s, h, m in SCHEDULE_SLOTS 
-            if (now.hour > h) or (now.hour == h and now.minute >= m)
-        ]
-        target_slots_by_now = len(elapsed_slots)
+            # Calculate target slots that should be published by current wall-clock time
+            elapsed_slots = [
+                s for s, h, m in SCHEDULE_SLOTS 
+                if (now.hour > h) or (now.hour == h and now.minute >= m)
+            ]
+            target_slots_by_now = len(elapsed_slots)
 
-        for ch_id, name, handle in CHANNELS:
-            cfg = get_channel_config(ch_id)
-            db = ChannelDatabase(cfg["runtime"]["db_path"])
-            posted_today_count = db.get_today_count()
+            for ch_id, name, handle in CHANNELS:
+                try:
+                    cfg = get_channel_config(ch_id)
+                    db = ChannelDatabase(cfg["runtime"]["db_path"])
+                    posted_today_count = db.get_today_count()
 
-            # If this channel is behind the scheduled target and hasn't hit 30:
-            if posted_today_count < target_slots_by_now and posted_today_count < 30:
-                last_time = last_post_time.get(ch_id, 0)
-                # Ensure at least 420 seconds (7 minutes) gap between consecutive posts on the SAME channel
-                if time.time() - last_time >= 420:
-                    next_slot = posted_today_count + 1
-                    queue_dir = os.path.join(cfg["runtime"]["workspace_dir"], "tomorrow_reels")
-                    print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/30 (Target by now: {target_slots_by_now}). Dispatching Slot #{next_slot}...")
-                    
-                    success = publish_channel_slot(ch_id, name, handle, next_slot, queue_dir)
-                    if success:
-                        last_post_time[ch_id] = time.time()
-                        # Small stagger of 20 seconds between different channels
-                        time.sleep(20)
-                    else:
-                        # On temporary failure, back off 3 minutes before retrying this channel
-                        last_post_time[ch_id] = time.time() - 240
+                    # If this channel is behind the scheduled target and hasn't hit 30:
+                    if posted_today_count < target_slots_by_now and posted_today_count < 30:
+                        last_time = last_post_time.get(ch_id, 0)
+                        # Ensure at least 420 seconds (7 minutes) gap between consecutive posts on the SAME channel
+                        if time.time() - last_time >= 420:
+                            next_slot = posted_today_count + 1
+                            queue_dir = os.path.join(cfg["runtime"]["workspace_dir"], "tomorrow_reels")
+                            print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/30 (Target by now: {target_slots_by_now}). Dispatching Slot #{next_slot}...")
+                            
+                            success = publish_channel_slot(ch_id, name, handle, next_slot, queue_dir)
+                            if success:
+                                last_post_time[ch_id] = time.time()
+                                # Small stagger of 20 seconds between different channels
+                                time.sleep(20)
+                            else:
+                                # On temporary failure, back off 3 minutes before retrying this channel
+                                last_post_time[ch_id] = time.time() - 240
+                except Exception as ch_err:
+                    print(f"⚠️ Error in dispatcher channel loop for {ch_id}: {ch_err}")
+                    time.sleep(5)
 
-        # Heartbeat check every 30 seconds
-        time.sleep(30)
+            # Heartbeat check every 30 seconds
+            time.sleep(30)
+        except Exception as loop_err:
+            print(f"⚠️ Unexpected error in master dispatcher loop: {loop_err}")
+            time.sleep(30)
 
 if __name__ == '__main__':
     run_all_4channels_dispatcher()

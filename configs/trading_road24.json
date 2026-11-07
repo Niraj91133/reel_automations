@@ -1,0 +1,63 @@
+{
+    "channel_id": "trading_road24",
+    "display_name": "Trading Road 24",
+    "instagram_username": "trading_road24",
+    "email": "tradingroad24@gmail.com",
+    "category": "trading",
+    "description": "Chart Patterns, Price Action, Trading Psychology & Risk Management",
+    "enabled": true,
+    "credentials": {
+        "gemini_api_key": "AQ.Ab8RN6L_xQmU1J8gKZGTwwtNFax7rY8LbPKXui1XX4Qr6sqvAA",
+        "instagram_account_id": "17841469230135214",
+        "page_access_token": "EAAhE6xjRCjsBS8tdsxwuBQfCoVPHobYLGlm5sZAJrydW7nPiMyXVy2ZCLNXw1294NQJI3h9cI3XZAMUKUMsyqjLYJweq9ACLDSv3JuUbZC5YyTZBMmgANumEh2xPCFduY6RDEUUVOTZCZB2xwq6SHd37a7gOWMQcivhJ5WnhTbyO2XsTyCf9MDoxAZA6GwbVYSg9xGIEilLZCAwcHyhZCZBzC4ZBJOBsQ1BA404XEmI04wgSFcAZD",
+        "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+        "telegram_chat_id": "711598335"
+    },
+    "hunting_settings": {
+        "dm_target_chat": "im_raaaj_",
+        "hunt_target_daily": 0,
+        "min_views": 25000,
+        "prioritize_comment_cta": false,
+        "keywords": [
+            "candlestick pattern analysis",
+            "price action technical rules",
+            "trading risk management hindi",
+            "stop loss discipline rules",
+            "trading psychology mistakes",
+            "support resistance technical basics"
+        ],
+        "hashtags": [
+            "#technicalanalysis",
+            "#priceaction",
+            "#chartpatterns",
+            "#tradingpsychology",
+            "#stockmarketeducation",
+            "#tradingdiscipline"
+        ],
+        "cookie_file": "cookies/trading_road24_cookies.txt",
+        "auto_send_dm": false
+    },
+    "content_settings": {
+        "default_hook_pill": "RISK FIRST",
+        "tag_text": "RISK MANAGEMENT:",
+        "first_comment_template": "Always define your stop loss and risk per trade. What chart pattern do you trust the most? 📊",
+        "theme_color_primary": [
+            14,
+            165,
+            233,
+            255
+        ],
+        "theme_color_accent": [
+            239,
+            68,
+            68,
+            255
+        ],
+        "daily_post_limit": 30
+    },
+    "schedule_settings": {
+        "start_hour": 6,
+        "end_hour": 21,
+        "interval_minutes": 30
+    }
+}

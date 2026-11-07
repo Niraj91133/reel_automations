@@ -99,10 +99,29 @@ NICHE_DISCOVERY_PROFILES = {
             "gadgets_guru_official",
             "coolgadgetsofficial"
         ]
+    },
+    "trading_road24": {
+        "display_name": "Trading Road 24",
+        "keywords": [
+            "price action hindi",
+            "candlestick pattern trading",
+            "trading psychology rules",
+            "risk management trading",
+            "support resistance trading"
+        ],
+        "creators": [
+            "boomingbulls",
+            "poweroftocks",
+            "ghanshyamtech",
+            "artofoptionlearning",
+            "pushkarrajthakur",
+            "tradewithmayank",
+            "neerajjoshi"
+        ]
     }
 }
 
-ORDERED_CHANNELS = ["startup_road", "healthy_diet", "trading_pulse", "viral_finds"]
+ORDERED_CHANNELS = ["startup_road", "healthy_diet", "trading_pulse", "viral_finds", "trading_road24"]
 
 def get_channel_cookie_file(channel_id):
     """
