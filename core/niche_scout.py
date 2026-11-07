@@ -13,23 +13,33 @@ STARTUP_THREAD_URL = "https://www.instagram.com/direct/t/101996904536119/"
 
 NICHE_DISCOVERY_PROFILES = {
     "startup_road": {
-        "display_name": "Startup Road",
+        "display_name": "Startup Road (Practical Business & Small Machines)",
         "keywords": [
-            "startup lessons hindi",
-            "business podcast hindi",
-            "founder advice india",
-            "startup revenue secrets",
-            "business case study hindi"
+            "small manufacturing machine business comment",
+            "low investment business ideas hindi comment",
+            "chhoti machine se dhandha comment supplier",
+            "pouch packing machine business hindi",
+            "scrap recycling business model hindi comment",
+            "wholesale to retail business profit margin",
+            "petrol pump franchise codo model comment",
+            "offline business ideas comment for pdf"
         ],
         "creators": [
-            "rajshamani",
-            "warikoo",
-            "theranveerallahbadia",
-            "financewithsharan",
-            "growthx_club",
-            "learnwithjaspal",
-            "thethinkschool",
-            "anuragsinghinvestor"
+            "ideas_logix",
+            "businessidea_841",
+            "speedgyaan",
+            "kartikcreatebusiness",
+            "abhirathore_1",
+            "theexportdiary",
+            "favourite.engineer",
+            "himanshhh.ai",
+            "sajalgoell",
+            "actual.abhishek",
+            "ecom.deep",
+            "aikathekedaar",
+            "noob.to.ai",
+            "adovionlabs",
+            "pushkarrajthakur"
         ]
     },
     "healthy_diet": {

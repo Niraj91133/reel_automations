@@ -63,7 +63,11 @@ def has_comment_cta_signal(text):
     if not text:
         return False
     lower = text.lower()
-    signals = ["comment", "dm", "link in bio", "bhejo", "comment karo", "send you", "type ", "drop a"]
+    signals = [
+        "comment", "dm", "link in bio", "bhejo", "comment karo", "send you",
+        "type ", "drop a", "share karunga", "link dunga", "list chahiye",
+        "pdf chahiye", "details chahiye", "comment '", "comment \""
+    ]
     return any(s in lower for s in signals)
 
 def hunt_niche_reels(channel_config, target_count=30, headless=True):

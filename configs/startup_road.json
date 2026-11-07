@@ -2,7 +2,7 @@
     "channel_id": "startup_road",
     "display_name": "Startup Road",
     "category": "startup",
-    "description": "Business, Startup Lessons, Founder Interviews & Hustle Psychology",
+    "description": "Small Business Ideas, Practical Machines, Low Capital Startups & Real Franchise Breakdown in Hindi",
     "enabled": true,
     "credentials": {
         "gemini_api_key": "AQ.Ab8RN6Jr6PeTkcHjbHdcXpRsOV-2tkC3UNhNod8kAn-6_4acWw",
@@ -13,31 +13,40 @@
     },
     "hunting_settings": {
         "dm_target_chat": "im_raaaj_",
-        "hunt_target_daily": 30,
+        "hunt_target_daily": 40,
         "min_views": 25000,
-        "prioritize_comment_cta": false,
+        "prioritize_comment_cta": true,
+        "require_comment_cta": true,
         "keywords": [
-            "startup founder case study hindi",
-            "d2c brand strategy india",
-            "saas business model hindi",
-            "customer acquisition strategy",
-            "indian startup failure breakdown",
-            "shark tank india founder insights"
+            "small manufacturing machine business comment",
+            "low investment business ideas hindi comment",
+            "20000 me business shuru kare hindi",
+            "chhoti machine se dhandha comment supplier",
+            "tempered glass machine business comment",
+            "pouch packing machine business hindi",
+            "scrap recycling business model hindi comment",
+            "petrol pump franchise codo model comment",
+            "wholesale to retail business profit margin",
+            "amul parlor franchise apply hindi",
+            "offline business ideas comment for pdf",
+            "high profit margin small business hindi"
         ],
         "hashtags": [
-            "#startupindia",
-            "#founderstories",
-            "#d2cbrands",
-            "#businesslessons",
-            "#makeinindia",
-            "#indianstartups"
+            "#smallbusinessindia",
+            "#businessideas",
+            "#lowinvestmentbusiness",
+            "#manufacturingbusiness",
+            "#franchisebusiness",
+            "#businesscasestudy",
+            "#dhandha",
+            "#startupindia"
         ],
         "cookie_file": "cookies/startup_road_cookies.txt"
     },
     "content_settings": {
-        "default_hook_pill": "STARTUP SECRETS",
-        "tag_text": "STARTUP:",
-        "first_comment_template": "What are your thoughts on this founder's approach? Share in the comments below! \ud83d\udcac",
+        "default_hook_pill": "BUSINESS MODEL",
+        "tag_text": "PRACTICAL BUSINESS:",
+        "first_comment_template": "Want the complete supplier list, machine contact & PDF breakdown? Comment \"DETAILS\" below and I will DM you instantly! 📩",
         "theme_color_primary": [
             225,
             29,
