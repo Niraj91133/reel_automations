@@ -140,6 +140,16 @@ class InstagramPublisher:
             print(f"⚠️ Channel Instagram credentials not configured. Skipping auto-publish.")
             return None
 
+        # Meta Policy Compliance Pre-Flight Gatekeeper
+        try:
+            from core.compliance_guard import check_text_compliance
+            is_safe, category, matched = check_text_compliance(caption)
+            if not is_safe:
+                print(f"🛑 [Compliance Guard BLOCKED] Post aborted due to Meta Policy [{category}] violation: '{matched}'")
+                return None
+        except Exception as e_comp:
+            print(f"Compliance check warning: {e_comp}")
+
         container_id = self.create_reel_container(
             video_url=public_video_url,
             caption=caption,

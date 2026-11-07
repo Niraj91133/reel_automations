@@ -121,6 +121,12 @@ Ensure output matches the required JSON format exactly.
                     clean_txt = clean_json_response(response.text)
                     data = json.loads(clean_txt)
                     if "main_title" in data and "hook_pill" in data:
+                        # Meta Policy Compliance Validation
+                        from core.compliance_guard import is_reel_compliant
+                        is_safe, reason = is_reel_compliant(data.get("main_title", ""), data.get("hook_pill", ""), data.get("caption", ""))
+                        if not is_safe:
+                            print(f"🛡️ [Compliance Guard] AI generated unsafe content ({reason}). Reverting to clean fallback.")
+                            return fallback_data
                         return data
             except Exception as e_model:
                 print(f"Model {model_name} attempt failed: {e_model}")

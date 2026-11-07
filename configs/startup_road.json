@@ -15,29 +15,29 @@
         "dm_target_chat": "im_raaaj_",
         "hunt_target_daily": 30,
         "min_views": 25000,
-        "prioritize_comment_cta": true,
+        "prioritize_comment_cta": false,
         "keywords": [
-            "how to earn money",
-            "kaun sa app use karne se viral ho sakte hain",
-            "startup lessons hindi",
-            "business ideas india",
-            "passive income ideas hindi",
-            "how to get clients online"
+            "startup founder case study hindi",
+            "d2c brand strategy india",
+            "saas business model hindi",
+            "customer acquisition strategy",
+            "indian startup failure breakdown",
+            "shark tank india founder insights"
         ],
         "hashtags": [
             "#startupindia",
-            "#businesshustle",
-            "#earnmoneyonline",
-            "#entrepreneurmindset",
+            "#founderstories",
+            "#d2cbrands",
+            "#businesslessons",
             "#makeinindia",
-            "#startupstories"
+            "#indianstartups"
         ],
         "cookie_file": "cookies/startup_road_cookies.txt"
     },
     "content_settings": {
         "default_hook_pill": "STARTUP SECRETS",
         "tag_text": "STARTUP:",
-        "first_comment_template": "Comment 'STARTUP' below and I will send you the complete framework! \ud83d\ude80",
+        "first_comment_template": "What are your thoughts on this founder's approach? Share in the comments below! \ud83d\udcac",
         "theme_color_primary": [
             225,
             29,

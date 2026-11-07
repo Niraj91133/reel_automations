@@ -108,6 +108,13 @@ def prebake_channel_reels(channel_id, count=30):
             sub_quote = ai_data.get("sub_quote", "")
             caption = ai_data.get("caption", f"Insights from @{creator}")
 
+            # Meta Policy Pre-Render Compliance Check
+            from core.compliance_guard import is_reel_compliant
+            is_safe, reason = is_reel_compliant(main_title, hook_pill, caption)
+            if not is_safe:
+                print(f"🛑 [Compliance Guard SKIPPED] Reel {shortcode} rejected: {reason}")
+                continue
+
             # GPU FFmpeg render
             rendered_temp, _ = render_channel_video(
                 input_video_path=raw_video,

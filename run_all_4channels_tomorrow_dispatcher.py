@@ -71,6 +71,14 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, 
     caption = meta.get("caption", f"Insights from {handle}")
     creator = meta.get("creator", "creator")
 
+    # Meta Compliance Pre-Flight Gatekeeper
+    from core.compliance_guard import is_reel_compliant
+    is_safe, reason = is_reel_compliant(title, meta.get("hook_pill", ""), caption)
+    if not is_safe:
+        print(f"🛑 [Compliance Guard BLOCKED] Slot #{slot_num} rejected: {reason}. Skipping unsafe reel.")
+        posted_set.add(key)
+        return False
+
     print(f"\n🚀 [{display_name}] Publishing Slot #{slot_num}/30: {title}...")
 
     try:
