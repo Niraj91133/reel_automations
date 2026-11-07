@@ -337,3 +337,4 @@ def get_safe_evergreen_replacement(category: str) -> tuple[str, str, str]:
     """Provides a certified 100% safe educational replacement when unsafe content is blocked."""
     presets = EVERGREEN_SAFE_PRESETS.get(category, EVERGREEN_SAFE_PRESETS["startup"])
     return random.choice(presets)
+
