@@ -57,6 +57,8 @@ class InstagramPublisher:
                 return data2["id"]
 
         print(f"❌ [Meta API Error] {data.get('error', {}).get('message', resp.text)}")
+        from core.iron_shield import CircuitBreaker
+        CircuitBreaker.check_response_and_trip_if_needed(self.account_id, data.get("error", {}))
         return None
 
     def wait_for_processing(self, container_id, max_retries=30, delay=10):
@@ -96,6 +98,8 @@ class InstagramPublisher:
         data = resp.json()
         if resp.status_code == 200 and "id" in data:
             return data["id"]
+        from core.iron_shield import CircuitBreaker
+        CircuitBreaker.check_response_and_trip_if_needed(self.account_id, data.get("error", {}))
         return None
 
     def get_reel_permalink(self, media_id):
@@ -138,6 +142,13 @@ class InstagramPublisher:
         """Full publishing workflow returning permalink and posting first comment or cloud scheduling."""
         if not self.is_configured():
             print(f"⚠️ Channel Instagram credentials not configured. Skipping auto-publish.")
+            return None
+
+        # Check Circuit Breaker Lockdown
+        from core.iron_shield import CircuitBreaker
+        is_locked, lock_reason = CircuitBreaker.is_channel_locked(self.account_id)
+        if is_locked:
+            print(f"🛑 [CIRCUIT BREAKER LOCKDOWN ACTIVE] Skipping publish for account {self.account_id}: {lock_reason}")
             return None
 
         # Meta Policy Compliance Pre-Flight Gatekeeper

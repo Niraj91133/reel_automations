@@ -47,6 +47,12 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir, 
     config = get_channel_config(channel_id)
     if not config.get("enabled", True):
         return False
+
+    from core.iron_shield import CircuitBreaker
+    is_locked, lock_reason = CircuitBreaker.is_channel_locked(channel_id)
+    if is_locked:
+        print(f"🛑 [Circuit Breaker Lock] {display_name} is locked: {lock_reason}. Skipping slot #{slot_num}.")
+        return False
     creds = config.get("credentials", {})
     hub = TelegramHub(creds.get("telegram_bot_token"), creds.get("telegram_chat_id"))
     publisher = InstagramPublisher(creds.get("instagram_account_id"), creds.get("page_access_token"))
