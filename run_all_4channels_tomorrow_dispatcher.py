@@ -53,6 +53,11 @@ def find_safe_backup_reel(channel_id, queue_dir, db):
     from core.compliance_guard import is_reel_compliant
 
     all_vids = sorted(glob.glob(os.path.join(queue_dir, "ready_*.mp4")))
+    if not all_vids:
+        # Check archive_posted as seamless fallback
+        archive_dir = os.path.join(os.path.dirname(queue_dir), "archive_posted")
+        if os.path.exists(archive_dir):
+            all_vids = sorted(glob.glob(os.path.join(archive_dir, "ready_*.mp4")))
     for vf in all_vids:
         if vf.endswith(".tg_comp.mp4"):
             continue
@@ -135,8 +140,19 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
     meta = candidate_meta
     shortcode = meta.get("shortcode")
     title = meta.get("title", f"Post #{slot_num}")
-    caption = meta.get("caption", f"Insights from {handle}")
+    caption = meta.get("caption", "")
     creator = meta.get("creator", "creator")
+
+    # Dynamic Rich Caption Safety Net: Guarantee multi-paragraph, engaging caption "pehle jaisa"
+    from core.caption_engine import generate_rich_caption
+    if not caption or len(caption.splitlines()) <= 3 or len(caption) < 150 or "valuable insights" in caption.lower() or "strategic insights for modern" in caption.lower():
+        caption = generate_rich_caption(
+            channel_id=channel_id,
+            title=title,
+            hook_pill=meta.get("hook_pill", ""),
+            creator=creator
+        )
+        meta["caption"] = caption
 
     print(f"\n🚀 [{display_name}] Publishing Slot #{slot_num}/30: {title}...")
 

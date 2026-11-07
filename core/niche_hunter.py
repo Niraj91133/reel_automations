@@ -82,10 +82,6 @@ def hunt_niche_reels(channel_config, target_count=30, headless=True):
     - Skips already hunted/sent in DB
     """
     channel_id = channel_config["channel_id"]
-    if channel_id != "startup_road":
-        print(f"🛑 [DM Shield] DMs are strictly disabled for '{channel_id}'. Only @startup_road communicates with @im_raaaj_ in chat.")
-        return 0
-
     display_name = channel_config.get("display_name", channel_id)
     hunt_settings = channel_config.get("hunting_settings", {})
     keywords = list(hunt_settings.get("keywords", []))
@@ -380,7 +376,7 @@ def fetch_approved_reels_from_raj(channel_config, max_count=30, hours=24, auto_l
     channel_id = channel_config["channel_id"]
     if channel_id != "startup_road":
         print(f"🛑 [DM Shield] DMs are strictly disabled for '{channel_id}'. Only @startup_road communicates with @im_raaaj_ in chat.")
-        return 0
+        return []
 
     display_name = channel_config.get("display_name", channel_id)
     db = ChannelDatabase(channel_config["runtime"]["db_path"])

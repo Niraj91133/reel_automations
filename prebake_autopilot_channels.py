@@ -184,7 +184,12 @@ def prebake_channel_reels(channel_id, count=30):
             hook_pill = ai_data.get("hook_pill", "KEY TAKEAWAY")
             main_title = ai_data.get("main_title", "VIRAL INSIGHT")
             sub_quote = ai_data.get("sub_quote", "")
-            caption = ai_data.get("caption", f"Insights from @{creator}")
+            
+            # Guarantee rich, multi-paragraph, engaging caption "pehle jaisa"
+            from core.caption_engine import generate_rich_caption
+            caption = ai_data.get("caption", "")
+            if not caption or len(caption.splitlines()) <= 3 or len(caption) < 150 or "valuable insights" in caption.lower() or "strategic insights for modern" in caption.lower():
+                caption = generate_rich_caption(channel_id, main_title, hook_pill, creator)
 
             # Step B: Gatekeeper Security Compliance Check (Meta Iron Shield)
             is_safe, reason = is_reel_compliant(main_title, hook_pill, caption)
