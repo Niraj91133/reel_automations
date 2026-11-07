@@ -7,7 +7,7 @@
     "description": "Chart Patterns, Price Action, Trading Psychology & Risk Management",
     "enabled": true,
     "credentials": {
-        "gemini_api_key": "AQ.Ab8RN6L_xQmU1J8gKZGTwwtNFax7rY8LbPKXui1XX4Qr6sqvAA",
+        "gemini_api_key": "YOUR_GEMINI_API_KEY",
         "instagram_account_id": "17841469230135214",
         "page_access_token": "EAAhE6xjRCjsBS0N1MuZBYmg1vskOr62uzvnUNUDSGE2PUwrjSjb34OZCDy3uIpDx6g18KVHhscztB2ohPmZBxo75cemhjnTav22ZAZAn7arzO8FNYNwnsykBUcUjB0xwvB8AMNLpv0GXmZCEN9Jd31tUu8Ubk07X2z25FQZAZBrawPRhM7NNUoBtZCI7Lo8AwNnJuXKVubWec",
         "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
@@ -36,13 +36,12 @@
             "#stockmarketeducation",
             "#tradingdiscipline"
         ],
-        "cookie_file": "cookies/trading_road24_cookies.txt",
-        "auto_send_dm": false
+        "cookie_file": "cookies/trading_road24_cookies.txt"
     },
     "content_settings": {
         "default_hook_pill": "RISK FIRST",
         "tag_text": "RISK MANAGEMENT:",
-        "first_comment_template": "Always define your stop loss and risk per trade. What chart pattern do you trust the most? 📊",
+        "first_comment_template": "Always define your stop loss and risk per trade. What chart pattern do you trust the most? \ud83d\udcca",
         "theme_color_primary": [
             14,
             165,

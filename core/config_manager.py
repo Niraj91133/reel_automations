@@ -54,6 +54,18 @@ def get_channel_config(channel_id):
     # Allow environment variables to override sensitive credentials if set
     env_prefix = channel_id.upper()
     creds = config.get("credentials", {})
+
+    # Load from local_secrets.json if available
+    secrets_file = BASE_DIR / "local_secrets.json"
+    if secrets_file.exists():
+        try:
+            with open(secrets_file, "r", encoding="utf-8") as sf:
+                sec_data = json.load(sf)
+                if channel_id in sec_data:
+                    creds.update(sec_data[channel_id])
+        except Exception:
+            pass
+
     creds["gemini_api_key"] = os.environ.get(f"{env_prefix}_GEMINI_KEY", creds.get("gemini_api_key", ""))
     creds["instagram_account_id"] = os.environ.get(f"{env_prefix}_IG_ID", creds.get("instagram_account_id", ""))
     creds["page_access_token"] = os.environ.get(f"{env_prefix}_PAGE_TOKEN", creds.get("page_access_token", ""))

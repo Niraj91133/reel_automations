@@ -7,7 +7,7 @@
     "description": "Smart Problem-Solving Gadgets, Amazon Finds, Cool Tech with Link in Bio",
     "enabled": true,
     "credentials": {
-        "gemini_api_key": "AQ.Ab8RN6IX8_d0nK5yy8MubaZgd9Q6woB7NtZOL4VhFoO3zFKKLg",
+        "gemini_api_key": "YOUR_GEMINI_API_KEY",
         "instagram_account_id": "17841477704155531",
         "page_access_token": "EAAhE6xjRCjsBSyt0U7tiKpDnCZAnuo97e7a68cAkFVuyV0mGWDlMZBrrEAZBzQZAqlKiLr7LgziSmuxw37If5nH3TrZC4TN9nobDky47GEUZC110AAEjiejXifSTDUlAyfktN49Vt8LSGM8giJSzcSc4MpWjbEGIBME6marCICzulantwNWfwTlR1UgfsFZAbrMAsdWu4Cs",
         "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",

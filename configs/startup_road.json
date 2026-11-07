@@ -5,7 +5,7 @@
     "description": "Small Business Ideas, Practical Machines, Low Capital Startups & Real Franchise Breakdown in Hindi",
     "enabled": true,
     "credentials": {
-        "gemini_api_key": "AQ.Ab8RN6Jr6PeTkcHjbHdcXpRsOV-2tkC3UNhNod8kAn-6_4acWw",
+        "gemini_api_key": "YOUR_GEMINI_API_KEY",
         "instagram_account_id": "17841464149880503",
         "page_access_token": "EAAhE6xjRCjsBSwwcMmZAZAgyEFnHSGdK4ZBUEwbHhMMeoZAQvijuu0MexhTCpHYcCFiGY05wrZBnJzd6hOSHbKJimcejZBKk5szZCETxEB7MPCUATVlBmyFrIlLlhZCzbce541cjufhZBvqkw4ZAuBPzFKdrztim5fnD2GAoPbuzpRbJhtyS1yvHwqQPoUThplQ43Trzg7K4PS",
         "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
@@ -47,7 +47,7 @@
     "content_settings": {
         "default_hook_pill": "BUSINESS MODEL",
         "tag_text": "PRACTICAL BUSINESS:",
-        "first_comment_template": "Want the complete supplier list, machine contact & PDF breakdown? Comment \"DETAILS\" below and I will DM you instantly! 📩",
+        "first_comment_template": "Want the complete supplier list, machine contact & PDF breakdown? Comment \"DETAILS\" below and I will DM you instantly! \ud83d\udce9",
         "theme_color_primary": [
             225,
             29,

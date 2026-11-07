@@ -7,7 +7,7 @@
     "description": "Clean Packaged Foods, Diet Knowledge, Hidden Ingredients, Nutrition Truth",
     "enabled": true,
     "credentials": {
-        "gemini_api_key": "AQ.Ab8RN6LmmqOO4T6TzFpFA91B53GR4PQWIW3flrWWW7DG1UcNnw",
+        "gemini_api_key": "YOUR_GEMINI_API_KEY",
         "instagram_account_id": "17841478828143472",
         "page_access_token": "EAAhE6xjRCjsBS8u0MofTYW25bWdVkb5BWtX2ZBxKZAU8G3kDUjrWgtMGKvwn0dePCT45YilJX2kyyt3C0go5WwA9wNQq8b2UfZCyCyToOuZCx8a8h27QuZBQI9gfpljS6hOQHoAjXvKzpir5MhEtznyhXl8a8v92bWKI4hEoeo9K3mGfZBuI749ZASGxHVZBKySRYyeh6N6j",
         "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",

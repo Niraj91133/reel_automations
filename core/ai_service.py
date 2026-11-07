@@ -13,9 +13,10 @@ from core.compliance_guard import is_reel_compliant
 
 # Primary lightning-fast Gemini models with fallback
 WORKING_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-1.5-flash",
-    "gemini-flash-latest"
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
+    "gemini-2.5-flash-lite",
+    "gemini-3.8-flash"
 ]
 
 # Curated Dynamic Synthesis Banks per Niche (Guarantees 100% Unique, Non-Repetitive Overlays)
@@ -160,8 +161,8 @@ def analyze_reel_for_channel(video_file_path, channel_config, creator_username="
         creator=creator_username
     )
 
-    # Check if Gemini key is structurally valid (AIzaSy...)
-    if not api_key or not api_key.startswith("AIzaSy"):
+    # Check if Gemini key is structurally valid (AQ. or AIzaSy...)
+    if not api_key or (not api_key.startswith("AQ.") and not api_key.startswith("AIzaSy")):
         return smart_fallback
 
     # Extract isolated audio for Tier 1 Gemini Analysis

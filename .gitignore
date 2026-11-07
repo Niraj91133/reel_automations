@@ -12,3 +12,5 @@ ffprobe.exe
 PERMANENT_PAGE_TOKEN.txt
 scratch/
 
+
+local_secrets.json

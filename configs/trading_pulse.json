@@ -7,7 +7,7 @@
     "description": "Chart Patterns, Price Action, Trading Psychology & Risk Management",
     "enabled": true,
     "credentials": {
-        "gemini_api_key": "AQ.Ab8RN6L_xQmU1J8gKZGTwwtNFax7rY8LbPKXui1XX4Qr6sqvAA",
+        "gemini_api_key": "YOUR_GEMINI_API_KEY",
         "instagram_account_id": "17841479926101159",
         "page_access_token": "EAAhE6xjRCjsBS52swhpZCXr8z64PsRuf3e7OBZBB01hBIQ7qFWwnMOtmvNS7VveC2iZCsoDpUTuIQZAUZAW8MZAJnZAlkOMD6oJ31JkRKfzGVJuMY82g5WbQYAAdq4WXzLEWfSbNJ23TivNZCeFSQIe9ZAByKxNbj27z19ZC4ZAsHH5EaYcEmikYBcmcvrbcusMaf3BoZAEqehTQ",
         "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
@@ -36,8 +36,7 @@
             "#stockmarketeducation",
             "#tradingdiscipline"
         ],
-        "cookie_file": "cookies/trading_pulse_cookies.txt",
-        "auto_send_dm": false
+        "cookie_file": "cookies/trading_pulse_cookies.txt"
     },
     "content_settings": {
         "default_hook_pill": "RISK FIRST",
