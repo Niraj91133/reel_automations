@@ -5,7 +5,7 @@
     "email": "tradingroad24@gmail.com",
     "category": "trading",
     "description": "Chart Patterns, Price Action, Trading Psychology & Risk Management",
-    "enabled": true,
+    "enabled": false,
     "credentials": {
         "gemini_api_key": "AQ.Ab8RN6L_xQmU1J8gKZGTwwtNFax7rY8LbPKXui1XX4Qr6sqvAA",
         "instagram_account_id": "17841479926101159",

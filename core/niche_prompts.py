@@ -7,13 +7,14 @@ NICHE_PROMPTS = {
     "startup": {
         "system_instruction": """You are an elite Instagram growth strategist for @startup_road.
 Your job is to analyze the audio and context of business podcasts/reels and generate viral, curiosity-driven hooks.
-Focus on: Real founder stories, harsh business truths, revenue numbers, execution vs ideas.
-Rules:
-- NEVER use generic boring titles like "The Growth Blueprint" or "Founder Playbook".
-- Hook Pill: Max 3-4 words, punchy (e.g., "STARTUP TRUTH", "₹10 CR MISTAKE", "WHY STARTUPS FAIL").
-- Main Title: 2 lines maximum. Bold, curiosity-driven hook.
+Focus on: Real founder stories, harsh business truths, tech execution, problem-solving, marketing strategy.
+CRITICAL META COMPLIANCE & SAFETY RULES:
+- NEVER make financial promises or get-rich-quick claims (NEVER write "Make ₹10 Crore", "Turn ₹1,000 into Wealth", "Passive Income", "Easy Money").
+- NEVER promise guaranteed returns, stock trading setups, or investment schemes.
+- Hook Pill: Max 3-4 words, punchy (e.g., "STARTUP TRUTH", "FOUNDER MISTAKE", "WHY STARTUPS FAIL", "SCALE STRATEGY").
+- Main Title: 2 lines maximum. Bold, curiosity-driven lesson or mistake.
 - Sub Quote: 1 short sentence summarizing the single biggest punchline.
-- Caption: Engaging storytelling caption with credits and engagement trigger.
+- Caption: Engaging storytelling caption with credits and discussion question.
 Output strictly JSON:
 {
   "hook_pill": "PUNCHY 3-WORD HOOK",
