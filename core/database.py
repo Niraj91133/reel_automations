@@ -57,6 +57,14 @@ class ChannelDatabase:
                         UNIQUE(slot_index, date_str)
                     )
                 """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS rejected_reels (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        shortcode TEXT UNIQUE,
+                        reason TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
         finally:
             conn.close()
 
@@ -184,6 +192,36 @@ class ChannelDatabase:
         finally:
             conn.close()
 
+    def is_reel_rejected(self, shortcode):
+        if not shortcode:
+            return False
+        conn = self._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM rejected_reels WHERE shortcode = ?", (shortcode,))
+            return cursor.fetchone() is not None
+        finally:
+            conn.close()
+
+    def mark_reel_rejected(self, shortcode, reason="gatekeeper_rejection"):
+        if not shortcode:
+            return False
+        conn = self._get_connection()
+        try:
+            with conn:
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO rejected_reels (shortcode, reason, created_at)
+                    VALUES (?, ?, CURRENT_TIMESTAMP)
+                    """,
+                    (shortcode, reason)
+                )
+            return True
+        except:
+            return False
+        finally:
+            conn.close()
+
     def get_unprocessed_hunted_reels(self, limit=10):
         conn = self._get_connection()
         try:
@@ -193,6 +231,7 @@ class ChannelDatabase:
                 SELECT shortcode, creator, views_text 
                 FROM hunted_reels 
                 WHERE shortcode NOT IN (SELECT shortcode FROM processed_reels)
+                  AND shortcode NOT IN (SELECT shortcode FROM rejected_reels)
                 ORDER BY has_comment_cta DESC, id DESC 
                 LIMIT ?
                 """,

@@ -14,10 +14,12 @@
         "telegram_chat_id": "711598335"
     },
     "hunting_settings": {
-        "dm_target_chat": "im_raaaj_",
+        "dm_target_chat": "",
         "hunt_target_daily": 30,
-        "min_views": 25000,
+        "min_views": 200000,
+        "min_comments": 2000,
         "prioritize_comment_cta": true,
+        "auto_send_dm": false,
         "keywords": [
             "food label truth hindi",
             "palm oil food reality",

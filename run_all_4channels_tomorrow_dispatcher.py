@@ -60,7 +60,7 @@ def find_safe_backup_reel(channel_id, queue_dir, db):
             with open(mf, 'r', encoding='utf-8') as f:
                 meta = json.load(f)
             shortcode = meta.get("shortcode")
-            if not shortcode or db.is_reel_processed(shortcode):
+            if not shortcode or db.is_reel_processed(shortcode) or db.is_reel_rejected(shortcode):
                 continue
             is_safe, _ = is_reel_compliant(meta.get("title", ""), meta.get("hook_pill", ""), meta.get("caption", ""))
             if is_safe:
@@ -100,7 +100,7 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
             with open(meta_files[0], 'r', encoding='utf-8') as f:
                 m = json.load(f)
             shortcode = m.get("shortcode")
-            if shortcode and not db.is_reel_processed(shortcode):
+            if shortcode and not db.is_reel_processed(shortcode) and not db.is_reel_rejected(shortcode):
                 from core.compliance_guard import is_reel_compliant
                 is_safe, reason = is_reel_compliant(m.get("title", ""), m.get("hook_pill", ""), m.get("caption", ""))
                 if is_safe:

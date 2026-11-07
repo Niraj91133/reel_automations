@@ -72,7 +72,7 @@ BANNED_DANGER_ZONES = {
         r"\bosama\b", r"\bbin laden\b", r"\bterrorist\b", r"\bterrorism\b",
         r"\bkill\b", r"\bkilled\b", r"\bmurder\b", r"\bweapon\b", r"\bbomb\b",
         r"\battack\b", r"\bcartel\b", r"\bisis\b", r"\bexplosive\b",
-        r"\bsuicide\b", r"\bshooting\b", r"\bhostage\b", r"\bmassacre\b"
+        r"\bsuicide\b", r"\bshooting(?!\s+star)\b", r"\bhostage\b", r"\bmassacre\b"
     ],
 
     "SENSITIVE_CIVIC_UNREST_AND_DISASTER": [

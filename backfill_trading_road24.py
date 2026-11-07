@@ -80,9 +80,16 @@ def publish_next_backfill_reel(interactive=False):
             with open(jf, "r", encoding="utf-8") as f:
                 meta = json.load(f)
             sc = meta.get("shortcode")
-            if sc and not db.is_reel_processed(sc):
+            if sc and not db.is_reel_processed(sc) and not db.is_reel_rejected(sc):
                 vf = jf.rsplit(".", 1)[0] + ".mp4"
                 if os.path.exists(vf):
+                    # Gatekeeper Security Pre-Flight Check
+                    from core.compliance_guard import is_reel_compliant
+                    is_safe, reason = is_reel_compliant(meta.get("title", ""), meta.get("hook_pill", ""), meta.get("caption", ""))
+                    if not is_safe:
+                        print(f"🛑 [Gatekeeper Security REJECTED] Reel {sc} rejected: {reason}. Marking in rejected DB.")
+                        db.mark_reel_rejected(sc, reason)
+                        continue
                     target_json = jf
                     target_vid = vf
                     target_meta = meta
