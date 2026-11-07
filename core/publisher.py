@@ -202,3 +202,54 @@ class InstagramPublisher:
             "scheduled_publish_time": None,
             "is_scheduled": False
         }
+
+    def publish_story(self, public_media_url, is_video=False):
+        """
+        Publishes an Instagram Story (1080x1920) via Meta Graph API.
+        Supports both photo stories and video stories.
+        """
+        if not self.is_configured():
+            print(f"⚠️ Channel Instagram credentials not configured. Skipping story publish.")
+            return None
+
+        # Check Circuit Breaker
+        from core.iron_shield import CircuitBreaker
+        is_locked, lock_reason = CircuitBreaker.is_channel_locked(self.account_id)
+        if is_locked:
+            print(f"🛑 [CIRCUIT BREAKER LOCK] Skipping story: {lock_reason}")
+            return None
+
+        url = f"{BASE_URL}/{self.account_id}/media"
+        payload = {
+            "media_type": "STORIES",
+            "access_token": self.token
+        }
+        if is_video:
+            payload["video_url"] = public_media_url
+        else:
+            payload["image_url"] = public_media_url
+
+        try:
+            resp = requests.post(url, data=payload, timeout=60)
+            data = resp.json()
+            if resp.status_code != 200 or "id" not in data:
+                err_msg = data.get("error", {}).get("message", resp.text)
+                print(f"❌ [Meta API Story Error] {err_msg}")
+                CircuitBreaker.check_response_and_trip_if_needed(self.account_id, data.get("error", {}))
+                return None
+
+            container_id = data["id"]
+            if is_video:
+                if not self.wait_for_processing(container_id):
+                    return None
+            else:
+                time.sleep(3) # Settle image container
+
+            media_id = self.publish_container(container_id)
+            if media_id:
+                print(f"🌟 [Meta API] Story LIVE successfully! (Media ID: {media_id})")
+                return {"media_id": media_id, "is_story": True}
+        except Exception as e:
+            print(f"Story publish error: {e}")
+
+        return None

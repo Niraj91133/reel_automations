@@ -46,6 +46,17 @@ class ChannelDatabase:
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS processed_stories (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        slot_index INTEGER,
+                        date_str TEXT,
+                        title TEXT,
+                        media_id TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(slot_index, date_str)
+                    )
+                """)
         finally:
             conn.close()
 
@@ -188,5 +199,38 @@ class ChannelDatabase:
                 (limit,)
             )
             return cursor.fetchall()
+        finally:
+            conn.close()
+
+    def is_story_processed(self, slot_index: int, date_str: str) -> bool:
+        conn = self._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM processed_stories WHERE slot_index = ? AND date_str = ?", (slot_index, date_str))
+            return cursor.fetchone() is not None
+        finally:
+            conn.close()
+
+    def mark_story_processed(self, slot_index: int, date_str: str, title: str = "", media_id: str = ""):
+        conn = self._get_connection()
+        try:
+            with conn:
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO processed_stories (slot_index, date_str, title, media_id)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (slot_index, date_str, title, media_id)
+                )
+        finally:
+            conn.close()
+
+    def get_stories_posted_today_count(self, date_str: str) -> int:
+        conn = self._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM processed_stories WHERE date_str = ?", (date_str,))
+            row = cursor.fetchone()
+            return row[0] if row else 0
         finally:
             conn.close()

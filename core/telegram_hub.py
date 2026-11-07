@@ -32,6 +32,34 @@ class TelegramHub:
             print(f"Failed to send Telegram message to {target_chat}: {e}")
         return False
 
+    def send_photo_with_cdn_url(self, photo_path, caption="", chat_id=None):
+        """
+        Sends high-res image to Telegram and retrieves public CDN link via getFile API.
+        Used for 1080x1920 Instagram Stories auto-publishing.
+        """
+        target_chat = str(chat_id or self.default_chat_id)
+        if not target_chat or not self.bot_token:
+            return False, None
+        url = f"https://api.telegram.org/bot{self.bot_token}/sendPhoto"
+        try:
+            with open(photo_path, "rb") as photo_file:
+                files = {"photo": photo_file}
+                data = {"chat_id": target_chat, "caption": caption[:1024]}
+                r = requests.post(url, data=data, files=files, timeout=60)
+            if r.status_code == 200:
+                resp = r.json()
+                photos = resp.get("result", {}).get("photo", [])
+                if photos:
+                    file_id = photos[-1].get("file_id")
+                    f_info = requests.get(f"https://api.telegram.org/bot{self.bot_token}/getFile?file_id={file_id}", timeout=15)
+                    if f_info.status_code == 200:
+                        file_path = f_info.json().get("result", {}).get("file_path")
+                        if file_path:
+                            return True, f"https://api.telegram.org/file/bot{self.bot_token}/{file_path}"
+        except Exception as e:
+            print(f"Error sending photo to Telegram: {e}")
+        return False, None
+
     def send_video_with_cdn_url(self, video_path, caption, chat_id=None):
         """
         Sends video to Telegram and retrieves public CDN link via getFile API.
