@@ -180,6 +180,23 @@ class ChannelDatabase:
         finally:
             conn.close()
 
+    def get_last_post_datetime(self):
+        """Returns the UTC datetime of the most recently published reel, or None."""
+        conn = self._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT created_at FROM processed_reels ORDER BY id DESC LIMIT 1")
+            row = cursor.fetchone()
+            if row and row[0]:
+                from datetime import timezone
+                try:
+                    return datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                except Exception:
+                    pass
+            return None
+        finally:
+            conn.close()
+
     def get_recent_hunted(self, limit=10):
         conn = self._get_connection()
         try:

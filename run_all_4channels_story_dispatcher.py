@@ -19,9 +19,25 @@ import os
 import sys
 import time
 import random
+import socket
+import atexit
 from datetime import datetime
 
 sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
+
+STORY_LOCK_PORT = 54322
+_story_socket = None
+
+def acquire_story_singleton_lock():
+    global _story_socket
+    try:
+        _story_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        _story_socket.bind(('127.0.0.1', STORY_LOCK_PORT))
+        _story_socket.listen(1)
+        return True
+    except OSError:
+        print(f"\n🛑 [SINGLETON LOCK ACTIVE] Another story dispatcher is already running (Port {STORY_LOCK_PORT} busy)! Aborting duplicate.\n")
+        sys.exit(0)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 if BASE_DIR not in sys.path:
@@ -44,6 +60,7 @@ CHANNELS = [
 ]
 
 def run_story_dispatcher():
+    acquire_story_singleton_lock()
     print("========================================================")
     print("  🌟 5-CHANNEL 20 STORIES/DAY AUTOMATED DISPATCHER")
     print("========================================================")
