@@ -4,8 +4,10 @@ import textwrap
 from PIL import Image, ImageDraw, ImageFont
 
 def get_font(size, bold=True):
-    """Cross-platform font loader."""
+    """Cross-platform font loader with universal Hindi and Latin support."""
     font_candidates = [
+        "C:/Windows/Fonts/Nirmala.ttc",
+        "C:/Windows/Fonts/mangalb.ttf" if bold else "C:/Windows/Fonts/mangal.ttf",
         "arialbd.ttf" if bold else "arial.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
@@ -13,8 +15,10 @@ def get_font(size, bold=True):
     ]
     for font_path in font_candidates:
         try:
+            if font_path.endswith(".ttc"):
+                return ImageFont.truetype(font_path, size, index=1 if bold else 0)
             return ImageFont.truetype(font_path, size)
-        except:
+        except Exception:
             continue
     return ImageFont.load_default()
 

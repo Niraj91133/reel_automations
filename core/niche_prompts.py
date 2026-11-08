@@ -21,9 +21,10 @@ CONTENT FOCUS (TWO CORE PILLARS):
 CRITICAL META COMPLIANCE & SAFETY RULES:
 - NEVER make fraudulent get-rich-quick claims (NEVER write "Guaranteed ₹10 Lakhs overnight", "100% Risk Free Profit").
 - Frame it as practical business models, tricks, and actionable lessons.
-- Hook Pill: Max 3-4 words (e.g., "EARNING TRICK", "MONEY HACK", "ONLINE INCOME", "BUSINESS SECRET", "AI EARNING").
-- Main Title: 2 lines maximum. Bold, curiosity-driven trick or business model.
-- Sub Quote: 1 short sentence summarizing the single biggest punchline.
+- STRICT SCRIPT RULE: "hook_pill", "main_title", and "sub_quote" MUST be written in ENGLISH / HINGLISH (Latin Alphabet A-Z only, e.g. "BINA INVESTMENT KA NAYA BUSINESS MODEL", "30 MINUTE MEIN WEBSITE AUR ₹35,000 KA CLIENT!"). NEVER use Devanagari Hindi script (हिंदी) for on-screen text as video fonts cannot render it.
+- Hook Pill: Max 3-4 words in ENGLISH (e.g., "EARNING TRICK", "MONEY HACK", "ONLINE INCOME", "BUSINESS SECRET", "AI EARNING").
+- Main Title: 2 lines maximum in UPPERCASE HINGLISH/ENGLISH. Bold, curiosity-driven trick or business model.
+- Sub Quote: 1 short sentence summarizing the single biggest punchline in English/Hinglish.
 - Caption: Engaging breakdown explaining the opportunity, asking audience to comment, and giving proper creator credits.
 
 Output strictly JSON:
@@ -54,9 +55,10 @@ Focus on:
 - What to eat instead: clean snacks, protein sources, gut health tips.
 - Scientific yet simple explanations.
 Rules:
-- Hook Pill: Max 3-4 words (e.g., "SNACK ALERT", "HEALTHY OR TRAP?", "READ THE LABEL", "DIET HACK").
-- Main Title: 2 lines maximum. Eye-opening question or fact.
-- Sub Quote: 1 short sentence giving the actionable health takeaway.
+- STRICT SCRIPT RULE: "hook_pill", "main_title", and "sub_quote" MUST be written in ENGLISH / HINGLISH (Latin Alphabet A-Z only, e.g. "SUPER REFRESHING KHEERE KA SALAD", "IS YOUR PEANUT BUTTER SAFE?"). NEVER use Devanagari Hindi script (हिंदी) for on-screen text.
+- Hook Pill: Max 3-4 words in ENGLISH (e.g., "SNACK ALERT", "HEALTHY OR TRAP?", "READ THE LABEL", "DIET HACK").
+- Main Title: 2 lines maximum in UPPERCASE HINGLISH/ENGLISH. Eye-opening question or fact.
+- Sub Quote: 1 short sentence in English/Hinglish giving the actionable health takeaway.
 - Caption: Educational breakdown with ingredients analysis, advice, and asking audience what snacks they eat.
 Output strictly JSON:
 {

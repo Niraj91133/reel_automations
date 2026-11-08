@@ -213,6 +213,13 @@ Ensure output matches the required JSON format exactly.
                     clean_txt = clean_json_response(response.text)
                     data = json.loads(clean_txt)
                     if "main_title" in data and "hook_pill" in data:
+                        # Auto-protect against Devanagari text breaking video fonts
+                        has_devanagari = any('\u0900' <= char <= '\u097f' for char in data.get("main_title", "") + data.get("hook_pill", ""))
+                        if has_devanagari:
+                            data["main_title"] = smart_fallback["main_title"]
+                            data["hook_pill"] = smart_fallback["hook_pill"]
+                            data["sub_quote"] = smart_fallback["sub_quote"]
+
                         # Policy check
                         is_safe, _ = is_reel_compliant(data.get("main_title", ""), data.get("hook_pill", ""), data.get("caption", ""))
                         if is_safe:
