@@ -15,19 +15,24 @@ NICHE_DISCOVERY_PROFILES = {
     "startup_road": {
         "display_name": "Startup Road (Practical Business & Small Machines)",
         "keywords": [
+            "shipping container business model comment",
             "small manufacturing machine business comment",
+            "rental arbitrage empty land business comment",
             "low investment business ideas hindi comment",
             "chhoti machine se dhandha comment supplier",
+            "scrap recycling waste to wealth business comment",
             "pouch packing machine business hindi",
-            "scrap recycling business model hindi comment",
-            "wholesale to retail business profit margin",
             "petrol pump franchise codo model comment",
+            "mini food processing unit business comment",
             "offline business ideas comment for pdf"
         ],
         "creators": [
             "ideas_logix",
             "businessidea_841",
             "speedgyaan",
+            "farming_champions",
+            "mayankraj_tandan",
+            "teekendra_sharma",
             "kartikcreatebusiness",
             "abhirathore_1",
             "theexportdiary",
