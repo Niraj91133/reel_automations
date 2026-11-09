@@ -1,9 +1,9 @@
 """
 Core Caption Engine:
-Generates rich, viral, multi-paragraph, high-converting Instagram captions 
-custom-tailored for each channel's niche, audience, and engagement strategy.
+Generates rich, viral, high-converting Instagram captions 
+matching the exact 100k-250k like benchmark format from @startup_road, @gudtree_, and @trading_road_.
 
-Ensures NO reel is ever published with a boring 1-line caption again.
+Ensures NO reel is ever published with corporate boilerplate, generic essays, or placeholder text.
 """
 
 import re
@@ -12,68 +12,54 @@ import random
 NICHE_TEMPLATES = {
     "startup_road": {
         "handle": "@startup_road",
-        "cta": 'Want the complete supplier list, machine contact & breakdown? Comment "DETAILS" below and I will DM you instantly! 📩',
         "hashtags": [
-            "#StartupRoad", "#BusinessStrategy", "#Entrepreneurship", 
-            "#StartupIndia", "#SmallBusinessTips", "#BusinessBreakdown", 
-            "#MakeInIndia", "#D2CBrand", "#MicroManufacturing", "#BusinessGrowth"
-        ]
-    },
-    "healthy_diet": {
-        "handle": "@gudtree_",
-        "cta": "Comment 'HEALTH' to get our clean packaged snacks checklist! What packaged snack do you eat daily? Let's check its ingredients below! 👇",
-        "hashtags": [
-            "#Gudtree", "#FoodPharmer", "#CleanEating", "#ReadTheLabel", 
-            "#HiddenIngredients", "#NutritionTips", "#HealthyHabits", 
-            "#PalmOilFree", "#HealthySnacks", "#HolisticHealth"
-        ]
-    },
-    "trading_pulse": {
-        "handle": "@trading_road_",
-        "cta": "Do you wait for retest confirmation or enter right at the breakout? Drop your trading rule below! 👇",
-        "disclaimer": "⚠️ Disclaimer: For educational purposes only. Not financial or SEBI advice. Trading in equities, F&O, or commodities involves significant risk of loss.",
-        "hashtags": [
-            "#TradingRoad", "#PriceAction", "#TechnicalAnalysis", 
-            "#TradingPsychology", "#RiskManagement", "#StockMarketIndia", 
-            "#CandlestickPatterns", "#TradingDiscipline", "#Nifty50"
-        ]
-    },
-    "trading_road24": {
-        "handle": "@trading_road24",
-        "cta": "What is your biggest psychological struggle while holding winning trades? Let's discuss in the comments! 👇",
-        "disclaimer": "⚠️ Disclaimer: For educational purposes only. Not financial or SEBI advice. Trading involves substantial risk.",
-        "hashtags": [
-            "#TradingRoad24", "#PriceAction", "#ScalpingTrading", 
-            "#RiskReward", "#TraderMindset", "#StockMarketEducation", 
-            "#TradingDiscipline", "#ChartPatterns"
-        ]
-    },
-    "viral_finds": {
-        "handle": "@trending_road",
-        "cta": "👉 Comment 'LINK' to get the direct purchase link sent straight to your DM! Link is also available in bio.",
-        "hashtags": [
-            "#TrendingRoad", "#AmazonFinds", "#ViralGadgets", 
-            "#SmartHome", "#UsefulProducts", "#AmazonMustHaves", 
-            "#ProblemSolver", "#HomeHacks", "#GadgetLovers"
-        ]
-    },
-    "the_loan_road": {
-        "handle": "@the_loan_road",
-        "cta": "👉 Comment 'LOAN' or 'SIP' to get our free Loan Prepayment & SIP Wealth Calculator Excel Sheet directly in your DM!",
-        "disclaimer": "⚠️ Disclaimer: Educational and informative content only. Please consult your financial advisor before making major credit or investment decisions.",
-        "hashtags": [
-            "#TheLoanRoad", "#HomeLoanTips", "#SIPInvestment", 
-            "#MutualFundsIndia", "#CIBILScore", "#LoanPrepayment", 
-            "#PersonalLoan", "#FinancialPlanning", "#EMICalculator", "#WealthCreation"
+            "#StartupRoad", "#FounderMindset", "#BusinessIdeas", 
+            "#WealthBuilding", "#Entrepreneurship", "#StartupIndia", "#BusinessCaseStudy"
         ]
     },
     "the_startuproad": {
         "handle": "@the_startuproad",
-        "cta": 'Want the complete supplier list, machine contact & breakdown? Comment "DETAILS" below and I will DM you instantly! 📩',
         "hashtags": [
-            "#TheStartupRoad", "#StartupRoad", "#BusinessStrategy", "#Entrepreneurship", 
-            "#StartupIndia", "#SmallBusinessTips", "#BusinessBreakdown", 
-            "#MakeInIndia", "#D2CBrand", "#MicroManufacturing", "#BusinessGrowth"
+            "#TheStartupRoad", "#StartupRoad", "#FounderMindset", 
+            "#BusinessIdeas", "#WealthBuilding", "#Entrepreneurship", "#StartupIndia"
+        ]
+    },
+    "healthy_diet": {
+        "handle": "@gudtree_",
+        "hashtags": [
+            "#Gudtree", "#FoodPharmer", "#CleanEating", "#ReadTheLabel", 
+            "#HiddenIngredients", "#NutritionTips", "#PalmOilFree", "#HealthySnacks"
+        ]
+    },
+    "trading_pulse": {
+        "handle": "@trading_road_",
+        "disclaimer": "⚠️ Disclaimer: For educational purposes only. Not financial or SEBI advice. Trading involves significant risk of loss.",
+        "hashtags": [
+            "#TradingRoad", "#PriceAction", "#TechnicalAnalysis", 
+            "#TradingPsychology", "#RiskManagement", "#StockMarketIndia", "#CandlestickPatterns"
+        ]
+    },
+    "trading_road24": {
+        "handle": "@trading_road24",
+        "disclaimer": "⚠️ Disclaimer: For educational purposes only. Not financial or SEBI advice. Trading involves substantial risk.",
+        "hashtags": [
+            "#TradingRoad24", "#PriceAction", "#ScalpingTrading", 
+            "#RiskReward", "#TraderMindset", "#StockMarketEducation", "#ChartPatterns"
+        ]
+    },
+    "viral_finds": {
+        "handle": "@trending_road",
+        "hashtags": [
+            "#TrendingRoad", "#AmazonFinds", "#ViralGadgets", 
+            "#SmartHome", "#UsefulProducts", "#AmazonMustHaves", "#ProblemSolver"
+        ]
+    },
+    "the_loan_road": {
+        "handle": "@the_loan_road",
+        "disclaimer": "⚠️ Disclaimer: Educational and informative content only. Consult your financial advisor before making credit decisions.",
+        "hashtags": [
+            "#TheLoanRoad", "#HomeLoanTips", "#SIPInvestment", 
+            "#MutualFundsIndia", "#CIBILScore", "#LoanPrepayment", "#FinancialPlanning"
         ]
     }
 }
@@ -84,179 +70,238 @@ def clean_title_text(title: str) -> str:
         return "KEY BUSINESS INSIGHT"
     return " ".join([t.strip() for t in title.replace("\\n", "\n").splitlines() if t.strip()])
 
-def build_startup_caption(title: str, hook_pill: str, creator: str) -> str:
-    clean_t = clean_title_text(title)
+def derive_startup_trigger(text: str) -> tuple[str, str]:
+    """
+    Derives high-converting comment-to-DM trigger word and contextual breakdown
+    based on the exact subject of the reel.
+    """
+    t = text.lower()
     
-    # Check theme: Machine/Manufacturing vs Digital/SaaS vs General Strategy
-    title_lower = clean_t.lower()
-    is_machine = any(w in title_lower for w in ["machine", "manufacturing", "plant", "factory", "pack", "crush", "print", "laghu", "udyog", "production", "raw material", "export", "import"])
-    is_digital = any(w in title_lower for w in ["ai", "app", "digital", "website", "online", "software", "saas", "freelanc", "client", "remote", "tool"])
-    
-    if is_machine:
-        hook = f"Every entrepreneur searching for ground-level profitability needs to understand this model. 🏭"
-        body = (
-            f"When evaluating manufacturing and local packaging units, the real competitive edge isn't just buying machinery—it's mastering unit economics and local distribution.\n\n"
-            f"In this breakdown on '{clean_t}', we examine how small-scale production setups keep capital expenditure low while targeting high-frequency, everyday consumption markets. "
-            f"By eliminating multi-layered middlemen and sourcing raw materials directly, manufacturers can retain healthy 30% to 50% gross margins."
-        )
-        takeaways = (
-            "Key Execution Rules:\n"
-            "1️⃣ Low Capex Entry: Start with semi-automatic machines before committing to large commercial setups.\n"
-            "2️⃣ Localized Supply Chain: Secure local B2B packaging and bulk supply contracts first to ensure pre-sold inventory.\n"
-            "3️⃣ Cashflow Cycle: Keep credit cycles strict (under 15 days) to avoid working capital crunches.\n"
-            "4️⃣ Differentiation: Focus on tamper-proof packaging and local branding trust."
-        )
-    elif is_digital:
-        hook = f"The biggest barrier to starting an online business isn't technical skill—it's knowing where the leverage lies. 💻"
-        body = (
-            f"The digital economy has fundamentally changed how micro-businesses are built. With '{clean_t}', the focus is on utilizing automated workflows and low-overhead software tools to deliver high-value outcomes.\n\n"
-            f"Instead of spending months coding or building complex infrastructure, smart operators leverage existing APIs and platforms to solve specific, painful problems for paying businesses."
-        )
-        takeaways = (
-            "Strategic Blueprint:\n"
-            "1️⃣ High-Leverage Offering: Package a specific solution rather than offering generic services.\n"
-            "2️⃣ Automated Operations: Use modern tools to keep fulfillment lean and scalable.\n"
-            "3️⃣ Direct Outreach: Connect directly with decision-makers who feel the operational bottleneck daily.\n"
-            "4️⃣ Recurring Revenue: Structure your pricing around recurring value rather than one-off transactions."
-        )
+    if any(w in t for w in ["container", "cabin", "shipping"]):
+        return "CONTAINER", (
+            "• The Asset: Sourcing used shipping containers and converting them into portable offices or storage.\n"
+            "• Unit Economics: Renting each unit for ₹15,000 to ₹30,000/month with zero permanent construction capex.\n"
+            "• Scaling Edge: Positioning inventory near expanding highway and industrial infrastructure hubs."
+        ), "Containers provide 3X the rental yield of traditional property with 1/10th the maintenance cost."
+        
+    elif any(w in t for w in ["petrol", "fuel", "pump", "shell"]):
+        return "FUEL", (
+            "• The Model: CODO dealership where the oil company provides land and equipment while you operate.\n"
+            "• Unit Economics: High-volume commission per liter without sinking crores into real estate capex.\n"
+            "• The Leverage: Operating a high-footfall location under a trusted national brand umbrella."
+        ), "Asset-light models in heavy industries hide the real daily cash flow."
+        
+    elif any(w in t for w in ["battery", "lead", "acid", "recycle"]):
+        return "BATTERY", (
+            "• Source: Sourcing spent automotive and inverter batteries from local scrap dealers at scrap weight.\n"
+            "• Recovery Value: Extracting purified lead and plastic components for secondary smelting factories.\n"
+            "• Profit Velocity: Fast inventory turnover with 35% to 50% cash margins on recycled metal."
+        ), "The most profitable businesses hide inside the hazardous waste streams of modern society."
+        
+    elif any(w in t for w in ["spark plug", "scrap", "iridium", "kachra", "metal", "waste"]):
+        return "SCRAP", (
+            "• Source: Collecting discarded spark plugs and industrial waste from mechanic garages for pennies.\n"
+            "• Mechanism: Extracting high-value precious metals (Iridium and Platinum) from electrode tips.\n"
+            "• Economics: Bulk processing converts automotive waste into high-margin industrial raw materials."
+        ), "One industry's discarded trash is another operator's 500% profit margin."
+        
+    elif any(w in t for w in ["dry fruit", "kaju", "kismish", "makhana", "wholesale", "mandi", "hub"]):
+        return "MARKET", (
+            "• Source: Bypassing multi-layered state distributors and buying directly from primary production hubs.\n"
+            "• Pricing Arbitrage: Sourcing at raw mandi rates doubles gross margins compared to regional wholesale.\n"
+            "• Distribution: Supplying pre-packaged retail pouches to local B2B grocery chains on 7-day credit."
+        ), "In commodity businesses, your profit is made on the buy side, not the sell side."
+        
+    elif any(w in t for w in ["paper bag", "paper cup", "packaging", "box", "pouch", "print"]):
+        return "PACKAGING", (
+            "• Setup: Compact semi-automatic packaging/printing machine requiring minimal square footage.\n"
+            "• Market Demand: Plastic bans create non-negotiable repeat demand from bakeries, cafes, and retailers.\n"
+            "• Cashflow Cycle: Securing 5 to 10 local B2B client contracts guarantees 100% pre-sold monthly inventory."
+        ), "Boring, consumable daily packaging generates rock-solid cash flow in all market seasons."
+        
+    elif any(w in t for w in ["ice cream", "popsicle", "kulfi", "pop"]):
+        return "ICECREAM", (
+            "• Product Innovation: Bite-sized gourmet popsicles and sticks with premium visual presentation.\n"
+            "• Cost Breakdown: Manufacturing cost under ₹8 per unit, retailing at ₹40 to ₹60 at high-footfall spots.\n"
+            "• Distribution: Low-footprint kiosk carts and cloud freezer points with zero restaurant capex."
+        ), "High-margin impulse treats beat sit-down dining economics every single time."
+        
+    elif any(w in t for w in ["chappal", "slipper", "footwear", "sole"]):
+        return "CHAPPAL", (
+            "• Production: Sheet cutting and strap fitting with a low-cost manual/hydraulic sole press.\n"
+            "• Unit Cost: Production cost of ₹8 to ₹12 per pair, wholesaling at ₹25 to ₹35 to local tier-2/3 retail.\n"
+            "• Scale Mechanism: Consistent repeat utility item with evergreen rural and urban demand."
+        ), "Mass consumption goods with low unit capex build durable, recession-proof cash flow."
+        
+    elif any(w in t for w in ["drop", "dropship", "shopify", "roposo", "ecom"]):
+        return "DROPSHIP", (
+            "• Product Selection: Identifying viral problem-solving utility products with healthy ₹400+ markup.\n"
+            "• Operational Lean: Zero upfront inventory risk by leveraging Indian supplier fulfillment networks.\n"
+            "• Customer Acquisition: High-converting short-form creative angles running on optimized Meta ads."
+        ), "E-commerce success is 20% product and 80% disciplined ad testing with positive ROAS."
+        
+    elif any(w in t for w in ["ai", "app", "website", "software", "client", "saas", "agency"]):
+        return "WEBSITE", (
+            "• The Offer: Packaging automated workflows and instant website templates for paying local businesses.\n"
+            "• Execution Speed: Deploying no-code AI tools to complete client deliverables in 48 hours instead of weeks.\n"
+            "• Pricing Structure: Charging ₹15k-₹35k upfront plus recurring monthly hosting and maintenance retainer."
+        ), "Clients don't pay for hours worked; they pay for immediate solutions to painful operational bottlenecks."
+        
     else:
-        hook = f"Most ventures fail not because the concept was weak, but because execution lacked clarity. 📈"
-        body = (
-            f"Building and scaling a sustainable business requires disciplined execution and deep customer understanding. In '{clean_t}', the core lesson highlights why founders must obsess over product-market fit before pouring capital into marketing.\n\n"
-            f"Whether you are bootstrapping from zero or scaling an existing operation, long-term survival belongs to businesses that maintain healthy unit economics, retain customers, and build strong cash reserves."
-        )
-        takeaways = (
-            "Foundational Principles:\n"
-            "1️⃣ Unit Economics First: Never scale a negative unit margin business hoping volume will fix it.\n"
-            "2️⃣ Customer Retention: Acquiring a customer once is marketing; getting them to return is business.\n"
-            "3️⃣ Disciplined Capital: Keep fixed overheads minimal until product demand forces expansion.\n"
-            "4️⃣ Relentless Speed: Test hypotheses quickly and discard what doesn't convert."
-        )
+        return "DETAILS", (
+            "• The Core Asset: Targeting a high-demand, low-supply physical business model with protected margins.\n"
+            "• Unit Economics: Keeping initial capital expenditure under ₹50,000 while maintaining 40%+ gross margins.\n"
+            "• Execution Velocity: Securing pre-sold B2B supply agreements before committing to commercial scale."
+        ), "True wealth is built by rotating capital into cash-flowing operations, not sitting on idle cash."
 
-    cta = NICHE_TEMPLATES["startup_road"]["cta"]
+def build_startup_caption(title: str, hook_pill: str, creator: str, context_text: str = "") -> str:
+    clean_t = clean_title_text(title)
+    trigger, breakdown, takeaway = derive_startup_trigger(f"{title} {hook_pill} {context_text}")
+    
+    # Contrarian Line 1 Hooks
+    t_lower = clean_t.lower()
+    if "stop" in t_lower or "quit" in t_lower or "don't" in t_lower:
+        hook_line = f"{clean_t} 🚫 👇"
+    elif any(w in t_lower for w in ["₹", "crore", "lakh", "money", "profit"]):
+        hook_line = f"{clean_t}! 💸 👇"
+    else:
+        hook_line = f"The hidden business model inside {clean_t}! 🚀 👇"
+
+    credit_line = f"Credits & Speaker: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "Credits: Respective Creator"
     hashtags = " ".join(NICHE_TEMPLATES["startup_road"]["hashtags"])
-    credit_line = f"🤝 Original Creator Credit: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "🤝 Credit: Respective Creator"
 
-    return f"{clean_t.upper()} 🚀\n\n{hook}\n\n{body}\n\n{takeaways}\n\n{cta}\n\n{credit_line}\n\n{hashtags}"
+    return (
+        f"{hook_line}\n\n"
+        f"📌 The Founder Breakdown:\n"
+        f"{breakdown}\n\n"
+        f"💡 Golden Takeaway: {takeaway}\n\n"
+        f"👇 Want the step-by-step PDF roadmap & supplier list?\n"
+        f"Comment \"{trigger}\" below and I'll DM you the breakdown instantly! 📩\n\n"
+        f"{credit_line}\n"
+        f"Follow @startup_road for daily founder playbooks & business insights.\n\n"
+        f"{hashtags}"
+    )
 
-def build_health_caption(title: str, hook_pill: str, creator: str) -> str:
+def build_health_caption(title: str, hook_pill: str, creator: str, context_text: str = "") -> str:
     clean_t = clean_title_text(title)
-    title_lower = clean_t.lower()
+    t_lower = f"{title} {hook_pill} {context_text}".lower()
     
-    is_sugar_oil = any(w in title_lower for w in ["sugar", "palm oil", "oil", "maltodextrin", "syrup", "ingredient", "label", "additive"])
-    is_diet_hormone = any(w in title_lower for w in ["hormone", "pcos", "pcod", "weight", "fat", "muscle", "protein", "gut", "diet", "snack"])
-
-    if is_sugar_oil:
-        hook = "Next time you pick up a 'healthy' snack from the shelf, turn it around and check the back! 🚨"
-        body = (
-            f"Big food marketing often hides behind buzzwords like '100% Whole Wheat', 'No Added Sugar', or 'Rich in Fiber'. But when you examine '{clean_t}', the ingredients label reveals the real truth.\n\n"
-            f"Refined palm oil, maltodextrin (which spikes insulin faster than pure glucose), and disguised artificial sweeteners are routinely used to cut manufacturing costs while extending shelf life. Your body treats these ultra-processed fillers like metabolic stress."
+    if any(w in t_lower for w in ["palm oil", "oil", "fat"]):
+        trigger = "LABEL"
+        breakdown = (
+            "• Deceptive Front: Packaged as 'Heart Healthy' or '100% Whole Grain'.\n"
+            "• The Reality: Cheap refined palm olein used to slash manufacturing costs and extend shelf life.\n"
+            "• The Impact: Highly oxidized industrial oils drive systemic inflammation and arterial stress."
         )
-        takeaways = (
-            "How to Read Food Labels Like a Pro:\n"
-            "1️⃣ Check First 3 Ingredients: Ingredients are listed in descending order by weight. If sugar or oil is in the top 3, it's not health food.\n"
-            "2️⃣ Beware of Hidden Sugars: Look out for dextrose, invert syrup, malt extract, and maltodextrin.\n"
-            "3️⃣ The Palm Oil Trap: Highly processed palm olein oxidizes easily and drives systemic inflammation.\n"
-            "4️⃣ Real Food Rule: If a product has more than 5 chemical names you cannot pronounce, keep it on the shelf."
+        takeaway = "Real food does not require industrial preservatives to stay edible on a shelf for 12 months."
+    elif any(w in t_lower for w in ["sugar", "sweet", "maltodextrin", "syrup"]):
+        trigger = "CLEAN"
+        breakdown = (
+            "• Marketing Trick: Claims 'No Added White Sugar' on the front label.\n"
+            "• Ingredient Check: Invert syrup, maltodextrin, and fruit concentrates deliver a massive glycemic shock.\n"
+            "• Metabolic Result: Spikes insulin faster than table sugar while tricking your brain into craving more."
         )
+        takeaway = "If sugar or syrup appears in the top 3 ingredients, treat it like candy, not nutrition."
     else:
-        hook = "Your body responds to the quality of the nutrients you feed it, not just the calorie number. 🥗"
-        body = (
-            f"When it comes to '{clean_t}', understanding how whole foods interact with your metabolic health is the real game-changer.\n\n"
-            f"Instead of falling for restrictive crash diets or heavily marketed supplements, prioritizing real, unadulterated whole foods—rich in essential micronutrients, healthy fats, and prebiotic fiber—helps stabilize blood sugar, balance hormones, and improve sustained daily energy."
+        trigger = "SNACK"
+        breakdown = (
+            "• The Trap: Processed snacks loaded with emulsifiers, synthetic flavors, and hidden sodium.\n"
+            "• Label Check: Chemical additives and numbered preservatives masquerading as natural ingredients.\n"
+            "• Clean Pivot: Switching to single-ingredient whole foods: roasted chana, makhana, and raw nuts."
         )
-        takeaways = (
-            "Clean Nutrition Essentials:\n"
-            "1️⃣ Prioritize Whole Foods: Focus on unrefined seeds, nuts, whole grains, and fresh produce.\n"
-            "2️⃣ Stable Blood Sugar: Pair carbohydrates with protein or healthy fats to prevent sharp insulin spikes.\n"
-            "3️⃣ Gut Health Priority: A diverse, fiber-rich diet supports the microbiome that governs 70% of your immune system.\n"
-            "4️⃣ Sustainable Consistency: Long-term health is built through daily sustainable habits, not extreme 7-day detoxes."
-        )
+        takeaway = "Invest in real food today, or pay tenfold to big pharma tomorrow."
 
-    cta = NICHE_TEMPLATES["healthy_diet"]["cta"]
+    credit_line = f"Credits & Speaker: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "Credits: Respective Creator"
     hashtags = " ".join(NICHE_TEMPLATES["healthy_diet"]["hashtags"])
-    credit_line = f"🤝 Original Video Credit: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "🤝 Credit: Respective Creator"
 
-    return f"{clean_t.upper()} 🥗\n\n{hook}\n\n{body}\n\n{takeaways}\n\n{cta}\n\n{credit_line}\n\n{hashtags}"
+    return (
+        f"Next time you pick up this 'healthy' snack, check the label! 🚨 👇\n\n"
+        f"📌 The Ingredient Breakdown:\n"
+        f"{breakdown}\n\n"
+        f"💡 Golden Rule: {takeaway}\n\n"
+        f"👇 Want our verified Clean Packaged Snacks & Guilt-Free Food Guide?\n"
+        f"Comment \"{trigger}\" below and I'll DM you the complete list! 📩\n\n"
+        f"{credit_line}\n"
+        f"Follow @gudtree_ for daily verified food label breakdowns.\n\n"
+        f"{hashtags}"
+    )
 
-def build_trading_caption(title: str, hook_pill: str, creator: str, channel_id: str = "trading_pulse") -> str:
+def build_trading_caption(title: str, hook_pill: str, creator: str, channel_id: str = "trading_pulse", context_text: str = "") -> str:
     clean_t = clean_title_text(title)
     tmpl = NICHE_TEMPLATES.get(channel_id, NICHE_TEMPLATES["trading_pulse"])
-
-    hook = "Stop chasing green candles and jumping into breakouts without confirmation! 📉"
-    body = (
-        f"In market trading, 90% of retail losses don't come from poor indicator setups—they come from lack of risk discipline and emotional impulse trading. In this breakdown on '{clean_t}', we dissect the mechanics behind high-probability price action.\n\n"
-        f"Institutions and market makers routinely engineer liquidity traps around obvious support and resistance levels. When you learn to wait for candle closing confirmation and retests rather than anticipating moves blindly, your risk-to-reward ratio dramatically shifts in your favor."
-    )
-    takeaways = (
-        "Non-Negotiable Rules for Capital Protection:\n"
-        "1️⃣ Define Risk Before Entry: Never execute a trade without knowing your exact exit level and rupee risk per trade.\n"
-        "2️⃣ Retest Over Rush: Let the breakout candle close and wait for price to retest key structure.\n"
-        "3️⃣ Strict Position Sizing: Never risk more than 1% to 2% of total trading capital on any single setup.\n"
-        "4️⃣ Psychological Reset: After two consecutive stop-loss hits, step away from the terminal. Revenge trading always leads to disaster."
-    )
-
-    cta = tmpl["cta"]
-    disclaimer = tmpl["disclaimer"]
+    
+    credit_line = f"Credits & Speaker: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "Credits: Respective Creator"
     hashtags = " ".join(tmpl["hashtags"])
-    credit_line = f"🤝 Original Creator Credit: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "🤝 Credit: Respective Creator"
+    disclaimer = tmpl["disclaimer"]
 
-    return f"{clean_t.upper()} 📊\n\n{hook}\n\n{body}\n\n{takeaways}\n\n{cta}\n\n{disclaimer}\n\n{credit_line}\n\n{hashtags}"
+    return (
+        f"Stop buying breakouts right into institutional resistance! 📉 👇\n\n"
+        f"📌 The Price Action Breakdown:\n"
+        f"• The Retail Trap: Chasing green momentum candles where smart money engineers liquidity exits.\n"
+        f"• The Confirmation Rule: Wait for the 15-minute candle to close and retest support before entry.\n"
+        f"• Risk Discipline: Strictly risk no more than 1% of total trading capital per setup.\n\n"
+        f"💡 Golden Takeaway: Amateurs obsess over potential profits; professional traders obsess over downside risk.\n\n"
+        f"👇 Want our free Price Action & Risk Management Cheat Sheet?\n"
+        f"Comment \"LEVELS\" below and I'll DM you the breakdown! 📩\n\n"
+        f"{disclaimer}\n\n"
+        f"{credit_line}\n"
+        f"Follow @trading_road_ for daily institutional market analysis.\n\n"
+        f"{hashtags}"
+    )
 
-def build_viral_finds_caption(title: str, hook_pill: str, creator: str) -> str:
+def build_loan_caption(title: str, hook_pill: str, creator: str, context_text: str = "") -> str:
     clean_t = clean_title_text(title)
+    credit_line = f"Credits & Speaker: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "Credits: Respective Creator"
+    hashtags = " ".join(NICHE_TEMPLATES["the_loan_road"]["hashtags"])
+    disclaimer = NICHE_TEMPLATES["the_loan_road"]["disclaimer"]
 
-    hook = "Stop struggling with everyday daily hassles! This viral Amazon find is a total game-changer. 🚀"
-    body = (
-        f"If you love smart tools that genuinely save time and keep your space organized, '{clean_t}' is an absolute must-see.\n\n"
-        f"Designed to eliminate common annoyances, this compact gadget combines clever engineering with effortless utility—making your daily routine smoother, cleaner, and much more efficient."
-    )
-    takeaways = (
-        "Why This Product Stands Out:\n"
-        "✅ Problem-Solving Design: Solves annoying daily tasks in seconds.\n"
-        "✅ Compact & Portable: Easy to store, travel-friendly, and built to last.\n"
-        "✅ High Value for Money: Top-rated build quality at an affordable price.\n"
-        "✅ 100% Practical Utility: Something you will actually use every single day."
+    return (
+        f"The 20-year home loan interest trap that banks never talk about! 💰 👇\n\n"
+        f"📌 The Compounding Math Breakdown:\n"
+        f"• The Bank Trap: On a ₹50 Lakh 20-year loan at 8.5%, you pay over ₹54 Lakhs in interest alone.\n"
+        f"• The 1 Extra EMI Hack: Paying just 1 extra EMI every single year slashes your tenure by over 4.5 years.\n"
+        f"• The SIP Counter-Balance: Starting a 10% SIP alongside your EMI recovers 100% of the loan interest paid.\n\n"
+        f"💡 Golden Rule: Compound interest is terrifying when you pay it; it's life-changing when you earn it.\n\n"
+        f"👇 Want our free Home Loan Prepayment & SIP Wealth Calculator Excel Sheet?\n"
+        f"Comment \"CALCULATOR\" below and I'll DM you the sheet instantly! 📩\n\n"
+        f"{disclaimer}\n\n"
+        f"{credit_line}\n"
+        f"Follow @the_loan_road for daily loan hacks & wealth compounding blueprints.\n\n"
+        f"{hashtags}"
     )
 
-    cta = NICHE_TEMPLATES["viral_finds"]["cta"]
+def build_viral_finds_caption(title: str, hook_pill: str, creator: str, context_text: str = "") -> str:
+    clean_t = clean_title_text(title)
+    credit_line = f"Credits & Speaker: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "Credits: Respective Creator"
     hashtags = " ".join(NICHE_TEMPLATES["viral_finds"]["hashtags"])
-    credit_line = f"🤝 Credit: @{creator}" if creator and creator.lower() not in ["creator", "approved_creator"] else "🤝 Credit: Respective Creator"
 
-    return f"{clean_t.upper()} 🛍️\n\n{hook}\n\n{body}\n\n{takeaways}\n\n{cta}\n\n{credit_line}\n\n{hashtags}"
+    return (
+        f"Stop struggling with everyday annoyances! This ₹499 gadget is a game-changer. 🚀 👇\n\n"
+        f"📌 Why This Product Solves It All:\n"
+        f"• The Problem: Eliminates cluttered cords and messy spaces in seconds.\n"
+        f"• Compact Design: Pocket-sized, durable build, and travel-friendly utility.\n"
+        f"• Pure Value: Under ₹499 on sale with 100% practical daily use.\n\n"
+        f"👉 Want the direct purchase link with discount?\n"
+        f"Comment \"LINK\" below and I'll send the direct link to your DM! 🔗\n\n"
+        f"{credit_line}\n"
+        f"Follow @trending_road for daily problem-solving gadgets.\n\n"
+        f"{hashtags}"
+    )
 
 def generate_rich_caption(channel_id: str, title: str, hook_pill: str = "", creator: str = "creator", context_text: str = "") -> str:
     """
     Main entry point for generating rich, multi-paragraph, engaging captions.
-    Guarantees every caption is 400-900+ characters with hook, body, bullet points, CTA, disclaimer & hashtags.
+    Guarantees every caption follows the exact 100k-250k like viral architecture.
     """
     ch = channel_id.lower()
     
-    if "startup" in ch:
-        return build_startup_caption(title, hook_pill, creator)
+    if "loan" in ch:
+        return build_loan_caption(title, hook_pill, creator, context_text)
     elif "health" in ch or "gudtree" in ch or "diet" in ch:
-        return build_health_caption(title, hook_pill, creator)
+        return build_health_caption(title, hook_pill, creator, context_text)
     elif "trading" in ch:
-        return build_trading_caption(title, hook_pill, creator, channel_id=ch)
+        return build_trading_caption(title, hook_pill, creator, channel_id=ch, context_text=context_text)
     elif "viral" in ch or "trending" in ch:
-        return build_viral_finds_caption(title, hook_pill, creator)
+        return build_viral_finds_caption(title, hook_pill, creator, context_text)
     else:
-        # Default high-quality format
-        return build_startup_caption(title, hook_pill, creator)
-
-if __name__ == "__main__":
-    # Test all 5 channels
-    test_channels = [
-        ("startup_road", "BUSINESS BREAKDOWN: SCALING BLUEPRINT", "STARTUP ROAD", "favourite.engineer"),
-        ("healthy_diet", "IS YOUR PROTEIN BAR ACTUALLY A CANDY?", "SNACK TRUTH", "foodpharmer"),
-        ("trading_pulse", "HOW SMART MONEY TRAPS RETAIL BREAKOUTS", "PRICE ACTION", "trading_expert"),
-        ("viral_finds", "23 AMAZON PRODUCTS EVERYONE NEEDS", "AMAZON FINDS", "gadget_review"),
-        ("trading_road24", "SIMPLE BOLLINGER BAND SCALPING SETUP", "SCALPING SETUP", "trader24")
-    ]
-    
-    for ch, t, hp, cr in test_channels:
-        print(f"\n{'='*50}\nTESTING: {ch}\n{'='*50}")
-        cap = generate_rich_caption(ch, t, hp, cr)
-        print(cap)
-        print(f"\n[Length: {len(cap)} chars, Lines: {len(cap.splitlines())}]")
-
+        return build_startup_caption(title, hook_pill, creator, context_text)

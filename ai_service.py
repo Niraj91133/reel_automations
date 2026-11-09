@@ -87,24 +87,22 @@ def generate_fallback_from_metadata(creator_username, description="", title=""):
     elif "ai" in combined_text.lower(): trigger = "AITOOLS"
     elif "money" in combined_text.lower() or "paise" in combined_text.lower(): trigger = "WEALTH"
 
-    caption = (
-        f"🔥 {main_title.replace(chr(10), ' ')} by @{creator_username} 👇\n\n"
-        f"📌 The Founder Breakdown:\n"
-        f"• The Mechanism: Break down the exact operational steps to capture market demand.\n"
-        f"• The Unit Economics: Maintain high gross margins and minimize customer acquisition cost.\n"
-        f"• Execution Velocity: Speed of implementation beats endless planning.\n\n"
-        f"💡 Golden Takeaway: Start small, validate demand fast, and double down on what prints revenue.\n\n"
-        f"👇 Want the step-by-step PDF roadmap & resource checklist?\n"
-        f"Comment \"{trigger}\" below and I'll DM you the breakdown instantly! 📩\n\n"
-        f"Credits & Speaker: @{creator_username}\n"
-        f"Follow @startup_road for daily actionable founder case studies.\n\n"
-        f"#StartupRoad #FounderMindset #BusinessIdeas #WealthBuilding #Entrepreneurship"
+    # Clean, high-converting dynamic trigger and caption
+    from core.caption_engine import generate_rich_caption, derive_startup_trigger
+    trigger, breakdown, takeaway = derive_startup_trigger(combined_text)
+
+    caption = generate_rich_caption(
+        channel_id=category,
+        title=main_title,
+        hook_pill=hook_pill,
+        creator=creator_username,
+        context_text=combined_text
     )
 
     return {
         "hook_pill": hook_pill[:25],
         "main_title": main_title,
-        "sub_quote": f'"Execution is the only currency that matters in business."',
+        "sub_quote": f'"{takeaway}"',
         "comment_trigger": trigger,
         "caption": caption
     }

@@ -11,15 +11,14 @@ from core.niche_prompts import get_niche_prompt
 from core.caption_engine import generate_rich_caption
 from core.compliance_guard import is_reel_compliant
 
-# Primary lightning-fast Gemini models with fallback
+# Verified Lightning-Fast Working Gemini Models with instant response
 WORKING_MODELS = [
-    "gemini-flash-lite-latest",
-    "gemini-flash-latest",
-    "gemini-2.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-3.1-flash-lite-preview",
     "gemini-3.8-flash"
 ]
 
-# Curated Dynamic Synthesis Banks per Niche (Guarantees 100% Unique, Non-Repetitive Overlays)
+# Curated Dynamic Synthesis Banks per Niche (Matches 100k-250k like benchmarks)
 DYNAMIC_NICHE_BANKS = {
     "trading": [
         ("RISK FIRST", "HOW SMART MONEY TRAPS\nRETAIL BREAKOUTS", "Cut losses ruthlessly before the market cuts your capital."),
@@ -31,21 +30,26 @@ DYNAMIC_NICHE_BANKS = {
         ("SUPPORT/RESIST", "WHY MOST SUPPORT LINES\nFAIL ON RETEST", "Static levels break; dynamic order flow respects liquidity."),
         ("TRADING RULES", "THE 1% RULE THAT\nPREVENTS ACCOUNT BLOWUP", "Never risk more on one trade than you can afford to lose twice."),
         ("VOLUME FLOW", "IDENTIFYING INSTITUTIONAL\nBUYING ACCUMULATION", "Volume precedes price; watch where heavy orders cluster."),
-        ("EXECUTION", "PRE-MARKET ROUTINE FOR\nCONSISTENT ACCURACY", "Trading without a written plan is gambling with extra steps."),
-        ("TREND PULLBACK", "HOW TO ENTER PULLBACKS\nWITHOUT GETTING TRAPPED", "Patience at key fibonacci levels beats chasing momentum."),
-        ("TRADER MINDSET", "ACCEPTING SMALL LOSSES\nLIKE A BUSINESS EXPENSE", "Losses are tuition fees paid to the market for experience.")
+        ("EXECUTION", "PRE-MARKET ROUTINE FOR\nCONSISTENT ACCURACY", "Trading without a written plan is gambling with extra steps.")
     ],
     "startup": [
-        ("EARNING TRICK", "HIGH PROFIT MANUFACTURING\nMACHINE UNDER ₹50,000", "Low capex machinery with high-frequency repeat consumption."),
-        ("BUSINESS SECRET", "PACKAGING UNIT SETUP\nWITH 45% GROSS MARGIN", "Eliminate middlemen and secure direct local B2B packaging deals."),
-        ("MONEY HACK", "MICRO-SAAS APP IDEA\nRUNNING ON AUTO-PILOT", "Solve one specific business bottleneck and charge monthly recurring."),
-        ("LAGHU UDYOG", "DAILY CONSUMPTION PRODUCT\nPRINTING UNIT BLUEPRINT", "Essential daily items generate stable cashflows across all seasons."),
-        ("DIGITAL INCOME", "HOW CREATORS MAKE ₹1L+\nWITH AUTOMATED WORKFLOWS", "Leverage free APIs to deliver automated client fulfillment."),
-        ("PROFIT BLUEPRINT", "LOCAL COMMODITY PROCESSING\nHIGH RETURN SETUP", "Sourcing raw material at source doubles your finished margin."),
-        ("STARTUP RULES", "UNIT ECONOMICS BEFORE\nEXPANDING CAPACITY", "Never borrow to fund operations; fund scale from retained profits."),
-        ("APP HUSTLE", "NO-CODE MOBILE APP\nGENERATING PASSIVE REVENUE", "Build for niche local communities with verified purchasing intent."),
-        ("B2B ARBITRAGE", "CONTRACT MANUFACTURING\nWITHOUT OWNING MACHINES", "Match idle factory capacity with eager consumer brand demands."),
-        ("SCALE SECRET", "THE 30-DAY PILOT RULE\nFOR NEW PRODUCT LAUNCHES", "Test demand with 100 sample units before manufacturing 10,000.")
+        ("ZERO LAND", "QUIT WASTING MILLIONS\nON PETROL PUMPS!", "Asset-light models in heavy industries hide the real cash flow."),
+        ("SCRAP WEALTH", "GARAGES ARE THROWING\nAWAY A GOLDMINE!", "The most profitable businesses hide in established waste streams."),
+        ("PASSIVE CASH", "EARN ₹1 LAKH/MONTH\nRENTING CONTAINERS", "Physical assets generate recurring yield while you sleep."),
+        ("MICRO FACTORY", "₹50K MACHINE PRINTS\nDAILY PACKAGING PROFITS", "Low capex machinery with high-frequency repeat consumption."),
+        ("ASSET SHIFT", "STOP BUYING BIKES,\nSTART THIS BUSINESS.", "Stop buying depreciating liabilities and start buying cashflow assets."),
+        ("HIGH MARGIN", "35 CRORE KA RECYCLING\nBUSINESS BREAKDOWN", "Raw material sourced for pennies yields 500% industrial margin."),
+        ("DAILY CASHFLOW", "ANDHA PAISA CHAAPNA HAI?\nIS BUSINESS KO SAMJHO!", "Essential FMCG daily goods generate cash across all market cycles."),
+        ("PAPER BAG PLANT", "START WITH ₹20,000\nEARN ₹1 LAKH/MO NET", "Plastic bans create massive pre-sold B2B packaging demand."),
+        ("COLD PRESSED", "MUSTARD OIL PLANT\nEARN ₹1.8 LAKH/MONTH", "Sourcing seeds at mandi level doubles finished consumer margin."),
+        ("POUCH PACKING", "WHOLESALE MASALA PLANT\nRUNNING FROM HOME", "High-frequency consumption items generate stable daily liquidity."),
+        ("BATTERY RECYCLE", "OLD BATTERY RECYCLING\nEARN ₹2 LAKH/MONTH", "Lead recovery yields massive industrial resale margins."),
+        ("DRY FRUITS HUB", "INDIA KE TOP WHOLESALE\nMANUFACTURING HUBS", "Bypassing regional distributors doubles your direct margin."),
+        ("NO CODE APP", "BUILD THIS AI APP\nIN 15 MINS FOR CLIENTS", "Package automated fulfillment workflows for local business owners."),
+        ("REVERSE ARBITRAGE", "STOP LETTING ₹10,000\nSIT IDLE IN SAVINGS!", "Wealth is built by rotating capital into cashflow assets."),
+        ("CHAPPAL PLANT", "CHAPPAL BANANE KA PLANT\n₹8 KI COST ₹30 MEIN SALE", "Mass consumption utility items build durable recession-proof wealth."),
+        ("ICE CREAM POPS", "BITE-SIZED GOURMET POPS\n70% GROSS MARGINS", "High-margin impulse treats beat sit-down dining economics every time."),
+        ("EMPTY PLOT HACK", "RENT YOUR EMPTY LAND\nFOR 4X RENTAL YIELD", "High-velocity industrial parking beats residential rental yields.")
     ],
     "health": [
         ("READ THE LABEL", "THE HIDDEN INGREDIENT\nIN POPULAR 'DIET' BISCUITS", "Marketing says healthy, ingredients list screams maltodextrin."),
@@ -54,6 +58,13 @@ DYNAMIC_NICHE_BANKS = {
         ("DIET HACK", "CLEAN PROTEIN SOURCES\nWITHOUT HEAVY PROCESSING", "Whole foods with complete amino profiles beat synthetic powders."),
         ("SUGAR TRUTH", "HOW BRANDS HIDE 25G SUGAR\nUNDER 5 DIFFERENT NAMES", "Invert syrup, cane solids, and dextrose are all pure sugar."),
         ("GUT HEALTH", "3 FERMENTED FOODS FOR\nINSTANT DIGESTION BOOST", "A diverse microbiome is the foundation of mental and physical energy.")
+    ],
+    "the_loan_road": [
+        ("LOAN TRAP", "THE 20-YEAR HOME LOAN\nTRAP BANKS NEVER TELL YOU", "On a 20-year loan, you pay more interest than principal."),
+        ("EMI HACK", "SAVE ₹18 LAKHS ON\nYOUR 20-YEAR HOME LOAN", "Paying just 1 extra EMI per year slashes loan tenure by 5 years."),
+        ("SIP ARBITRAGE", "HOW A 10% SIP MAKES\nYOUR HOME LOAN FREE", "Let equity compounding pay off your bank debt on autopilot."),
+        ("CIBIL SECRET", "HOW TO JUMP CIBIL SCORE\nFROM 650 TO 780 FAST", "Credit utilization below 30% unlocks prime lending rates."),
+        ("PREPAYMENT HACK", "PREPAY ₹10,000 EVERY YEAR\nSAVE LAKHS IN INTEREST", "Early prepayments eliminate the heavy front-loaded interest.")
     ],
     "viral": [
         ("SMART GADGET", "THE MUST-HAVE DESK TOOL\nYOU DID NOT KNOW EXISTED", "Transforms messy workspaces into efficient productivity hubs."),
@@ -101,7 +112,7 @@ def synthesize_dynamic_fallback(category, shortcode, original_title="", original
     tailored to the video's specific context and metadata.
     Guarantees NO repetitive overlays across reels.
     """
-    cat_key = "trading" if "trading" in category else ("startup" if "startup" in category else ("health" if "diet" in category or "health" in category else "viral"))
+    cat_key = "the_loan_road" if "loan" in category else ("trading" if "trading" in category else ("health" if "diet" in category or "health" in category else ("viral" if "viral" in category or "trending" in category else "startup")))
     bank = DYNAMIC_NICHE_BANKS.get(cat_key, DYNAMIC_NICHE_BANKS["startup"])
 
     # Seed hashing ensures deterministic, completely distinct picks per shortcode
@@ -122,7 +133,7 @@ def synthesize_dynamic_fallback(category, shortcode, original_title="", original
 
     pill, title, quote = best_match
 
-    # Generate custom rich caption
+    # Generate custom rich caption using the upgraded 100k+ viral formula
     caption = generate_rich_caption(
         channel_id=category,
         title=title,
@@ -143,18 +154,19 @@ def synthesize_dynamic_fallback(category, shortcode, original_title="", original
 def analyze_reel_for_channel(video_file_path, channel_config, creator_username="creator", original_description="", original_title=""):
     """
     Multi-Tier AI Synthesis Pipeline:
-    Tier 1: Gemini 2.5 Flash / Flash-Lite API (Cloud LLM)
-    Tier 2: Intelligent Dynamic Synthesis Engine (Zero-Failure Fallback)
+    Tier 1: Gemini 3.1 Flash-Lite API (Cloud LLM with Audio Speech Analysis)
+    Tier 2: Intelligent Dynamic Synthesis Engine (Zero-Failure 100K-Like Fallback)
     """
     creds = channel_config.get("credentials", {})
     api_key = creds.get("gemini_api_key")
     category = channel_config.get("category", "startup")
+    channel_id = channel_config.get("channel_id", category)
     workspace_dir = channel_config.get("runtime", {}).get("workspace_dir", ".")
     shortcode = os.path.basename(video_file_path).replace("raw_", "").replace("ready_", "").rsplit(".", 1)[0]
 
     # Generate dynamic fallback baseline
     smart_fallback = synthesize_dynamic_fallback(
-        category=category,
+        category=channel_id,
         shortcode=shortcode,
         original_title=original_title,
         original_description=original_description,
@@ -171,7 +183,7 @@ def analyze_reel_for_channel(video_file_path, channel_config, creator_username="
     uploaded_file = None
 
     try:
-        niche_info = get_niche_prompt(category)
+        niche_info = get_niche_prompt(channel_id)
         sys_instruction = niche_info["system_instruction"]
         client = genai.Client(api_key=api_key)
         
@@ -186,8 +198,7 @@ def analyze_reel_for_channel(video_file_path, channel_config, creator_username="
 Context Metadata:
 {context_text}
 
-Listen carefully to the audio and extract the most compelling viral hook and punchline.
-Ensure output matches the required JSON format exactly.
+Listen carefully to the audio and extract the most compelling viral hook and punchline matching the exact JSON schema.
 """
         contents = []
         if audio_path and os.path.exists(audio_path):
@@ -206,12 +217,20 @@ Ensure output matches the required JSON format exactly.
                     contents=contents,
                     config=types.GenerateContentConfig(
                         temperature=0.7,
-                        max_output_tokens=800
+                        max_output_tokens=900
                     )
                 )
                 if response and response.text:
                     clean_txt = clean_json_response(response.text)
                     data = json.loads(clean_txt)
+                    
+                    # Language & Speech check
+                    if data.get("is_hindi") is False or data.get("has_speech") is False:
+                        return {
+                            "rejected": True,
+                            "reason": "non_hindi_or_no_speech"
+                        }
+
                     if "main_title" in data and "hook_pill" in data:
                         # Auto-protect against Devanagari text breaking video fonts
                         has_devanagari = any('\u0900' <= char <= '\u097f' for char in data.get("main_title", "") + data.get("hook_pill", ""))
@@ -220,11 +239,20 @@ Ensure output matches the required JSON format exactly.
                             data["hook_pill"] = smart_fallback["hook_pill"]
                             data["sub_quote"] = smart_fallback["sub_quote"]
 
-                        # Policy check
+                        # Guarantee rich caption
+                        cap = data.get("caption", "")
+                        if not cap or len(cap) < 150 or len(cap.splitlines()) < 4 or "the mechanism: break down" in cap.lower():
+                            data["caption"] = generate_rich_caption(
+                                channel_id=channel_id,
+                                title=data["main_title"],
+                                hook_pill=data["hook_pill"],
+                                creator=creator_username,
+                                context_text=f"{original_title} {original_description}"
+                            )
+
+                        # Policy compliance check
                         is_safe, _ = is_reel_compliant(data.get("main_title", ""), data.get("hook_pill", ""), data.get("caption", ""))
                         if is_safe:
-                            if not data.get("caption") or len(data.get("caption", "")) < 120:
-                                data["caption"] = smart_fallback["caption"]
                             return data
             except Exception:
                 continue
