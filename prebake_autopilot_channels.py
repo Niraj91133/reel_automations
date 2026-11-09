@@ -25,7 +25,8 @@ AUTOPILOT_CHANNELS = [
     ("trading_pulse", "📈 Trading Road", "@trading_road_"),
     ("healthy_diet", "🥗 Gudtree", "@gudtree_"),
     ("viral_finds", "🛍️ Trending Road", "@trending_road"),
-    ("trading_road24", "📈 Trading Road 24", "@trading_road24")
+    ("trading_road24", "📈 Trading Road 24", "@trading_road24"),
+    ("the_loan_road", "💰 The Loan Road", "@the_loan_road")
 ]
 
 def prebake_channel_reels(channel_id, count=30):

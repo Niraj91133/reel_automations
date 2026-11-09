@@ -66,6 +66,13 @@ CHANNEL_THEMES = {
         "badge_bg": (14, 165, 233),
         "badge_text": "📈 TRADING ROAD 24 • REEL SPOTLIGHT",
         "handle": "@trading_road24"
+    },
+    "the_loan_road": {
+        "bg_color": (10, 25, 20),         # Deep Emerald Black
+        "border_color": (16, 185, 129),   # Emerald Green #10b981
+        "badge_bg": (16, 185, 129),
+        "badge_text": "💰 THE LOAN ROAD • REEL SPOTLIGHT",
+        "handle": "@the_loan_road"
     }
 }
 

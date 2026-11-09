@@ -4,7 +4,8 @@
     "healthy_diet",
     "trading_pulse",
     "viral_finds",
-    "trading_road24"
+    "trading_road24",
+    "the_loan_road"
   ],
   "default_model": "gemini-3.1-flash-lite",
   "meta_app_version": "v21.0",

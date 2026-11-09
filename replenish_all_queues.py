@@ -38,6 +38,18 @@ CHANNELS_TO_REPLENISH = [
         "name": "Startup Road",
         "cookie_file": "reel_automations-main/cookies/startup_road_cookies.txt",
         "target_buffer": 5
+    },
+    {
+        "channel_id": "trading_road24",
+        "name": "Trading Road 24",
+        "cookie_file": "reel_automations-main/cookies/trading_road24_cookies.txt",
+        "target_buffer": 5
+    },
+    {
+        "channel_id": "the_loan_road",
+        "name": "The Loan Road",
+        "cookie_file": "reel_automations-main/cookies/the_loan_road_cookies.txt",
+        "target_buffer": 5
     }
 ]
 

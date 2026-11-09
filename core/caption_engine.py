@@ -56,6 +56,16 @@ NICHE_TEMPLATES = {
             "#SmartHome", "#UsefulProducts", "#AmazonMustHaves", 
             "#ProblemSolver", "#HomeHacks", "#GadgetLovers"
         ]
+    },
+    "the_loan_road": {
+        "handle": "@the_loan_road",
+        "cta": "👉 Comment 'LOAN' or 'SIP' to get our free Loan Prepayment & SIP Wealth Calculator Excel Sheet directly in your DM!",
+        "disclaimer": "⚠️ Disclaimer: Educational and informative content only. Please consult your financial advisor before making major credit or investment decisions.",
+        "hashtags": [
+            "#TheLoanRoad", "#HomeLoanTips", "#SIPInvestment", 
+            "#MutualFundsIndia", "#CIBILScore", "#LoanPrepayment", 
+            "#PersonalLoan", "#FinancialPlanning", "#EMICalculator", "#WealthCreation"
+        ]
     }
 }
 

@@ -1,0 +1,68 @@
+{
+  "channel_id": "the_loan_road",
+  "display_name": "The Loan Road",
+  "instagram_username": "the_loan_road",
+  "category": "loan_sip_finance",
+  "description": "Smart Loan Hacks, Home & Car Loan Prepayment, SIP Compounding, Mutual Funds & CIBIL Boost Tips in Hindi",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "YOUR_GEMINI_API_KEY",
+    "instagram_account_id": "17841479884637862",
+    "page_access_token": "EAAhE6xjRCjsBSZClXokNKEqvR5jEBS9YtQDTRQVTzrWRZBsHAARicNKjKVJPKd0D38QBSeXZAW0mLkqHHtIQi3BoZCWZCUMZCh2JzMB0j8Wgh0S2Xwp1w0ZBqPb638i2MQ1XTmGIA1Sg3IQbvzb7o1p8yhpcZBanjZCyGpLvVLfSucPOoWzbdGyntylFBfzGjqONhWGICC2dx",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  },
+  "hunting_settings": {
+    "dm_target_chat": "",
+    "hunt_target_daily": 30,
+    "min_views": 150000,
+    "min_comments": 1000,
+    "prioritize_comment_cta": true,
+    "require_comment_cta": true,
+    "auto_send_dm": false,
+    "keywords": [
+      "home loan prepayment calculation comment",
+      "sip mutual fund compounding calculator comment",
+      "personal loan interest rate trap comment",
+      "cibil score badhane ka tarika comment",
+      "car loan emi tenure save money comment",
+      "zero cost emi hidden charges reality comment",
+      "index fund vs sip wealth creation comment",
+      "smart loan foreclosure tips hindi comment"
+    ],
+    "hashtags": [
+      "#homeloan",
+      "#sipinvestment",
+      "#mutualfundsindia",
+      "#cibilscore",
+      "#loanprepayment",
+      "#personalloan",
+      "#smartmoneytips",
+      "#financialplanning"
+    ],
+    "cookie_file": "cookies/the_loan_road_cookies.txt"
+  },
+  "content_settings": {
+    "default_hook_pill": "LOAN HACK",
+    "tag_text": "SMART FINANCE:",
+    "first_comment_template": "Want the free Loan Prepayment & SIP Wealth Calculator sheet in your DM? Comment \"LOAN\" or \"SIP\" below! 💰📈",
+    "theme_color_primary": [
+      16,
+      185,
+      129,
+      255
+    ],
+    "theme_color_accent": [
+      245,
+      158,
+      11,
+      255
+    ],
+    "daily_post_limit": 30
+  },
+  "schedule_settings": {
+    "start_hour": 6,
+    "end_hour": 21,
+    "interval_minutes": 30
+  }
+}

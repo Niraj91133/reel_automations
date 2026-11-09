@@ -22,13 +22,14 @@ from core.database import ChannelDatabase
 from core.channel_lock import channel_lock
 from core.garbage_collector import run_global_cleanup
 
-# 5 Production Channels with Staggered Offsets (Every 6 minutes apart)
+# 6 Production Channels with Staggered Offsets (Every 5 minutes apart)
 CHANNELS = [
-    ("startup_road", "💼 Startup Road", "@startup_road", 0),       # :00 / :30
-    ("trading_pulse", "📈 Trading Road", "@trading_road_", 6),     # :06 / :36
-    ("healthy_diet", "🥗 Gudtree", "@gudtree_", 12),               # :12 / :42
-    ("viral_finds", "🛍️ Trending Road", "@trending_road", 18),     # :18 / :48
-    ("trading_road24", "📈 Trading Road 24", "@trading_road24", 24) # :24 / :54
+    ("startup_road", "💼 Startup Road", "@startup_road", 0),          # :00 / :30
+    ("trading_pulse", "📈 Trading Road", "@trading_road_", 5),        # :05 / :35
+    ("healthy_diet", "🥗 Gudtree", "@gudtree_", 10),                  # :10 / :40
+    ("viral_finds", "🛍️ Trending Road", "@trending_road", 15),        # :15 / :45
+    ("trading_road24", "📈 Trading Road 24", "@trading_road24", 20),  # :20 / :50
+    ("the_loan_road", "💰 The Loan Road", "@the_loan_road", 25)       # :25 / :55
 ]
 
 # Strict timing constants

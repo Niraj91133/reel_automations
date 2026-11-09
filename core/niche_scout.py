@@ -123,10 +123,30 @@ NICHE_DISCOVERY_PROFILES = {
             "tradewithmayank",
             "neerajjoshi"
         ]
+    },
+    "the_loan_road": {
+        "display_name": "The Loan Road",
+        "keywords": [
+            "home loan prepayment tips hindi",
+            "sip mutual fund compounding calculator",
+            "personal loan interest rate truth",
+            "cibil score boost tips hindi",
+            "car loan emi calculation tips",
+            "zero cost emi hidden reality"
+        ],
+        "creators": [
+            "financewithsharan",
+            "bekhisab",
+            "anuragthecoach",
+            "ca_rachanaranade",
+            "labourlawadvisor",
+            "pranjalkamra",
+            "warikoo"
+        ]
     }
 }
 
-ORDERED_CHANNELS = ["startup_road", "healthy_diet", "trading_pulse", "viral_finds", "trading_road24"]
+ORDERED_CHANNELS = ["startup_road", "healthy_diet", "trading_pulse", "viral_finds", "trading_road24", "the_loan_road"]
 
 def get_channel_cookie_file(channel_id):
     """
