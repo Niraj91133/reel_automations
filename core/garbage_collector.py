@@ -122,7 +122,7 @@ def run_global_cleanup():
 
     channels = [
         "startup_road", "trading_pulse", "healthy_diet", 
-        "viral_finds", "trading_road24", "the_loan_road"
+        "viral_finds", "trading_road24", "the_loan_road", "the_startuproad"
     ]
 
     for ch in channels:

@@ -66,6 +66,15 @@ NICHE_TEMPLATES = {
             "#MutualFundsIndia", "#CIBILScore", "#LoanPrepayment", 
             "#PersonalLoan", "#FinancialPlanning", "#EMICalculator", "#WealthCreation"
         ]
+    },
+    "the_startuproad": {
+        "handle": "@the_startuproad",
+        "cta": 'Want the complete supplier list, machine contact & breakdown? Comment "DETAILS" below and I will DM you instantly! 📩',
+        "hashtags": [
+            "#TheStartupRoad", "#StartupRoad", "#BusinessStrategy", "#Entrepreneurship", 
+            "#StartupIndia", "#SmallBusinessTips", "#BusinessBreakdown", 
+            "#MakeInIndia", "#D2CBrand", "#MicroManufacturing", "#BusinessGrowth"
+        ]
     }
 }
 

@@ -172,9 +172,9 @@ def render_channel_video(
     target_v_bitrate = calculate_dynamic_bitrate(duration, target_mb=16.5)
     enc_name, enc_args = get_best_hardware_encoder(target_bitrate=target_v_bitrate)
 
-    # 4. Anti-Duplicate Content Micro-Transformation for Mirror Channels (trading_road24)
+    # 4. Anti-Duplicate Content Micro-Transformation for Mirror Channels (trading_road24, the_startuproad)
     # Alters audio & video perceptual hash (PDQ/TMK) so Instagram treats it as 100% original!
-    if channel_id == "trading_road24":
+    if channel_id in ["trading_road24", "the_startuproad"]:
         filter_base = (
             "[0:v]eq=contrast=1.04:brightness=0.01:saturation=1.04,"
             "scale=1080:1920:force_original_aspect_ratio=decrease:flags=fast_bilinear,"

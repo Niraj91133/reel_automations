@@ -73,6 +73,13 @@ CHANNEL_THEMES = {
         "badge_bg": (16, 185, 129),
         "badge_text": "💰 THE LOAN ROAD • REEL SPOTLIGHT",
         "handle": "@the_loan_road"
+    },
+    "the_startuproad": {
+        "bg_color": (15, 23, 42),         # Deep Slate #0f172a
+        "border_color": (225, 29, 72),    # Crimson Red #e11d48
+        "badge_bg": (225, 29, 72),
+        "badge_text": "💼 THE STARTUP ROAD • REEL SPOTLIGHT",
+        "handle": "@the_startuproad"
     }
 }
 

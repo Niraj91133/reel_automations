@@ -1,0 +1,66 @@
+{
+  "channel_id": "the_startuproad",
+  "display_name": "The Startup Road",
+  "instagram_username": "the_startuproad",
+  "category": "startup_mirror",
+  "description": "Small Business Ideas, Practical Machines, Low Capital Startups & Real Franchise Breakdown in Hindi",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "YOUR_GEMINI_API_KEY",
+    "instagram_account_id": "17841454990348896",
+    "page_access_token": "EAAhE6xjRCjsBS0TXi4oR0pJdNgy591qCdnYLoBjJpBJmoyvLwIN5kf0XAHSedgi6lWjSZC0qLeOCKfFxlQDhRqfu2juYTneZBe4BPRXFAgTb8nSiRumEAvPWHsZAAoZABNH6bp3IFeAYYJCnccXB7MIZAzyy2RyyugKONrIcS3Tx0o9ZA6dVka2LRlVOWvt7nn2ZAvm8gZAh",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  },
+  "hunting_settings": {
+    "dm_target_chat": "",
+    "hunt_target_daily": 30,
+    "min_views": 200000,
+    "min_comments": 2000,
+    "prioritize_comment_cta": true,
+    "require_comment_cta": true,
+    "auto_send_dm": false,
+    "keywords": [
+      "small manufacturing machine business comment",
+      "low investment business ideas hindi comment",
+      "chhoti machine se dhandha comment supplier",
+      "pouch packing machine business hindi"
+    ],
+    "hashtags": [
+      "#smallbusinessindia",
+      "#businessideas",
+      "#lowinvestmentbusiness",
+      "#manufacturingbusiness",
+      "#dhandha",
+      "#startupindia"
+    ],
+    "cookie_file": "cookies/the_startuproad_cookies.txt"
+  },
+  "mirror_settings": {
+    "source_channel": "startup_road",
+    "order": "asc"
+  },
+  "content_settings": {
+    "default_hook_pill": "BUSINESS MODEL",
+    "tag_text": "PRACTICAL BUSINESS:",
+    "first_comment_template": "Want the complete supplier list, machine contact & PDF breakdown? Comment \"DETAILS\" below and I will DM you instantly! 📩",
+    "theme_color_primary": [
+      225,
+      29,
+      72,
+      255
+    ],
+    "theme_color_accent": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "daily_post_limit": 30
+  },
+  "schedule_settings": {
+    "start_hour": 6,
+    "end_hour": 21,
+    "interval_minutes": 30
+  }
+}

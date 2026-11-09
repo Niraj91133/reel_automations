@@ -26,7 +26,8 @@ AUTOPILOT_CHANNELS = [
     ("healthy_diet", "🥗 Gudtree", "@gudtree_"),
     ("viral_finds", "🛍️ Trending Road", "@trending_road"),
     ("trading_road24", "📈 Trading Road 24", "@trading_road24"),
-    ("the_loan_road", "💰 The Loan Road", "@the_loan_road")
+    ("the_loan_road", "💰 The Loan Road", "@the_loan_road"),
+    ("the_startuproad", "💼 The Startup Road", "@the_startuproad")
 ]
 
 def prebake_channel_reels(channel_id, count=30):
@@ -47,6 +48,11 @@ def prebake_channel_reels(channel_id, count=30):
     db = ChannelDatabase(config["runtime"]["db_path"])
     queue_dir = os.path.join(workspace_dir, "tomorrow_reels")
     os.makedirs(queue_dir, exist_ok=True)
+
+    if channel_id == "the_startuproad":
+        from sync_startuproad_mirror import prebake_startuproad_mirror
+        prebake_startuproad_mirror(count=count)
+        return glob.glob(os.path.join(queue_dir, "ready_*.mp4"))
 
     print(f"\n========================================================")
     print(f"🌙 [10:00 PM NIGHTLY PRE-BAKING ENGINE] [{display_name}]")

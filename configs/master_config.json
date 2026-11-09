@@ -5,7 +5,8 @@
     "trading_pulse",
     "viral_finds",
     "trading_road24",
-    "the_loan_road"
+    "the_loan_road",
+    "the_startuproad"
   ],
   "default_model": "gemini-3.1-flash-lite",
   "meta_app_version": "v21.0",

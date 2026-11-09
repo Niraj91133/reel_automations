@@ -57,7 +57,8 @@ CHANNELS = [
     ("healthy_diet", "🥗 Gudtree", "@gudtree_"),
     ("viral_finds", "🛍️ Trending Road", "@trending_road"),
     ("trading_road24", "📈 Trading Road 24", "@trading_road24"),
-    ("the_loan_road", "💰 The Loan Road", "@the_loan_road")
+    ("the_loan_road", "💰 The Loan Road", "@the_loan_road"),
+    ("the_startuproad", "💼 The Startup Road", "@the_startuproad")
 ]
 
 def run_story_dispatcher():
