@@ -209,13 +209,19 @@ def render_channel_video(
         *enc_args,
         "-c:a", "aac",
         "-b:a", "96k",
+        "-t", f"{duration:.2f}",
         "-shortest",
         final_render_path
     ]
 
-    res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
+    except subprocess.TimeoutExpired:
+        print(f"⚠️ FFmpeg hardware encoder timed out after 180s on {input_video_path}. Retrying CPU...")
+        res = type('obj', (object,), {'returncode': 1, 'stderr': b'Timeout'})
+
     if res.returncode != 0:
-        err = res.stderr.decode("utf-8", errors="ignore")[-400:]
+        err = res.stderr.decode("utf-8", errors="ignore")[-400:] if hasattr(res, 'stderr') and isinstance(res.stderr, bytes) else str(res.stderr)
         print(f"FFmpeg error with {enc_name}: {err}. Retrying with CPU libx264...")
         cpu_cmd = [
             "ffmpeg", "-y",
@@ -233,10 +239,14 @@ def render_channel_video(
             "-preset", "fast",
             "-c:a", "aac",
             "-b:a", "96k",
+            "-t", f"{duration:.2f}",
             "-shortest",
             final_render_path
         ]
-        res_cpu = subprocess.run(cpu_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            res_cpu = subprocess.run(cpu_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(f"FFmpeg CPU encoder timed out after 180s on {input_video_path}")
         if res_cpu.returncode != 0:
             raise RuntimeError(f"FFmpeg failed completely: {res_cpu.stderr.decode('utf-8', errors='ignore')[-300:]}")
 

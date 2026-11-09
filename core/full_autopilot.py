@@ -199,7 +199,12 @@ def run_channel_autopilot(channel_id):
         hook_pill = ai_data.get("hook_pill", "VIRAL LESSON")
         main_title = ai_data.get("main_title", "KEY TAKEAWAY")
         sub_quote = ai_data.get("sub_quote", "")
-        caption = ai_data.get("caption", f"Insights from @{creator}")
+        
+        # Guarantee rich, multi-paragraph, engaging caption "pehle jaisa"
+        from core.caption_engine import generate_rich_caption
+        caption = ai_data.get("caption", "")
+        if not caption or len(caption.splitlines()) <= 3 or len(caption) < 150 or "valuable insights" in caption.lower() or "strategic insights for modern" in caption.lower():
+            caption = generate_rich_caption(channel_id, main_title, hook_pill, creator)
 
         # 4. Branded Video Render (GPU Hardware Accelerated)
         print(f"🎨 Rendering branded video with {display_name} theme (GPU)...")

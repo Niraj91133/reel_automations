@@ -1,82 +1,110 @@
 """
-Core Garbage Collector & Disk Optimizer:
-Safely purges temporary render files, intermediate audio/thumbnails, 
-and stale raw downloads across all channel workspaces to prevent 
-disk overflow on C: drive.
+Core Garbage Collector & Disk Optimizer (Zero-Bloat Engine):
+Guarantees C:\\reel_cache stays permanently lean:
+1. Instantly purges any 'archive_posted' or old archive directories.
+2. Cross-references database: Deletes ANY file in 'tomorrow_reels' that is already posted.
+3. Purges all intermediate ffmpeg render artifacts, audio, and raw downloads.
+Only unposted, upcoming reels are ever preserved on disk!
 """
 
 import os
 import glob
 import time
+import shutil
+import sqlite3
+import json
 from pathlib import Path
 
 BASE_CACHE_DIR = r"C:\reel_cache"
 
-def clean_channel_cache(channel_id, max_age_hours=24):
+def clean_channel_cache(channel_id):
     """
     Cleans up stale temp files, raw videos, and intermediate artifacts for a specific channel.
-    Preserves:
-    - active tomorrow_reels (ready_*.mp4, ready_*.json)
-    - active database files (*.db, *.db-wal, *.db-shm)
-    - recent archive_posted
+    Rules:
+    - Never keeps already-posted reels (instantly deletes archive_posted and posted tomorrow_reels).
+    - Preserves ONLY unposted, upcoming ready_*.mp4 and ready_*.json.
     """
     ch_dir = os.path.join(BASE_CACHE_DIR, channel_id)
     if not os.path.exists(ch_dir):
         return 0, 0
 
-    now = time.time()
-    cutoff_temp = now - (2 * 3600)        # 2 hours for temp render files
-    cutoff_raw = now - (max_age_hours * 3600) # 24 hours for raw downloads
-
     deleted_files = 0
     reclaimed_bytes = 0
 
-    # 1. Patterns of pure intermediate temp files that can always be purged
-    temp_patterns = [
-        "base_*.png", "circle_*.png", "thumb_*.jpg", "audio_*.mp3",
-        "comp_*.mp4", "c31_*.mp4", "*.tg_comp.mp4", "final_*.mp4",
-        "*.lean.mp4"
-    ]
-
-    for root, dirs, files in os.walk(ch_dir):
-        # Never purge tomorrow_reels folder's ready_* files
-        is_tomorrow = os.path.basename(root) == "tomorrow_reels"
-        is_archive = os.path.basename(root) == "archive_posted"
-
-        for f in files:
-            fp = os.path.join(root, f)
+    # 1. Completely destroy archive_posted and any archive_* folders
+    for arch_name in ['archive_posted', 'archive_old_generic', 'archive_temp', 'downloads']:
+        arch_dir = os.path.join(ch_dir, arch_name)
+        if os.path.exists(arch_dir):
+            for root, dirs, files in os.walk(arch_dir):
+                for f in files:
+                    fp = os.path.join(root, f)
+                    try:
+                        sz = os.path.getsize(fp)
+                        os.remove(fp)
+                        deleted_files += 1
+                        reclaimed_bytes += sz
+                    except: pass
             try:
-                st = os.stat(fp)
-                size = st.st_size
-                mtime = st.st_mtime
+                shutil.rmtree(arch_dir, ignore_errors=True)
+            except: pass
 
-                # Temp render files in root workspace
-                if any(f.startswith(p.split("*")[0]) and f.endswith(p.split("*")[-1]) for p in temp_patterns):
-                    if mtime < cutoff_temp:
+    # 2. Check Database: Purge any reel in tomorrow_reels that is ALREADY PROCESSED!
+    db_paths = [
+        os.path.join("reel_automations-main", "databases", f"{channel_id}_history.db"),
+        os.path.join("databases", f"{channel_id}_history.db"),
+        os.path.join(r"C:\Users\DHEERAJ\OneDrive\Desktop\Bittu Bhaiya\reel_automations-main\reel_automations-main\databases", f"{channel_id}_history.db")
+    ]
+    processed_codes = set()
+    for db_p in db_paths:
+        if os.path.exists(db_p):
+            try:
+                conn = sqlite3.connect(db_p)
+                c = conn.cursor()
+                c.execute("SELECT shortcode FROM processed_reels")
+                processed_codes.update(r[0] for r in c.fetchall() if r[0])
+                conn.close()
+                break
+            except: pass
+
+    q_dir = os.path.join(ch_dir, "tomorrow_reels")
+    if os.path.exists(q_dir):
+        for jf in glob.glob(os.path.join(q_dir, "ready_*.json")):
+            try:
+                with open(jf, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                sc = meta.get("shortcode")
+                if sc and sc in processed_codes:
+                    stem = os.path.splitext(jf)[0]
+                    for comp in glob.glob(stem + "*"):
+                        try:
+                            sz = os.path.getsize(comp)
+                            os.remove(comp)
+                            deleted_files += 1
+                            reclaimed_bytes += sz
+                        except: pass
+            except: pass
+
+        # Purge any leftover raw_*.mp4 files in tomorrow_reels
+        for raw in glob.glob(os.path.join(q_dir, "raw_*.mp4")):
+            try:
+                sz = os.path.getsize(raw)
+                os.remove(raw)
+                deleted_files += 1
+                reclaimed_bytes += sz
+            except: pass
+
+    # 3. Purge intermediate temp files in channel root
+    for root, dirs, files in os.walk(ch_dir):
+        if os.path.basename(root) != "tomorrow_reels":
+            for f in files:
+                if f.endswith('.mp4') or f.endswith('.png') or f.endswith('.jpg') or f.endswith('.mp3'):
+                    fp = os.path.join(root, f)
+                    try:
+                        sz = os.path.getsize(fp)
                         os.remove(fp)
                         deleted_files += 1
-                        reclaimed_bytes += size
-                        continue
-
-                # Raw downloaded reels (raw_*.mp4) that are older than cutoff
-                if f.startswith("raw_") and f.endswith(".mp4"):
-                    if mtime < cutoff_raw or not is_tomorrow:
-                        os.remove(fp)
-                        deleted_files += 1
-                        reclaimed_bytes += size
-                        continue
-
-                # In archive_posted, keep maximum 40 most recent reels per channel
-                if is_archive and f.endswith(".mp4"):
-                    # Purge archive videos older than 7 days
-                    if mtime < now - (7 * 86400):
-                        os.remove(fp)
-                        deleted_files += 1
-                        reclaimed_bytes += size
-                        continue
-
-            except Exception:
-                pass
+                        reclaimed_bytes += sz
+                    except: pass
 
     return deleted_files, reclaimed_bytes
 
@@ -86,7 +114,7 @@ def run_global_cleanup():
         return
 
     print("========================================================")
-    print("  🧹 RUNNING AUTOMATED DISK OPTIMIZER & GARBAGE COLLECTOR")
+    print("  🧹 ZERO-BLOAT DISK OPTIMIZER & PERMANENT PURGE ENGINE")
     print("========================================================")
 
     total_deleted = 0
@@ -101,12 +129,12 @@ def run_global_cleanup():
         count, b = clean_channel_cache(ch)
         mb = b / (1024 * 1024)
         if count > 0:
-            print(f"  • [{ch}]: Deleted {count} temporary files, reclaimed {mb:.1f} MB")
+            print(f"  • [{ch}]: Purged {count} posted/temp files, reclaimed {mb:.1f} MB")
         total_deleted += count
         total_reclaimed += b
 
     total_gb = total_reclaimed / (1024 * 1024 * 1024)
-    print(f"✅ Cleanup Complete! Total Purged: {total_deleted} files | Reclaimed: {total_gb:.2f} GB disk space.")
+    print(f"✅ Zero-Bloat Complete! Total Purged: {total_deleted} files | Reclaimed: {total_gb:.2f} GB disk space.")
     print("========================================================\n")
 
 if __name__ == "__main__":

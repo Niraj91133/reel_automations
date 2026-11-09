@@ -184,6 +184,12 @@ def run_tomorrow_schedule_loop():
                     caption = meta.get("caption")
                     creator = meta.get("creator")
 
+                    # Dynamic Rich Caption Safety Net: Guarantee multi-paragraph, engaging caption "pehle jaisa"
+                    from core.caption_engine import generate_rich_caption
+                    if not caption or len(caption.splitlines()) <= 3 or len(caption) < 150 or "valuable insights" in caption.lower() or "strategic insights for modern" in caption.lower():
+                        caption = generate_rich_caption("startup_road", title or "", meta.get("hook_pill", ""), creator or "creator")
+                        meta["caption"] = caption
+
                     print(f"\n🚀 [Triggered {now.strftime('%I:%M %p')}] Publishing Reel #{slot_num}: {title}...")
 
                     # 1. Upload to Telegram CDN

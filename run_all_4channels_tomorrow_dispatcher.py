@@ -101,6 +101,12 @@ def find_safe_backup_reel(channel_id, queue_dir, db):
                 
             if not shortcode or db.is_reel_processed(shortcode) or db.is_reel_rejected(shortcode):
                 continue
+            
+            # Instagram Reels duration safety: Must be <= 90 seconds
+            from core.video_engine import get_video_duration
+            if get_video_duration(vf) > 90.0:
+                continue
+
             is_safe, _ = is_reel_compliant(title, meta.get("hook_pill", ""), meta.get("caption", ""))
             if is_safe:
                 print(f"🔄 [Auto-Backfill Safety Net] Using backup reel: '{title}'")
@@ -232,6 +238,21 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
                         f"🔗 <b>Watch Reel:</b> {link}"
                     )
                     db.mark_reel_processed(shortcode, creator, title, link)
+
+                    # ZERO-BLOAT PURGE: Immediately delete published video & metadata from disk
+                    try:
+                        if os.path.exists(vid_file):
+                            os.remove(vid_file)
+                        meta_path = os.path.splitext(vid_file)[0] + ".json"
+                        if os.path.exists(meta_path):
+                            os.remove(meta_path)
+                        for extra in glob.glob(os.path.splitext(vid_file)[0] + "*"):
+                            try: os.remove(extra)
+                            except: pass
+                        print(f"🧹 [Zero-Bloat Purge] Instantly deleted published reel: {os.path.basename(vid_file)}")
+                    except Exception as e_purge:
+                        print(f"Note on post-publish purge: {e_purge}")
+
                     return True
                 else:
                     err_msg = pub_res.get("error", "Unknown error") if pub_res else "No response"

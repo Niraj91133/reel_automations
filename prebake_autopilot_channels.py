@@ -150,10 +150,20 @@ def prebake_channel_reels(channel_id, count=30):
             continue
 
         shortcode, creator, views_text = candidates.pop(0)
-        slot_num = len(baked) + 1
+        
+        # Calculate lowest available slot number
+        existing_slots = {item[0] for item in baked}
+        slot_num = 1
+        while slot_num in existing_slots:
+            slot_num += 1
 
         out_file = os.path.join(queue_dir, f"ready_{slot_num:02d}_{shortcode}.mp4")
         meta_file = os.path.join(queue_dir, f"ready_{slot_num:02d}_{shortcode}.json")
+
+        # Clean up any stale collision files for this slot
+        for old in glob.glob(os.path.join(queue_dir, f"ready_{slot_num:02d}_*")):
+            try: os.remove(old)
+            except: pass
 
         print(f"\n▶ [{slot_num}/{count}] Processing {shortcode} (by @{creator}, {views_text})...")
 
