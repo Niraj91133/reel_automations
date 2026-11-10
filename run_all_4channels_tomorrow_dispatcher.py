@@ -8,6 +8,8 @@ import socket
 import atexit
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import urllib3.util.connection as urllib_conn
+urllib_conn.HAS_IPV6 = False
 
 sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
 
@@ -188,17 +190,20 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
         candidate_vid, candidate_meta = find_safe_backup_reel(channel_id, queue_dir, db)
 
     if not candidate_vid or not candidate_meta:
-        print(f"🔄 [{display_name}] Queue empty for slot #{slot_num}! Triggering On-The-Fly Auto-Bake...")
-        try:
-            from prebake_autopilot_channels import prebake_channel_reels
-            prebake_channel_reels(channel_id, count=slot_num)
-            candidate_vid, candidate_meta = find_safe_backup_reel(channel_id, queue_dir, db)
-        except Exception as e_bake:
-            print(f"⚠️ Error during on-the-fly bake for {display_name}: {e_bake}")
-
-    if not candidate_vid or not candidate_meta:
-        print(f"[{display_name}] No compliant backup video found for slot #{slot_num}.")
+        print(f"⚠️ [{display_name}] Queue currently empty for slot #{slot_num}. Deferring to next cycle to avoid blocking other channels.")
         return False
+
+    # CRITICAL: Enforce Meta Instagram Reels <= 90s Duration Limit (Auto-Trim to 89s if needed)
+    from core.video_engine import get_video_duration
+    dur = get_video_duration(candidate_vid)
+    if dur > 89.5:
+        print(f"✂️ [{display_name}] Video duration ({dur:.1f}s) exceeds Instagram 90s limit! Auto-trimming to 89.0s...")
+        temp_trim = candidate_vid + ".auto_trimmed.mp4"
+        import subprocess
+        subprocess.run(["ffmpeg", "-y", "-i", candidate_vid, "-t", "89.0", "-c", "copy", temp_trim], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if os.path.exists(temp_trim) and os.path.getsize(temp_trim) > 50000:
+            os.replace(temp_trim, candidate_vid)
+            print(f"✅ [{display_name}] Auto-trimmed successfully to 89.0s.")
 
     vid_file = candidate_vid
     meta = candidate_meta
@@ -209,7 +214,7 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
 
     # Dynamic Rich Caption Safety Net: Guarantee multi-paragraph, engaging caption
     from core.caption_engine import generate_rich_caption
-    if not caption or len(caption.splitlines()) <= 3 or len(caption) < 150 or "valuable insights" in caption.lower() or "strategic insights for modern" in caption.lower():
+    if not caption or len(caption.splitlines()) <= 3 or len(caption) < 150 or "valuable insights" in caption.lower() or "strategic insights for modern" in caption.lower() or "the founder breakdown:" in caption.lower() or "the price action breakdown:" in caption.lower():
         caption = generate_rich_caption(
             channel_id=channel_id,
             title=title,
@@ -224,7 +229,7 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
         with channel_lock(channel_id):
             sent, cdn_url = hub.send_video_with_cdn_url(vid_file, f"<b>[{display_name}]</b>\n\n{caption}")
             if sent and cdn_url and publisher.is_configured():
-                first_comment = config.get("content_settings", {}).get("first_comment_template")
+                first_comment = meta.get("first_comment") or config.get("content_settings", {}).get("first_comment_template")
                 pub_res = publisher.publish_reel(
                     public_video_url=cdn_url,
                     caption=caption,

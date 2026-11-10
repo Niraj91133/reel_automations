@@ -167,8 +167,9 @@ def render_channel_video(
         circle_img_path=circle_thumb
     )
 
-    # 3. Dynamic Duration & Bitrate Calculation (First-Pass Guarantee < 17.5 MB)
-    duration = get_video_duration(input_video_path)
+    # 3. Dynamic Duration & Bitrate Calculation (Strictly Clamped to 89.0s for Instagram Reels Policy)
+    raw_duration = get_video_duration(input_video_path)
+    duration = min(raw_duration, 89.0)
     target_v_bitrate = calculate_dynamic_bitrate(duration, target_mb=16.5)
     enc_name, enc_args = get_best_hardware_encoder(target_bitrate=target_v_bitrate)
 

@@ -1,13 +1,16 @@
 """
 ================================================================================
-🌟 AUTOMATED INSTAGRAM STORIES ENGINE (20 STORIES / DAY PER ACCOUNT)
+🌟 ULTRA-LUXURY AUTOMATED INSTAGRAM STORIES ENGINE (20 STORIES / DAY)
 ================================================================================
-Promotes your own reels to Instagram Stories:
-- 🔥 VIRAL REELS: Shows top-performing reels with like counts to capture social proof
-- 👀 LOW-VIEW REELS: Pushes underrated/recent reels to get them extra views and reach
+Promotes your own published reels to Instagram Stories with:
+- 🎬 Cinematic Ambient Gaussian Blur Video Background
+- 📱 Floating 9:16 Glassmorphism Reel Card with 3D Drop Shadow
+- 🏷️ Native Interactive User Tag Sticker (Clicking sticker opens profile & reels tab)
+- 🚫 Zero Tofu/Unicode Box Artifacts (Clean typography)
+- ⚡ High-Conversion 'WATCH FULL REEL' CTA
 
-Distribution: Alternates every ~43 minutes between Viral Reels & Low-View Reels!
-Pacing: 08:00 AM - 10:00 PM (20 Stories / Day per Account = 80 Stories Total)
+Distribution: Alternates every ~43 minutes between Viral Reels & Low-View Boosts!
+Pacing: 08:00 AM - 10:00 PM (20 Stories / Day per Account)
 ================================================================================
 """
 
@@ -16,10 +19,11 @@ import sys
 import time
 import json
 import random
+import re
 import requests
 from io import BytesIO
 from datetime import datetime
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
@@ -33,69 +37,67 @@ from core.iron_shield import CircuitBreaker, is_reel_100pct_safe
 
 CHANNEL_THEMES = {
     "startup_road": {
-        "bg_color": (15, 23, 42),       # Slate Dark #0f172a
-        "border_color": (225, 29, 72),   # Crimson Rose #e11d48
-        "badge_bg": (225, 29, 72),
-        "badge_text": "💼 STARTUP ROAD • REEL SPOTLIGHT",
+        "accent_color": (225, 29, 72),     # Crimson Rose
+        "display_name": "Startup Road",
+        "badge_text": "REEL SPOTLIGHT | BUSINESS MODEL",
         "handle": "@startup_road"
     },
     "trading_pulse": {
-        "bg_color": (9, 13, 22),         # Deep Navy #090d16
-        "border_color": (14, 165, 233),   # Cyan Blue #0ea5e9
-        "badge_bg": (14, 165, 233),
-        "badge_text": "📈 TRADING ROAD • REEL SPOTLIGHT",
+        "accent_color": (14, 165, 233),    # Cyan Blue
+        "display_name": "Trading Road",
+        "badge_text": "REEL SPOTLIGHT | PRICE ACTION",
         "handle": "@trading_road_"
     },
     "healthy_diet": {
-        "bg_color": (6, 26, 20),         # Forest Dark #061a14
-        "border_color": (16, 185, 129),  # Emerald Green #10b981
-        "badge_bg": (16, 185, 129),
-        "badge_text": "🥗 GUDTREE • REEL SPOTLIGHT",
+        "accent_color": (16, 185, 129),    # Emerald Green
+        "display_name": "Gudtree",
+        "badge_text": "REEL SPOTLIGHT | HEALTH & DIET",
         "handle": "@gudtree_"
     },
     "viral_finds": {
-        "bg_color": (11, 7, 20),         # Cyber Dark #0b0714
-        "border_color": (139, 92, 246),  # Neon Violet #8b5cf6
-        "badge_bg": (139, 92, 246),
-        "badge_text": "🛍️ TRENDING ROAD • REEL SPOTLIGHT",
+        "accent_color": (245, 158, 11),    # Amber Gold
+        "display_name": "Trending Road",
+        "badge_text": "REEL SPOTLIGHT | AI & GROWTH",
         "handle": "@trending_road"
     },
     "trading_road24": {
-        "bg_color": (9, 13, 22),         # Deep Navy #090d16
-        "border_color": (14, 165, 233),   # Cyan Blue #0ea5e9
-        "badge_bg": (14, 165, 233),
-        "badge_text": "📈 TRADING ROAD 24 • REEL SPOTLIGHT",
+        "accent_color": (14, 165, 233),    # Cyan Blue
+        "display_name": "Trading Road 24",
+        "badge_text": "REEL SPOTLIGHT | MARKET ANALYSIS",
         "handle": "@trading_road24"
     },
     "the_loan_road": {
-        "bg_color": (10, 25, 20),         # Deep Emerald Black
-        "border_color": (16, 185, 129),   # Emerald Green #10b981
-        "badge_bg": (16, 185, 129),
-        "badge_text": "💰 THE LOAN ROAD • REEL SPOTLIGHT",
+        "accent_color": (16, 185, 129),    # Emerald Green
+        "display_name": "The Loan Road",
+        "badge_text": "REEL SPOTLIGHT | WEALTH & LOANS",
         "handle": "@the_loan_road"
     },
     "the_startuproad": {
-        "bg_color": (15, 23, 42),         # Deep Slate #0f172a
-        "border_color": (225, 29, 72),    # Crimson Red #e11d48
-        "badge_bg": (225, 29, 72),
-        "badge_text": "💼 THE STARTUP ROAD • REEL SPOTLIGHT",
+        "accent_color": (225, 29, 72),     # Crimson Rose
+        "display_name": "The Startup Road",
+        "badge_text": "REEL SPOTLIGHT | STARTUP BLUEPRINT",
         "handle": "@the_startuproad"
     }
 }
 
 def get_story_fonts():
-    """Loads system TrueType fonts with fallback."""
-    try:
-        f_badge = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 30)
-        f_tag = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 32)
-        f_title = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 44)
-        f_cta = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 32)
-    except:
-        f_badge = ImageFont.load_default()
-        f_tag = ImageFont.load_default()
-        f_title = ImageFont.load_default()
-        f_cta = ImageFont.load_default()
-    return f_badge, f_tag, f_title, f_cta
+    """Loads modern typography fonts with clean fallback."""
+    font_paths = [
+        ("C:/Windows/Fonts/segoeuib.ttf", "C:/Windows/Fonts/segoeui.ttf"),
+        ("C:/Windows/Fonts/arialbd.ttf", "C:/Windows/Fonts/arial.ttf"),
+    ]
+    for bold_p, reg_p in font_paths:
+        if os.path.exists(bold_p) and os.path.exists(reg_p):
+            try:
+                f_header = ImageFont.truetype(bold_p, 32)
+                f_sub = ImageFont.truetype(reg_p, 22)
+                f_title = ImageFont.truetype(bold_p, 36)
+                f_btn = ImageFont.truetype(bold_p, 28)
+                return f_header, f_sub, f_title, f_btn
+            except Exception:
+                pass
+    f_def = ImageFont.load_default()
+    return f_def, f_def, f_def, f_def
 
 # ------------------------------------------------------------------------------
 # FETCH VIRAL & LOW-VIEW REEL POOLS FROM META GRAPH API
@@ -123,7 +125,6 @@ def get_channel_reels_pools(channel_id: str) -> dict:
             return {"viral": [], "low_views": []}
 
         items = resp.json().get("data", [])
-        # Filter items with valid thumbnail_url
         valid_items = [it for it in items if it.get("thumbnail_url")]
         if not valid_items:
             return {"viral": [], "low_views": []}
@@ -138,7 +139,7 @@ def get_channel_reels_pools(channel_id: str) -> dict:
         # Top 15 are Viral Pool
         viral_pool = sorted_by_eng[:15]
 
-        # Lowest 15 are Low-Views Pool (sorted ascending)
+        # Lowest 15 are Low-Views Pool
         low_views_pool = sorted(
             valid_items,
             key=lambda x: (x.get("like_count", 0) * 2 + x.get("comments_count", 0))
@@ -150,166 +151,153 @@ def get_channel_reels_pools(channel_id: str) -> dict:
         return {"viral": [], "low_views": []}
 
 # ------------------------------------------------------------------------------
-# RENDER 1080x1920 REEL SHOWCASE STORY CARD
+# RENDER ULTRA-LUXURY AESTHETIC STORY CARD (1080x1920)
 # ------------------------------------------------------------------------------
 def render_reel_story_card(channel_id: str, reel_item: dict, is_viral: bool, output_path: str):
     """
-    Renders an ultra-luxurious 1080x1920 Instagram Story showcasing your actual reel:
-    - Real Thumbnail in center with Play Button
-    - 'VIRAL REEL • X LIKES' or '👀 IN CASE YOU MISSED THIS'
-    - Clean Hook/Title extracted from caption
-    - Prominent 'TAP PROFILE TO WATCH FULL REEL' CTA
+    Renders an ultra-modern 1080x1920 Instagram Story with:
+    1. Dynamic Ambient Gaussian Blur Background matching the reel's actual color palette
+    2. Floating 9:16 Glassmorphism Reel Card with soft 3D shadow
+    3. Sleek Frosted Glass Play Icon
+    4. Minimalist native header pill with channel avatar initial
+    5. Clean typography (100% sanitized, zero emoji boxes)
+    6. Native-style 'WATCH FULL REEL' Sticker Button mapped to user_tags
     """
     theme = CHANNEL_THEMES.get(channel_id, CHANNEL_THEMES["startup_road"])
     w, h = 1080, 1920
-    img = Image.new("RGB", (w, h), color=theme["bg_color"])
-    draw = ImageDraw.Draw(img)
+    accent = theme.get("accent_color", (225, 29, 72))
+    handle_str = theme.get("handle", "@channel").lstrip("@")
 
-    f_badge, f_tag, f_title, f_cta = get_story_fonts()
-
-    # 1. Subtle Outer Border
-    margin = 35
-    draw.rounded_rectangle(
-        [(margin, margin), (w - margin, h - margin)],
-        radius=24,
-        outline=theme["border_color"],
-        width=4
-    )
-
-    # 2. Header Badge
-    badge_w, badge_h = 740, 75
-    badge_x = (w - badge_w) // 2
-    badge_y = 120
-    draw.rounded_rectangle(
-        [(badge_x, badge_y), (badge_x + badge_w, badge_y + badge_h)],
-        radius=37,
-        fill=theme["badge_bg"]
-    )
-    bbox = draw.textbbox((0, 0), theme["badge_text"], font=f_badge)
-    tx = badge_x + (badge_w - (bbox[2] - bbox[0])) // 2
-    ty = badge_y + (badge_h - (bbox[3] - bbox[1])) // 2 - 3
-    draw.text((tx, ty), theme["badge_text"], fill=(255, 255, 255), font=f_badge)
-
-    # 3. Status Tag (Viral vs Boost)
-    tag_y = 225
-    likes = reel_item.get("like_count", 0)
-    if is_viral:
-        tag_str = f"🔥 VIRAL REEL • {likes:,} LIKES" if likes > 10 else "🔥 VIRAL REEL • TRENDING NOW"
-        tag_bg = (225, 29, 72)
-    else:
-        tag_str = "👀 IN CASE YOU MISSED THIS REEL"
-        tag_bg = (30, 41, 59)
-
-    t_box = draw.textbbox((0, 0), tag_str, font=f_tag)
-    t_w = (t_box[2] - t_box[0]) + 60
-    t_x = (w - t_w) // 2
-    draw.rounded_rectangle(
-        [(t_x, tag_y), (t_x + t_w, tag_y + 60)],
-        radius=30,
-        fill=tag_bg,
-        outline=theme["border_color"],
-        width=2
-    )
-    draw.text((t_x + 30, tag_y + 12), tag_str, fill=(255, 255, 255), font=f_tag)
-
-    # 4. Download and Place Reel Thumbnail in Center
     thumb_url = reel_item.get("thumbnail_url")
-    tw, th = 640, 1136
-    tx_pos = (w - tw) // 2
-    ty_pos = 315
+    real_thumb = None
+    if thumb_url:
+        try:
+            resp = requests.get(thumb_url, timeout=12)
+            if resp.status_code == 200:
+                real_thumb = Image.open(BytesIO(resp.content)).convert("RGB")
+        except Exception as e:
+            print(f"⚠️ Thumbnail fetch note: {e}")
 
-    try:
-        resp = requests.get(thumb_url, timeout=12)
-        thumb = Image.open(BytesIO(resp.content)).convert("RGB")
-        thumb = thumb.resize((tw, th), Image.Resampling.LANCZOS)
+    if not real_thumb:
+        # Graceful modern fallback card
+        real_thumb = Image.new("RGB", (720, 1280), color=(15, 23, 42))
+        f_d = ImageDraw.Draw(real_thumb)
+        f_d.rectangle([(20, 20), (700, 1260)], outline=accent, width=4)
 
-        # Rounded corner mask
-        mask = Image.new("L", (tw, th), 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.rounded_rectangle([(0, 0), (tw, th)], radius=30, fill=255)
+    # 1. Ambient Blurred Video Background
+    bg = real_thumb.resize((w, h), Image.Resampling.LANCZOS)
+    bg = bg.filter(ImageFilter.GaussianBlur(radius=55))
+    dark_overlay = Image.new("RGBA", (w, h), (10, 14, 22, 195))
+    bg = Image.alpha_composite(bg.convert("RGBA"), dark_overlay)
 
-        # Border behind thumb
-        draw.rounded_rectangle(
-            [(tx_pos - 6, ty_pos - 6), (tx_pos + tw + 6, ty_pos + th + 6)],
-            radius=34,
-            outline=theme["border_color"],
-            width=6
-        )
-        img.paste(thumb, (tx_pos, ty_pos), mask)
-    except Exception as e:
-        print(f"⚠️ Thumbnail load failed: {e}")
-        draw.rectangle([(tx_pos, ty_pos), (tx_pos + tw, ty_pos + th)], fill=(30, 41, 59))
+    f_header, f_sub, f_title, f_btn = get_story_fonts()
 
-    # 5. Central Play Button Overlay (▶)
+    # 2. Modern Glassmorphism Top Header Pill
+    top_y = 105
+    pill_w, pill_h = 560, 72
+    pill_x = (w - pill_w) // 2
+
+    pill_bg = Image.new("RGBA", (pill_w, pill_h), (255, 255, 255, 20))
+    p_draw = ImageDraw.Draw(pill_bg)
+    p_draw.rounded_rectangle([(0, 0), (pill_w, pill_h)], radius=36, fill=(255, 255, 255, 25), outline=(255, 255, 255, 60), width=1)
+    bg.paste(pill_bg, (pill_x, top_y), pill_bg)
+
+    p_draw_full = ImageDraw.Draw(bg)
+    av_r = 20
+    av_x = pill_x + 36
+    av_y = top_y + pill_h // 2
+    initial = handle_str[:1].upper() if handle_str else "S"
+    p_draw_full.ellipse([(av_x - av_r, av_y - av_r), (av_x + av_r, av_y + av_r)], fill=accent)
+    p_draw_full.text((av_x - 6, av_y - 12), initial, fill=(255, 255, 255), font=f_sub)
+    p_draw_full.text((av_x + 30, top_y + 11), handle_str, fill=(255, 255, 255), font=f_header)
+    status_label = f"VIRAL REEL | {reel_item.get('like_count', 0):,} LIKES" if is_viral else "REEL SPOTLIGHT | NEW UPLOAD"
+    p_draw_full.text((av_x + 30, top_y + 42), status_label, fill=(203, 213, 225), font=f_sub)
+
+    # 3. Centered Floating 9:16 Card with 3D Drop Shadow
+    card_w, card_h = 740, 1220
+    card_x = (w - card_w) // 2
+    card_y = 215
+
+    card_thumb = real_thumb.resize((card_w, card_h), Image.Resampling.LANCZOS)
+    mask = Image.new("L", (card_w, card_h), 0)
+    m_draw = ImageDraw.Draw(mask)
+    m_draw.rounded_rectangle([(0, 0), (card_w, card_h)], radius=34, fill=255)
+
+    # Soft 3D drop shadow behind card
+    shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    s_draw = ImageDraw.Draw(shadow)
+    s_draw.rounded_rectangle([(card_x - 10, card_y - 6), (card_x + card_w + 10, card_y + card_h + 20)], radius=42, fill=(0, 0, 0, 180))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=20))
+    bg = Image.alpha_composite(bg, shadow)
+
+    # Paste Card Image
+    bg.paste(card_thumb, (card_x, card_y), mask)
+
+    # Subtle Frosted Glass Border
+    card_draw = ImageDraw.Draw(bg)
+    card_draw.rounded_rectangle([(card_x, card_y), (card_x + card_w, card_y + card_h)], radius=34, outline=(255, 255, 255, 75), width=2)
+
+    # Minimal Frosted Play Icon in center
     cx = w // 2
-    cy = ty_pos + th // 2
-    pr = 55
-    play_overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    pdraw = ImageDraw.Draw(play_overlay)
-    pdraw.ellipse([(cx - pr, cy - pr), (cx + pr, cy + pr)], fill=(0, 0, 0, 170), outline=(255, 255, 255, 230), width=4)
-    pdraw.polygon([(cx - 15, cy - 25), (cx - 15, cy + 25), (cx + 25, cy)], fill=(255, 255, 255, 245))
-    img.paste(Image.alpha_composite(img.convert("RGBA"), play_overlay).convert("RGB"))
+    cy = card_y + card_h // 2
+    play_r = 50
+    play_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    p_icon_draw = ImageDraw.Draw(play_layer)
+    p_icon_draw.ellipse([(cx - play_r, cy - play_r), (cx + play_r, cy + play_r)], fill=(0, 0, 0, 140), outline=(255, 255, 255, 220), width=3)
+    p_icon_draw.polygon([(cx - 12, cy - 20), (cx - 12, cy + 20), (cx + 22, cy)], fill=(255, 255, 255, 245))
+    bg = Image.alpha_composite(bg, play_layer)
 
-    # 6. Extract Hook/Title from Reel Caption
-    draw = ImageDraw.Draw(img)
-    caption = reel_item.get("caption", "").strip()
-    first_line = caption.split("\n")[0] if caption else "WATCH OUR LATEST REEL"
-    # Clean emojis or hashtags from first line
-    words = [w for w in first_line.split() if not w.startswith("#")]
-    title_text = " ".join(words[:12]).upper()
+    # 4. Clean Reel Title (Zero Tofu/Unicode Box Artifacts)
+    final_draw = ImageDraw.Draw(bg)
+    raw_caption = reel_item.get("caption", "WATCH OUR LATEST REEL").split("\n")[0]
+    clean_title = re.sub(r"[^\w\s\-,:!\?\.]", "", raw_caption).strip().upper()
+    words = [wd for wd in clean_title.split() if not wd.startswith("#")][:9]
+    clean_title = " ".join(words)
+    bbox_t = final_draw.textbbox((0, 0), clean_title, font=f_title)
+    tx = (w - (bbox_t[2] - bbox_t[0])) // 2
+    final_draw.text((tx, card_y + card_h + 35), clean_title, fill=(255, 255, 255), font=f_title)
 
-    # Wrap title into max 2 lines
-    lines = []
-    cur = []
-    for wd in title_text.split():
-        if len(" ".join(cur + [wd])) <= 26:
-            cur.append(wd)
-        else:
-            lines.append(" ".join(cur))
-            cur = [wd]
-        if len(lines) >= 2: break
-    if cur and len(lines) < 2: lines.append(" ".join(cur))
+    # 5. Native Instagram-Style Story Link Sticker Button (x: 0.5, y: 0.82)
+    btn_w, btn_h = 560, 84
+    btn_x = (w - btn_w) // 2
+    btn_y = 1575
 
-    by = 1495
-    for l in lines:
-        l_box = draw.textbbox((0, 0), l, font=f_title)
-        lx = (w - (l_box[2] - l_box[0])) // 2
-        draw.text((lx, by), l, fill=(255, 255, 255), font=f_title)
-        by += 60
+    btn_layer = Image.new("RGBA", (btn_w, btn_h), (0, 0, 0, 0))
+    b_draw = ImageDraw.Draw(btn_layer)
+    b_draw.rounded_rectangle([(0, 0), (btn_w, btn_h)], radius=42, fill=(255, 255, 255, 250))
+    bg.paste(btn_layer, (btn_x, btn_y), btn_layer)
 
-    # 7. Big CTA Banner
-    cta_y = 1655
-    cta_w, cta_h = 800, 85
-    cta_x = (w - cta_w) // 2
-    draw.rounded_rectangle(
-        [(cta_x, cta_y), (cta_x + cta_w, cta_y + cta_h)],
-        radius=42,
-        fill=theme["border_color"]
-    )
-    cta_text = "👆 TAP PROFILE TO WATCH FULL REEL ↗"
-    c_box = draw.textbbox((0, 0), cta_text, font=f_cta)
-    cx_t = cta_x + (cta_w - (c_box[2] - c_box[0])) // 2
-    cy_t = cta_y + (cta_h - (c_box[3] - c_box[1])) // 2 - 3
-    draw.text((cx_t, cy_t), cta_text, fill=(255, 255, 255), font=f_cta)
+    b_text = "WATCH FULL REEL  >"
+    btn_final_draw = ImageDraw.Draw(bg)
+    bbox_b = btn_final_draw.textbbox((0, 0), b_text, font=f_btn)
+    bx = btn_x + (btn_w - (bbox_b[2] - bbox_b[0])) // 2
+    by = btn_y + (btn_h - (bbox_b[3] - bbox_b[1])) // 2 - 3
+    btn_final_draw.text((bx, by), b_text, fill=(15, 23, 42), font=f_btn)
 
-    # 8. Footer Handle
-    footer_text = f"Follow {theme['handle']} for daily insights"
-    f_box = draw.textbbox((0, 0), footer_text, font=f_tag)
-    fx = (w - (f_box[2] - f_box[0])) // 2
-    draw.text((fx, 1775), footer_text, fill=(148, 163, 184), font=f_tag)
+    # Draw small crisp arrow next to button text
+    arrow_x = bx + (bbox_b[2] - bbox_b[0]) + 10
+    arrow_y = by + 6
+    btn_final_draw.polygon([(arrow_x, arrow_y), (arrow_x, arrow_y + 14), (arrow_x + 10, arrow_y + 7)], fill=(15, 23, 42))
+
+    # Explanatory Subtext
+    sub_text = f"Tap sticker to open full reel on @{handle_str}"
+    bbox_s = btn_final_draw.textbbox((0, 0), sub_text, font=f_sub)
+    sx = (w - (bbox_s[2] - bbox_s[0])) // 2
+    btn_final_draw.text((sx, btn_y + 105), sub_text, fill=(148, 163, 184), font=f_sub)
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
-    img.save(output_path, "JPEG", quality=95)
+    bg.convert("RGB").save(output_path, "JPEG", quality=95)
     return output_path
 
 # ------------------------------------------------------------------------------
-# PUBLISH SINGLE STORY FOR CHANNEL (ALTERNATING VIRAL & LOW-VIEWS)
+# PUBLISH SINGLE STORY FOR CHANNEL (WITH INTERACTIVE USER_TAGS)
 # ------------------------------------------------------------------------------
 def publish_single_channel_story(channel_id: str, story_index: int = 1, today_str: str = None):
     """
     Renders and publishes a single Instagram Story promoting one of your reels:
-    - Odd slots (1, 3, 5, 7, 9...) ➔ Top Viral Reels
-    - Even slots (2, 4, 6, 8, 10...) ➔ Low-View Reels needing boost
+    - Alternates between Viral Reels and Low-View Boosts
+    - Passes user_tags=[{"username": handle, "x": 0.5, "y": 0.82}] so tapping
+      the Story button directly links viewers to your account's Reels tab!
     """
     if not today_str:
         today_str = datetime.now().strftime("%Y-%m-%d")
@@ -371,12 +359,21 @@ def publish_single_channel_story(channel_id: str, story_index: int = 1, today_st
 
     display_name = config.get("display_name", channel_id)
     story_type = f"🔥 VIRAL REEL ({reel_likes} likes)" if is_viral else "👀 LOW-VIEW REEL BOOST"
+    theme = CHANNEL_THEMES.get(channel_id, CHANNEL_THEMES["startup_road"])
+    clean_handle = theme.get("handle", "@channel").lstrip("@")
+
+    # Interactive User Tag Sticker directly on the CTA Button (x: 0.5, y: 0.82)
+    user_tags = [{"username": clean_handle, "x": 0.5, "y": 0.82}]
+
     print(f"\n🌟 [{display_name}] Publishing Story #{story_index}/20: {story_type} -> {caption_line}...")
 
     try:
-        sent, cdn_url = hub.send_photo_with_cdn_url(temp_img, caption=f"[{display_name}] Story #{story_index} ({story_type}): {reel_permalink}")
+        sent, cdn_url = hub.send_photo_with_cdn_url(
+            temp_img,
+            caption=f"[{display_name}] Story #{story_index} ({story_type}): {reel_permalink}"
+        )
         if sent and cdn_url:
-            res = publisher.publish_story(cdn_url)
+            res = publisher.publish_story(cdn_url, user_tags=user_tags)
             if res and "media_id" in res:
                 media_id = res["media_id"]
                 db.mark_story_processed(story_index, today_str, caption_line, media_id)

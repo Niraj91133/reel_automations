@@ -203,10 +203,10 @@ class InstagramPublisher:
             "is_scheduled": False
         }
 
-    def publish_story(self, public_media_url, is_video=False):
+    def publish_story(self, public_media_url, is_video=False, user_tags=None):
         """
         Publishes an Instagram Story (1080x1920) via Meta Graph API.
-        Supports both photo stories and video stories.
+        Supports photo stories, video stories, and interactive user_tags stickers.
         """
         if not self.is_configured():
             print(f"⚠️ Channel Instagram credentials not configured. Skipping story publish.")
@@ -229,9 +229,22 @@ class InstagramPublisher:
         else:
             payload["image_url"] = public_media_url
 
+        if user_tags:
+            try:
+                import json
+                payload["user_tags"] = json.dumps(user_tags) if isinstance(user_tags, list) else user_tags
+            except Exception as e_tag:
+                print(f"Note on user_tags encoding: {e_tag}")
+
         try:
             resp = requests.post(url, data=payload, timeout=60)
             data = resp.json()
+            if resp.status_code != 200 and user_tags:
+                print(f"⚠️ [Meta API] user_tags rejected on Story: {data.get('error', {}).get('message')}. Retrying clean Story publish...")
+                payload.pop("user_tags", None)
+                resp = requests.post(url, data=payload, timeout=60)
+                data = resp.json()
+
             if resp.status_code != 200 or "id" not in data:
                 err_msg = data.get("error", {}).get("message", resp.text)
                 print(f"❌ [Meta API Story Error] {err_msg}")

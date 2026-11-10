@@ -28,7 +28,8 @@ from datetime import datetime
 # ------------------------------------------------------------------------------
 BANNED_DANGER_ZONES = {
     "FINANCIAL_GET_RICH_QUICK": [
-        r"\bcrore\b", r"\bcrores\b", r"\blakh\b", r"\blakhs\b", r"\bcr\b",
+        r"\bearn\s+₹?\d+\s*(?:lakh|crore|cr)\b", r"\bkamaye\s+₹?\d+\s*(?:lakh|crore)\b",
+        r"\bcrorepati bane\b", r"\blakhpati bane\b", r"\b\d+\s*(?:lakh|lakhs|crore|crores)\s*(?:per|\/)\s*(?:month|mo|day|din)\b",
         r"\bmake money\b", r"\bearn money\b", r"\bearn ₹", r"\bmake ₹",
         r"\bpassive income\b", r"\bghar baithe\b", r"\bandha paisa\b",
         r"\bprint money\b", r"\bwithout selling\b", r"\bwithout investment\b",

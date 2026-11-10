@@ -1,5 +1,7 @@
 import os
 import requests
+import urllib3.util.connection as urllib_conn
+urllib_conn.HAS_IPV6 = False
 
 class TelegramHub:
     """
@@ -77,8 +79,8 @@ class TelegramHub:
         temp_comp = None
         
         try:
-            # Strictly enforce < 18MB for Telegram getFile CDN compatibility (<20MB limit)
-            if os.path.exists(video_path) and os.path.getsize(video_path) > 18 * 1024 * 1024:
+            # Strictly enforce < 10MB for fast, rock-solid Telegram upload (<20MB limit)
+            if os.path.exists(video_path) and os.path.getsize(video_path) > 10 * 1024 * 1024:
                 temp_comp = video_path + ".tg_comp.mp4"
                 import subprocess
                 probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", video_path]
@@ -88,11 +90,11 @@ class TelegramHub:
                 except:
                     duration = 60.0
 
-                # Max target size: 16 MB = 16 * 8192 kbits = 131,072 kbits
-                target_kbits = 131072
+                # Max target size: 9 MB = 9 * 8192 kbits = 73,728 kbits
+                target_kbits = 73728
                 calc_bitrate = int((target_kbits / max(duration, 1.0)) - 128)
-                safe_video_bitrate = max(400, min(1800, calc_bitrate))
-                max_rate = int(safe_video_bitrate * 1.25)
+                safe_video_bitrate = max(400, min(1400, calc_bitrate))
+                max_rate = int(safe_video_bitrate * 1.2)
                 buf_size = safe_video_bitrate * 2
 
                 cmd_cpu = [
@@ -102,7 +104,7 @@ class TelegramHub:
                     "-preset", "faster", "-c:a", "aac", "-b:a", "128k", temp_comp
                 ]
                 subprocess.run(cmd_cpu, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                if os.path.exists(temp_comp) and os.path.getsize(temp_comp) < 19 * 1024 * 1024:
+                if os.path.exists(temp_comp) and os.path.getsize(temp_comp) < 15 * 1024 * 1024:
                     upload_path = temp_comp
 
             with open(upload_path, "rb") as video_file:
@@ -138,11 +140,17 @@ class TelegramHub:
                 try:
                     file_id = resp_obj.get("result", {}).get("video", {}).get("file_id")
                     if file_id:
-                        f_info = requests.get(f"https://api.telegram.org/bot{self.bot_token}/getFile?file_id={file_id}", timeout=15)
-                        if f_info.status_code == 200:
-                            file_path = f_info.json().get("result", {}).get("file_path")
-                            if file_path:
-                                public_url = f"https://api.telegram.org/file/bot{self.bot_token}/{file_path}"
+                        for get_try in range(3):
+                            try:
+                                f_info = requests.get(f"https://api.telegram.org/bot{self.bot_token}/getFile?file_id={file_id}", timeout=45)
+                                if f_info.status_code == 200:
+                                    file_path = f_info.json().get("result", {}).get("file_path")
+                                    if file_path:
+                                        public_url = f"https://api.telegram.org/file/bot{self.bot_token}/{file_path}"
+                                        break
+                            except Exception:
+                                import time
+                                time.sleep(2)
                 except Exception as e:
                     print(f"Could not retrieve CDN URL: {e}")
 

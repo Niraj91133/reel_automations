@@ -55,23 +55,26 @@ CRITICAL TEXT RULES:
    - Website / AI tool / software -> "WEBSITE" or "AITOOLS"
    - Dropshipping / ecommerce -> "DROPSHIP"
 
-5. "caption": Write a structured, high-converting caption matching this EXACT format:
-[Contrarian Opening Hook Line with ₹ or Loss/Gain Angle] 👇
+5. "caption": Write an irresistible, high-converting, natural storytelling caption matching our mega-viral 2.64 Lakh like reels:
+[Conversational Hook Question or Contrarian Shock with Emoji]
 
-📌 The Founder Breakdown:
-• The Asset / Source: [Explain the specific physical material, machine, or opportunity in 1 crisp line]
-• Unit Economics: [Explain setup cost, price per unit, margins, or monthly profit]
-• Scaling Edge: [How it operates asset-light or scales with low overhead]
+[2-3 lines of relatable context about the Indian ground reality or hidden business shift without corporate jargon]
 
-💡 Golden Takeaway: [Contrarian 1-line truth]
+Here’s the math:
+✅ [Setup cost / raw material sourcing rate]
+✅ [Wholesale supply price or revenue mechanism]
+✅ [Unit margins or monthly cash turnaround]
+✅ [Why demand is non-negotiable / evergreen]
 
-👇 Want the step-by-step PDF roadmap & supplier/machine contact list?
-Comment "{comment_trigger}" below and I'll DM you the breakdown instantly! 📩
+[1 punchy contrarian takeaway line that challenges conventional wisdom]
 
-Credits & Speaker: @creator
-Follow @startup_road for daily founder playbooks & business insights.
+Want the complete roadmap, machine supplier contacts & setup guide?
+Comment "{comment_trigger}" below and I'll DM you the full breakdown instantly! 🚀
 
-#StartupRoad #FounderMindset #BusinessIdeas #WealthBuilding #Entrepreneurship #StartupIndia #BusinessCaseStudy
+Video credit: @creator
+Follow @startup_road for daily practical business blueprints.
+
+#StartupRoad #BusinessIdeas #SmallBusinessIndia #FounderMindset #LowInvestmentBusiness #ManufacturingIndia #Entrepreneurship
 
 NEVER include spam hashtags like #makemoneyonline or #earnmoneyonline.
 
@@ -105,21 +108,23 @@ RULES:
 - "sub_quote": 1 punchy rule (e.g., "Compounding works for you in SIP, but against you in loan EMIs.").
 - "comment_trigger": "LOAN", "SIP", or "CALCULATOR".
 - "caption":
-[Shocking Hook on Bank Interest or Loan Prepayment] 👇
+[Conversational Hook on Bank Loan Interest / Wealth Compounding Trap with Emoji]
 
-📌 The Math Breakdown:
-• The Bank Trap: [How interest compounds against the borrower]
-• The Hack: [Exact prepayment or 10% SIP strategy to offset interest]
-• The Result: [Lakhs saved and years slashed off the loan tenure]
+[2-3 lines of relatable context explaining the mathematical trap banks use without financial jargon]
 
-💡 Golden Rule: [Contrarian wealth rule]
+Here’s the exact math they won't tell you:
+✅ [The Bank Trap: Real interest cost on a standard 20-year loan]
+✅ [The Prepayment Hack: 1 extra EMI per year tenure reduction]
+✅ [The SIP Shield: 10% SIP recovering 100% of interest paid]
 
-👇 Want our free Home Loan Prepayment & SIP Wealth Calculator Excel Sheet?
-Comment "{comment_trigger}" below and I'll DM you the link instantly! 📩
+[1 punchy rule: "Compound interest is terrifying when you pay it; it's life-changing when you earn it."]
+
+Want our free Home Loan Prepayment & Compounding Calculator Excel Sheet?
+Comment "{comment_trigger}" below and I'll DM you the sheet instantly! 💰📈
 
 (⚠️ Disclaimer: Educational and informative content only. Consult your financial advisor before making credit decisions.)
 
-Credits & Speaker: @creator
+Video credit: @creator
 Follow @the_loan_road for daily loan hacks & wealth compounding blueprints.
 
 #TheLoanRoad #HomeLoanTips #SIPInvestment #MutualFundsIndia #CIBILScore #LoanPrepayment #FinancialPlanning
@@ -144,21 +149,23 @@ RULES:
 - "hook_pill": 2-3 words MAX (e.g., "SNACK TRUTH", "PALM OIL TRAP", "READ THE LABEL", "DIET LIE").
 - "main_title": 2 lines in UPPERCASE (e.g. "IS YOUR BROWN BREAD\\nACTUALLY MAIDA?", "THE HIDDEN PALM OIL\\nIN 'HEALTHY' SNACKS").
 - "sub_quote": 1 short rule (e.g., "If sugar or oil is in the top 3 ingredients, it's not health food.").
-- "comment_trigger": "CLEAN", "SNACK", or "LABEL".
+- "comment_trigger": "CLEAN", "SNACK", or "HEALTH".
 - "caption":
-[Eye-Opening Hook on Hidden Ingredients / Food Marketing Trap] 🚨 👇
+[Conversational Hook calling out a specific deceptive food claim / front-label trick with Emoji]
 
-📌 The Ingredient Breakdown:
-• The Deceptive Claim: [What the front package promises vs what the label reveals]
-• The Hidden Filler: [Maltodextrin, palm olein, or invert sugar breakdown]
-• The Clean Alternative: [What real food option to choose instead]
+[2-3 lines of relatable context on how industrial food processors use chemical shortcuts to cut costs and extend shelf life]
 
-💡 Golden Takeaway: Real food doesn't need a colorful box or a 15-ingredient chemistry list.
+Here’s what to look for on the back label:
+✅ [The Palm Oil / Cheap Fat Trap]
+✅ [The Hidden Sugar / Maltodextrin Spike]
+✅ [The Clean Alternative: What real whole kitchen ingredient to swap for]
 
-👇 Want our Clean Packaged Snacks & Guilt-Free Eating Checklist?
-Comment "{comment_trigger}" below and I'll DM you the verified guide! 📩
+[1 punchy rule: "Real food goes bad in a week. If it sits on a shelf for 12 months without spoiling, your body will struggle to digest it."]
 
-Credits & Speaker: @creator
+Want our curated list of 100% clean, verified palm-oil-free snack brands available in India?
+Comment "{comment_trigger}" below and I'll DM you the complete guide! 🥗
+
+Video credit: @creator
 Follow @gudtree_ for daily verified food label breakdowns.
 
 #Gudtree #FoodPharmer #CleanEating #ReadTheLabel #HiddenIngredients #NutritionTips #PalmOilFree #HealthySnacks
@@ -185,21 +192,23 @@ RULES:
 - "sub_quote": 1 risk protection rule (e.g., "Amateurs obsess over profits, professionals obsess over risk.").
 - "comment_trigger": "LEVELS", "SETUP", or "RULES".
 - "caption":
-[Fatal Trading Mistake / Price Action Trap Hook] 📉 👇
+[Conversational Hook on why 90% of retail breakout buyers get trapped with Emoji]
 
-📌 The Price Action Breakdown:
-• The Retail Trap: [Why breakout buyers get trapped by smart money]
-• Institutional Footprint: [How liquidity accumulation reveals the true direction]
-• The Execution Rule: [Wait for candle closing and retest before entry]
+[2-3 lines explaining institutional liquidity engineering and algorithmic stop-loss hunting]
 
-💡 Golden Takeaway: Protect your capital first; profits take care of themselves.
+Here’s how professional price action traders avoid this trap:
+✅ [The Fakeout Filter: Never buy the initial breakout spike; wait for the 15-minute close & retest]
+✅ [Volume Confirmation: High institutional volume on the retest, not on the breakout candle]
+✅ [Risk-Reward Discipline: Strictly take setups with at least 1:2 risk-to-reward ratio]
 
-👇 Want our free Price Action & Risk Management Rulebook?
-Comment "{comment_trigger}" below and I'll DM you the breakdown! 📩
+[1 punchy rule: "Amateurs trade to make money on every single candle. Professionals trade to protect capital and wait for high-probability setups."]
+
+Want our free Price Action & Candlestick Reversal cheatsheet?
+Comment "{comment_trigger}" below and I'll DM you the breakdown instantly! 📊
 
 ⚠️ Disclaimer: For educational purposes only. Not financial or SEBI advice. Trading involves substantial risk of loss.
 
-Credits & Speaker: @creator
+Video credit: @creator
 Follow @trading_road_ for daily institutional price-action setups.
 
 #TradingRoad #PriceAction #TechnicalAnalysis #TradingPsychology #RiskManagement #StockMarketIndia #CandlestickPatterns
@@ -225,18 +234,22 @@ RULES:
 - "sub_quote": 1 benefit punchline (e.g., "Simple engineering that eliminates a daily annoyance in seconds.").
 - "comment_trigger": "LINK".
 - "caption":
-[Annoying Daily Hassle Solved by this Viral Gadget] 🚀 👇
+[Conversational Hook on a clever Amazon problem solver under ₹499 with Emoji]
 
-📌 Why This Gadget Stands Out:
-• The Problem: [Annoying daily chore or hassle fixed]
-• The Utility: [Compact, easy to use, and high durability]
-• Value Proposition: [Budget-friendly under ₹499 with 100% daily use]
+[2-3 lines highlighting the annoying daily household friction that this product permanently eliminates]
 
-👉 Want the direct Amazon purchase link with discount?
+Here’s why it’s going viral:
+✅ [Instant 5-Second Setup: Stick, mount, or install with zero damage]
+✅ [Heavy-Duty Durability: Built to hold daily weight without slipping or breaking]
+✅ [Pure Daily Utility: Solves an everyday frustration for under ₹499]
+
+[1 punchy takeaway: "Small smart utility finds that make everyday life 10x easier and cleaner."]
+
+Want the direct purchase link with the current discount?
 Comment "LINK" below and I'll DM you the direct verified link instantly! 🔗
 
-Credits & Speaker: @creator
-Follow @trending_road for daily viral gadgets & problem-solving products.
+Video credit: @creator
+Follow @trending_road for daily problem-solving gadgets.
 
 #TrendingRoad #AmazonFinds #ViralGadgets #SmartHome #UsefulProducts #AmazonMustHaves #ProblemSolver
 
