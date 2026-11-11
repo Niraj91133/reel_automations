@@ -214,12 +214,14 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
 
     # Dynamic Rich Caption Safety Net: Guarantee multi-paragraph, engaging caption
     from core.caption_engine import generate_rich_caption
-    if not caption or len(caption.splitlines()) <= 3 or len(caption) < 150 or "valuable insights" in caption.lower() or "strategic insights for modern" in caption.lower() or "the founder breakdown:" in caption.lower() or "the price action breakdown:" in caption.lower():
+    has_rich_framework = any(trigger in caption.lower() for trigger in ["here’s the math:", "here's the math:", "📌 the founder breakdown:", "comment \""])
+    if (not caption or len(caption.splitlines()) <= 3 or len(caption) < 120 or "strategic insights for modern" in caption.lower() or "valuable insights" in caption.lower()) and not has_rich_framework:
         caption = generate_rich_caption(
             channel_id=channel_id,
             title=title,
             hook_pill=meta.get("hook_pill", ""),
-            creator=creator
+            creator=creator,
+            context_text=f"{title} {meta.get('hook_pill', '')}"
         )
         meta["caption"] = caption
 

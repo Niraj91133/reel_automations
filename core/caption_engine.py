@@ -281,17 +281,126 @@ def derive_startup_story(text: str) -> tuple[str, str, str, str, str]:
             "Clients don't pay for hours worked; they pay for immediate solutions to painful operational bottlenecks."
         )
         
-    else:
+    elif any(w in t for w in ["oil", "mustard", "cold press", "kachi ghani", "expeller"]):
         return (
-            "DETAILS",
-            "Ever noticed how the most profitable businesses in India are also the most boring? 🛠️",
-            "While everyone chases saturated software or agency dreams, practical physical setups with real ground demand continue to generate reliable daily profits with zero marketing hype.",
-            "✅ High everyday utility with non-negotiable local demand.\n"
-            "✅ Low initial capital expenditure with protected operating margins.\n"
-            "✅ Fast cash turnaround with clients who buy on repeat.\n"
-            "✅ Hard asset backing that holds tangible real-world value.",
-            "Stop waiting for the 'perfect' idea and start executing on everyday ground realities."
+            "OIL",
+            "Why are cold-pressed oil plants booming across tier-2 and tier-3 India? 🛢️",
+            "Consumers are ditching chemical-refined oils and actively paying 2x premiums for fresh, unadulterated cold-pressed mustard and groundnut oil right in front of their eyes.",
+            "✅ Compact cold-press expeller machine setup: Under ₹1.5 - ₹2 Lakhs.\n"
+            "✅ Raw mustard seeds sourced directly from mandi at wholesale.\n"
+            "✅ 40% to 55% gross margin on oil plus dry cake byproduct sold as cattle feed.\n"
+            "✅ Steady, non-cyclical repeat consumption in every single kitchen.",
+            "Health-driven consumer shifts create the easiest local premium brand opportunities."
         )
+
+    elif any(w in t for w in ["water", "concentrate", "beverage", "drink", "juice", "soda"]):
+        return (
+            "BEVERAGE",
+            "Why pay to transport heavy water bottles when you can sell the concentrate? 📦💧",
+            "Smart beverage operators don't ship 90% water weight across states. They sell compact concentrates, syrups, and premixes that local retailers and vendors dilute on-demand.",
+            "✅ Slashes logistics and shipping costs by up to 85%.\n"
+            "✅ Compact formulation setup with zero massive bottling plant capex.\n"
+            "✅ High-margin wholesale delivery to local soda fountains, cafes, and restaurants.\n"
+            "✅ 60%+ gross margins with high-volume repeat reorders.",
+            "In FMCG, eliminating transport weight directly multiplies your bottom-line profit."
+        )
+
+    elif any(w in t for w in ["solar", "energy", "wind", "power", "panel", "rooftop"]):
+        return (
+            "SOLAR",
+            "Commercial rooftops across India are turning into silent money printers. ☀️⚡",
+            "With escalating commercial electricity tariffs, factory and warehouse owners are desperate to slash power bills. As a project facilitator, you capture lucrative commissions without heavy equipment capex.",
+            "✅ Zero inventory holding risk by partnering with Tier-1 solar manufacturers.\n"
+            "✅ Government PM Surya Ghar subsidies accelerating adoption.\n"
+            "✅ Average ₹40,000 to ₹1.2 Lakh gross margin per standard commercial installation.\n"
+            "✅ High-ticket, asset-backed market riding an unstoppable clean energy wave.",
+            "Help businesses cut their largest recurring expense, and they will gladly pay you."
+        )
+
+    elif any(w in t for w in ["savings", "bank", "10,000", "20,000", "50,000", "idle", "fd", "paisa", "wealth", "salary", "invest"]):
+        return (
+            "GROWTH",
+            "Stop letting your savings sit idle in a low-interest bank account! 💸",
+            "Inflation quietly eats away at money parked in savings accounts. Smart young operators deploy micro-capital into high-velocity rotation assets that generate monthly cash yield.",
+            "✅ Shift capital from consumer liabilities into productive micro-assets.\n"
+            "✅ Low-capex setups with fast 30-day cash turnaround.\n"
+            "✅ Reinvest 100% of initial cashflow into duplicate inventory.\n"
+            "✅ Building compounding cash flow beats waiting for a salary hike every single time.",
+            "Wealth isn't built by saving pennies; it's built by rotating capital into cashflow assets."
+        )
+
+    elif any(w in t for w in ["makhana", "saffron", "polyhouse", "hydroponic", "mushroom", "dairy", "farm", "agro"]):
+        return (
+            "AGRO",
+            "High-value specialty agro is where the quiet fortunes are being made. 🌾💎",
+            "While traditional crop farmers struggle with price volatility, high-value commodity processors (Makhana, Saffron, Button Mushrooms) control huge retail price spreads.",
+            "✅ Sourced directly at farm gate or primary mandis at raw rates.\n"
+            "✅ Simple grading, sorting, and moisture-controlled pouch packing.\n"
+            "✅ 3X to 5X retail price spread compared to raw farmgate cost.\n"
+            "✅ Evergreen export and domestic urban health demand.",
+            "The biggest agricultural profits belong to those who control grading and packaging."
+        )
+
+    elif any(w in t for w in ["kitchen", "food", "restaurant", "swiggy", "zomato", "cloud"]):
+        return (
+            "KITCHEN",
+            "Cloud kitchens print money only when you kill the dine-in real estate trap. 🍳🚀",
+            "90% of restaurants die because of insane high-street rent and interior decor capex. Virtual brands operate from cheap back-alley basements with 100% focus on online delivery.",
+            "✅ Zero high-street retail rent; operate from low-cost commercial premises.\n"
+            "✅ Multi-brand strategy: Run 2 to 3 distinct cuisine brands from one single setup.\n"
+            "✅ Optimized food cost capped strictly at 28% to 32% of order value.\n"
+            "✅ Scale volume via delivery platforms without front-of-house staff.",
+            "Kill the real estate ego and let delivery algorithms drive your revenue."
+        )
+
+    else:
+        # Dynamic Multi-Variant Fallback: Guarantee no two consecutive fallbacks share identical copy
+        import hashlib
+        v_idx = int(hashlib.md5(t.encode()).hexdigest()[:6], 16) % 4
+        
+        variants = [
+            (
+                "DETAILS",
+                "Ever noticed how the most profitable businesses in India are also the most unglamorous? 🛠️",
+                "While everyone chases saturated software or agency dreams, practical physical setups with real ground demand continue to generate reliable daily profits with zero marketing hype.",
+                "✅ High everyday utility with non-negotiable local demand.\n"
+                "✅ Low initial capital expenditure with protected operating margins.\n"
+                "✅ Fast cash turnaround with clients who buy on repeat.\n"
+                "✅ Hard asset backing that holds tangible real-world value.",
+                "Stop waiting for the 'perfect' idea and start executing on everyday ground realities."
+            ),
+            (
+                "BLUEPRINT",
+                "Boring daily consumables are printing higher returns than trendy startups. 🏭💸",
+                "The secret to durable wealth in India isn't reinventing the wheel—it's supplying essential packaging, processing, and hardware items that businesses consume every 48 hours.",
+                "✅ Evergreen repeat B2B client reorders.\n"
+                "✅ Protected 35% to 50% gross margins on standard commodity turnover.\n"
+                "✅ Minimal marketing spend; client relationships are built on supply reliability.\n"
+                "✅ Scalable by adding secondary semi-automatic machinery as cashflows grow.",
+                "Real business isn't about being fancy; it's about owning a piece of essential daily cashflow."
+            ),
+            (
+                "ROADMAP",
+                "Why compete with multi-crore giants when you can own your local 5km radius? 📍📦",
+                "Micro-manufacturing and hyper-local supply chains beat centralized mega-factories on speed, credit flexibility, and personalized customer relationships every single time.",
+                "✅ Proximity advantage: Same-day delivery to local retail shops.\n"
+                "✅ Flexible production batches that eliminate heavy inventory holding.\n"
+                "✅ High cash-cycle velocity with 7-day payment settlement.\n"
+                "✅ Low administrative overhead with lean operational costs.",
+                "Dominate a single pin code before you even think about dominating the country."
+            ),
+            (
+                "GUIDE",
+                "The easiest way to make money is finding what companies are throwing away. ♻️💡",
+                "Industrial waste, secondary packaging scrap, and discarded raw materials hold hidden fortunes for operators who understand sorting, recovery, and bulk resale.",
+                "✅ Raw material sourced for pennies or zero-cost disposal contracts.\n"
+                "✅ Value addition via basic sorting, compacting, or chemical separation.\n"
+                "✅ High-margin bulk supply to secondary smelting and recycling plants.\n"
+                "✅ Recession-proof demand driven by strict industrial sustainability mandates.",
+                "One operator's waste stream is another entrepreneur's 300% profit margin."
+            )
+        ]
+        return variants[v_idx]
 
 def build_startup_caption(title: str, hook_pill: str, creator: str, channel_id: str = "startup_road", context_text: str = "") -> str:
     clean_t = clean_title_text(title)

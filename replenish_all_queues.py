@@ -68,6 +68,7 @@ def replenish_channel_queue(ch_info):
     existing_meta = glob.glob(os.path.join(q_dir, "ready_*.json"))
     unprocessed_in_queue = []
     used_slots = set()
+    queued_shortcodes = set()
     
     for mf in existing_meta:
         try:
@@ -80,8 +81,10 @@ def replenish_channel_queue(ch_info):
             if len(parts) >= 2 and parts[1].isdigit():
                 used_slots.add(int(parts[1]))
                 
-            if sc and not db.is_reel_processed(sc):
-                unprocessed_in_queue.append((sc, mf))
+            if sc:
+                queued_shortcodes.add(sc)
+                if not db.is_reel_processed(sc):
+                    unprocessed_in_queue.append((sc, mf))
         except:
             pass
             
@@ -108,8 +111,8 @@ def replenish_channel_queue(ch_info):
         if baked_count >= needed:
             break
             
-        # Verify candidate not already processed
-        if db.is_reel_processed(sc):
+        # Verify candidate not already processed or already in queue
+        if sc in queued_shortcodes or db.is_reel_processed(sc):
             continue
             
         print(f"[{name}] Baking candidate {sc} (Slot #{next_slot})...")
@@ -123,15 +126,29 @@ def replenish_channel_queue(ch_info):
             
         try:
             ai = analyze_reel_for_channel(raw, cfg, cr or "creator")
-            hp = ai.get("hook_pill", "VIRAL INSIGHT")
-            title = ai.get("main_title", "MUST WATCH")
+            if ai.get("rejected"):
+                print(f"  🛑 AI Rejected reel {sc} ({ai.get('reason')}), skipping...")
+                continue
+
+            hp = ai.get("hook_pill")
+            title = ai.get("main_title")
             sub = ai.get("sub_quote", "")
             cap = ai.get("caption", "")
+
+            # Never allow generic MUST WATCH or empty titles
+            if not title or "MUST WATCH" in title.upper() or not hp or "VIRAL INSIGHT" in hp.upper():
+                from core.ai_service import synthesize_dynamic_fallback
+                fallback = synthesize_dynamic_fallback(cid, sc, creator=cr or "creator")
+                title = fallback["main_title"]
+                hp = fallback["hook_pill"]
+                sub = fallback["sub_quote"]
+                cap = fallback["caption"]
             
-            # Guarantee rich, multi-paragraph, engaging caption "pehle jaisa"
+            # Guarantee rich, multi-paragraph, engaging caption
             from core.caption_engine import generate_rich_caption
-            if not cap or len(cap.splitlines()) <= 3 or len(cap) < 150 or "valuable insights" in cap.lower() or "strategic insights for modern" in cap.lower():
-                cap = generate_rich_caption(cid, title, hp, cr or "creator")
+            has_rich = any(trig in cap.lower() for trig in ["here’s the math:", "here's the math:", "📌 the founder breakdown:", "comment \""])
+            if (not cap or len(cap.splitlines()) <= 3 or len(cap) < 120 or "valuable insights" in cap.lower() or "strategic insights for modern" in cap.lower()) and not has_rich:
+                cap = generate_rich_caption(cid, title, hp, cr or "creator", context_text=f"{title} {hp}")
             
             # Compliance guard
             safe, reason = is_reel_compliant(title, hp, cap)
@@ -157,6 +174,7 @@ def replenish_channel_queue(ch_info):
             print(f"  ✅ Successfully baked Slot #{next_slot}: {title}")
             baked_count += 1
             used_slots.add(next_slot)
+            queued_shortcodes.add(sc)
             next_slot += 1
         except Exception as e:
             print(f"  ❌ Error baking {sc}: {e}")
