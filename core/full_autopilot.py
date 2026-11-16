@@ -199,12 +199,7 @@ def run_channel_autopilot(channel_id):
         hook_pill = ai_data.get("hook_pill", "VIRAL LESSON")
         main_title = ai_data.get("main_title", "KEY TAKEAWAY")
         sub_quote = ai_data.get("sub_quote", "")
-        
-        # Guarantee rich, multi-paragraph, engaging caption "pehle jaisa"
-        from core.caption_engine import generate_rich_caption
-        caption = ai_data.get("caption", "")
-        if not caption or len(caption.splitlines()) <= 3 or len(caption) < 150 or "valuable insights" in caption.lower() or "strategic insights for modern" in caption.lower():
-            caption = generate_rich_caption(channel_id, main_title, hook_pill, creator)
+        caption = ai_data.get("caption", f"Insights from @{creator}")
 
         # 4. Branded Video Render (GPU Hardware Accelerated)
         print(f"🎨 Rendering branded video with {display_name} theme (GPU)...")
@@ -258,13 +253,11 @@ def run_channel_autopilot(channel_id):
 
 def run_3_channels_autopilot_cycle():
     """
-    Runs 1 complete autopilot cycle across the 3 selected channels:
-    - Trading Road (trading_pulse)
-    - Gudtree (healthy_diet)
-    - Trending Road (viral_finds)
-    Excludes Startup Road completely!
+    Runs 1 complete autopilot cycle across the active channels:
+    - The Startup Street (thestartup_street)
+    - The Loan Road (theloan_road)
     """
-    AUTOPILOT_CHANNELS = ["trading_pulse", "healthy_diet", "viral_finds"]
+    AUTOPILOT_CHANNELS = ["thestartup_street", "theloan_road"]
     results = {}
     for ch in AUTOPILOT_CHANNELS:
         success = run_channel_autopilot(ch)
@@ -278,7 +271,7 @@ if __name__ == '__main__':
 
     if target in ["3_channels", "all_3", "autopilot"]:
         run_3_channels_autopilot_cycle()
-    elif target in ["trading_pulse", "healthy_diet", "viral_finds"]:
+    elif target in ["thestartup_street", "theloan_road", "trading_pulse", "healthy_diet", "viral_finds", "startup_road"]:
         run_channel_autopilot(target)
     else:
-        print(f"Usage: python core/full_autopilot.py [3_channels | trading_pulse | healthy_diet | viral_finds]")
+        print(f"Usage: python core/full_autopilot.py [3_channels | thestartup_street | theloan_road]")

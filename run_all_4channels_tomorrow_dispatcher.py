@@ -4,12 +4,8 @@ import time
 import glob
 import json
 import random
-import socket
-import atexit
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
-import urllib3.util.connection as urllib_conn
-urllib_conn.HAS_IPV6 = False
 
 sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
 
@@ -21,72 +17,36 @@ from core.config_manager import get_channel_config
 from core.publisher import InstagramPublisher
 from core.telegram_hub import TelegramHub
 from core.database import ChannelDatabase
-from core.channel_lock import channel_lock
-from core.garbage_collector import run_global_cleanup
 
-# 7 Production Channels with Staggered Offsets (Every 4 minutes apart)
 CHANNELS = [
-    ("startup_road", "💼 Startup Road", "@startup_road", 0),             # :00 / :30
-    ("trading_pulse", "📈 Trading Road", "@trading_road_", 4),           # :04 / :34
-    ("healthy_diet", "🥗 Gudtree", "@gudtree_", 8),                     # :08 / :38
-    ("viral_finds", "🛍️ Trending Road", "@trending_road", 12),           # :12 / :42
-    ("trading_road24", "📈 Trading Road 24", "@trading_road24", 16),     # :16 / :46
-    ("the_loan_road", "💰 The Loan Road", "@the_loan_road", 20),         # :20 / :50
-    ("the_startuproad", "💼 The Startup Road", "@the_startuproad", 24)   # :24 / :54
+    ("thestartup_street", "🚀 The Startup Street", "@thestartup_street"),
+    ("theloan_road", "💳 The Loan Road", "@theloan_road")
 ]
 
-# Strict timing constants
-MIN_CHANNEL_INTERVAL_SECONDS = 25 * 60  # Minimum 25 minutes between posts on SAME channel
-DAILY_TARGET_PER_CHANNEL = 30           # Exactly 30 reels per day per channel
-START_HOUR = 7                          # 07:00 AM IST
-LOCK_PORT = 54321                       # OS-level Singleton socket port
+# 30 Slots across 07:00 AM - 09:50 PM (~30.7 minutes apart, finishing before 10:00 PM nightly editing window)
+def generate_30_slots(total_slots=30):
+    slots = []
+    start_total = 7 * 60       # 07:00 AM
+    end_total = 21 * 60 + 50   # 09:50 PM
+    interval = (end_total - start_total) / (total_slots - 1)
+    for i in range(total_slots):
+        m_total = int(start_total + i * interval)
+        h = m_total // 60
+        m = m_total % 60
+        slots.append((i + 1, h, m))
+    return slots
 
-_singleton_socket = None
-
-def acquire_singleton_lock():
-    """
-    Enforces a strict kernel-level singleton lock.
-    Guarantees NEVER MORE THAN ONE master dispatcher process can run at the same time.
-    Prevents duplicate posts 100%.
-    """
-    global _singleton_socket
-    try:
-        _singleton_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        _singleton_socket.bind(('127.0.0.1', LOCK_PORT))
-        _singleton_socket.listen(1)
-        
-        lock_dir = os.path.join(BASE_DIR, "databases", "locks")
-        os.makedirs(lock_dir, exist_ok=True)
-        pid_file = os.path.join(lock_dir, "master_dispatcher.pid")
-        with open(pid_file, "w") as f:
-            f.write(str(os.getpid()))
-            
-        def cleanup_pid():
-            try:
-                if os.path.exists(pid_file):
-                    os.remove(pid_file)
-            except Exception:
-                pass
-        atexit.register(cleanup_pid)
-        return True
-    except OSError:
-        print(f"\n🛑 [SINGLETON LOCK ACTIVE] Another master dispatcher instance is already running (Port {LOCK_PORT} busy)!")
-        print("🛑 Aborting this instance immediately to guarantee ZERO DUPLICATE POSTS.\n")
-        sys.exit(0)
+SCHEDULE_SLOTS = generate_30_slots(30)
 
 def find_safe_backup_reel(channel_id, queue_dir, db):
     """
     Auto-Backfill Safety Net:
-    Scans the queue directory for ANY unposted, 100% compliant reel with unique AI titles.
+    Scans the queue directory for ANY unposted, 100% compliant reel.
+    Guarantees you NEVER lose daily post quotas due to rejections!
     """
     from core.compliance_guard import is_reel_compliant
 
     all_vids = sorted(glob.glob(os.path.join(queue_dir, "ready_*.mp4")))
-    if not all_vids:
-        archive_dir = os.path.join(os.path.dirname(queue_dir), "archive_posted")
-        if os.path.exists(archive_dir):
-            all_vids = sorted(glob.glob(os.path.join(archive_dir, "ready_*.mp4")))
-            
     for vf in all_vids:
         if vf.endswith(".tg_comp.mp4"):
             continue
@@ -97,25 +57,13 @@ def find_safe_backup_reel(channel_id, queue_dir, db):
             with open(mf, 'r', encoding='utf-8') as f:
                 meta = json.load(f)
             shortcode = meta.get("shortcode")
-            title = meta.get("title", "")
-            
-            # Reject stale fallback titles
-            if any(stale in title for stale in ["HOW SMART MONEY TRAPS", "THE HIDDEN INGREDIENTS", "BUSINESS BREAKDOWN: SCALING BLUEPRINT"]):
+            if not shortcode or db.is_reel_processed(shortcode):
                 continue
-                
-            if not shortcode or db.is_reel_processed(shortcode) or db.is_reel_rejected(shortcode):
-                continue
-            
-            # Instagram Reels duration safety: Must be <= 90 seconds
-            from core.video_engine import get_video_duration
-            if get_video_duration(vf) > 90.0:
-                continue
-
-            is_safe, _ = is_reel_compliant(title, meta.get("hook_pill", ""), meta.get("caption", ""))
+            is_safe, _ = is_reel_compliant(meta.get("title", ""), meta.get("hook_pill", ""), meta.get("caption", ""))
             if is_safe:
-                print(f"🔄 [Auto-Backfill Safety Net] Using backup reel: '{title}'")
+                print(f"🔄 [Auto-Backfill Safety Net] Using backup reel: '{meta.get('title')}'")
                 return vf, meta
-        except Exception:
+        except:
             continue
     return None, None
 
@@ -135,21 +83,6 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
     publisher = InstagramPublisher(creds.get("instagram_account_id"), creds.get("page_access_token"))
     db = ChannelDatabase(config["runtime"]["db_path"])
 
-    # Check Meta Daily Publishing Quota & Velocity Lock
-    import requests
-    try:
-        q_url = f"https://graph.facebook.com/v21.0/{creds.get('instagram_account_id')}/content_publishing_limit"
-        r_q = requests.get(q_url, params={"access_token": creds.get("page_access_token"), "fields": "quota_usage,config"}, timeout=5)
-        if r_q.status_code == 200:
-            q_data = r_q.json().get("data", [{}])[0]
-            usage = q_data.get("quota_usage", 0)
-            total = q_data.get("config", {}).get("quota_total", 100)
-            if usage >= total - 3:
-                print(f"🛑 [Quota Safety Lock] {display_name} has used {usage}/{total} today. Pausing to avoid Meta API restriction.")
-                return False
-    except Exception:
-        pass
-
     vid_pattern = os.path.join(queue_dir, f"ready_{slot_num:02d}_*.mp4")
     meta_pattern = os.path.join(queue_dir, f"ready_{slot_num:02d}_*.json")
 
@@ -164,25 +97,15 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
             with open(meta_files[0], 'r', encoding='utf-8') as f:
                 m = json.load(f)
             shortcode = m.get("shortcode")
-            title = m.get("title", "")
-            
-            # Reject stale fallback titles
-            if any(stale in title for stale in ["HOW SMART MONEY TRAPS", "THE HIDDEN INGREDIENTS", "BUSINESS BREAKDOWN: SCALING BLUEPRINT"]):
-                print(f"🧹 Purging stale fallback reel for Slot #{slot_num}: {title}")
-                try:
-                    os.remove(meta_files[0])
-                    os.remove(vid_files[0])
-                except Exception:
-                    pass
-            elif shortcode and not db.is_reel_processed(shortcode) and not db.is_reel_rejected(shortcode):
+            if shortcode and not db.is_reel_processed(shortcode):
                 from core.compliance_guard import is_reel_compliant
-                is_safe, reason = is_reel_compliant(title, m.get("hook_pill", ""), m.get("caption", ""))
+                is_safe, reason = is_reel_compliant(m.get("title", ""), m.get("hook_pill", ""), m.get("caption", ""))
                 if is_safe:
                     candidate_vid = vid_files[0]
                     candidate_meta = m
                 else:
                     print(f"🛑 [Compliance Guard BLOCKED] Slot #{slot_num} rejected: {reason}. Finding safe backup...")
-        except Exception:
+        except Exception as e:
             pass
 
     # If slot video is missing or was rejected -> AUTO-BACKFILL!
@@ -190,182 +113,102 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
         candidate_vid, candidate_meta = find_safe_backup_reel(channel_id, queue_dir, db)
 
     if not candidate_vid or not candidate_meta:
-        print(f"⚠️ [{display_name}] Queue currently empty for slot #{slot_num}. Deferring to next cycle to avoid blocking other channels.")
+        print(f"[{display_name}] No compliant backup video found for slot #{slot_num}.")
         return False
-
-    # CRITICAL: Enforce Meta Instagram Reels <= 90s Duration Limit (Auto-Trim to 89s if needed)
-    from core.video_engine import get_video_duration
-    dur = get_video_duration(candidate_vid)
-    if dur > 89.5:
-        print(f"✂️ [{display_name}] Video duration ({dur:.1f}s) exceeds Instagram 90s limit! Auto-trimming to 89.0s...")
-        temp_trim = candidate_vid + ".auto_trimmed.mp4"
-        import subprocess
-        subprocess.run(["ffmpeg", "-y", "-i", candidate_vid, "-t", "89.0", "-c", "copy", temp_trim], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        if os.path.exists(temp_trim) and os.path.getsize(temp_trim) > 50000:
-            os.replace(temp_trim, candidate_vid)
-            print(f"✅ [{display_name}] Auto-trimmed successfully to 89.0s.")
 
     vid_file = candidate_vid
     meta = candidate_meta
     shortcode = meta.get("shortcode")
     title = meta.get("title", f"Post #{slot_num}")
-    caption = meta.get("caption", "")
+    caption = meta.get("caption", f"Insights from {handle}")
     creator = meta.get("creator", "creator")
-
-    # Dynamic Rich Caption Safety Net: Guarantee multi-paragraph, engaging caption
-    from core.caption_engine import generate_rich_caption
-    has_rich_framework = any(trigger in caption.lower() for trigger in ["here’s the math:", "here's the math:", "📌 the founder breakdown:", "comment \""])
-    if (not caption or len(caption.splitlines()) <= 3 or len(caption) < 120 or "strategic insights for modern" in caption.lower() or "valuable insights" in caption.lower()) and not has_rich_framework:
-        caption = generate_rich_caption(
-            channel_id=channel_id,
-            title=title,
-            hook_pill=meta.get("hook_pill", ""),
-            creator=creator,
-            context_text=f"{title} {meta.get('hook_pill', '')}"
-        )
-        meta["caption"] = caption
 
     print(f"\n🚀 [{display_name}] Publishing Slot #{slot_num}/30: {title}...")
 
     try:
-        with channel_lock(channel_id):
-            sent, cdn_url = hub.send_video_with_cdn_url(vid_file, f"<b>[{display_name}]</b>\n\n{caption}")
-            if sent and cdn_url and publisher.is_configured():
-                first_comment = meta.get("first_comment") or config.get("content_settings", {}).get("first_comment_template")
-                pub_res = publisher.publish_reel(
-                    public_video_url=cdn_url,
-                    caption=caption,
-                    creator_username=creator,
-                    first_comment=first_comment
+        sent, cdn_url = hub.send_video_with_cdn_url(vid_file, f"<b>[{display_name}]</b>\n\n{caption}")
+        if sent and cdn_url and publisher.is_configured():
+            first_comment = config.get("content_settings", {}).get("first_comment_template")
+            pub_res = publisher.publish_reel(
+                public_video_url=cdn_url,
+                caption=caption,
+                creator_username=creator,
+                first_comment=first_comment
+            )
+            if pub_res and "permalink" in pub_res:
+                link = pub_res["permalink"]
+                print(f"🎉 SUCCESS! [{display_name}] Slot #{slot_num} LIVE: {link}")
+                hub.send_message(
+                    f"🎉 <b>{display_name} Reel #{slot_num}/30 LIVE!</b>\n\n"
+                    f"🎬 <b>Title:</b> {title}\n"
+                    f"🔗 <b>Watch Reel:</b> {link}"
                 )
-                if pub_res and "permalink" in pub_res:
-                    link = pub_res["permalink"]
-                    print(f"🎉 SUCCESS! [{display_name}] Slot #{slot_num} LIVE: {link}")
-                    hub.send_message(
-                        f"🎉 <b>{display_name} Reel #{slot_num}/30 LIVE!</b>\n\n"
-                        f"🎬 <b>Title:</b> {title}\n"
-                        f"🔗 <b>Watch Reel:</b> {link}"
-                    )
-                    db.mark_reel_processed(shortcode, creator, title, link)
-
-                    # ZERO-BLOAT PURGE: Immediately delete published video & metadata from disk
-                    try:
-                        if os.path.exists(vid_file):
-                            os.remove(vid_file)
-                        meta_path = os.path.splitext(vid_file)[0] + ".json"
-                        if os.path.exists(meta_path):
-                            os.remove(meta_path)
-                        for extra in glob.glob(os.path.splitext(vid_file)[0] + "*"):
-                            try: os.remove(extra)
-                            except: pass
-                        print(f"🧹 [Zero-Bloat Purge] Instantly deleted published reel: {os.path.basename(vid_file)}")
-                    except Exception as e_purge:
-                        print(f"Note on post-publish purge: {e_purge}")
-
-                    return True
-                else:
-                    err_msg = pub_res.get("error", "Unknown error") if pub_res else "No response"
-                    print(f"⚠️ [{display_name}] Meta API response note: {err_msg}")
+                db.mark_reel_processed(shortcode, creator, title, link)
+                return True
             else:
-                print(f"⚠️ [{display_name}] Telegram upload or publisher not configured properly.")
+                err_msg = pub_res.get("error", "Unknown error") if pub_res else "No response"
+                print(f"⚠️ [{display_name}] Meta API response note: {err_msg}")
+        else:
+            print(f"⚠️ [{display_name}] Telegram upload or publisher not configured properly.")
     except Exception as e:
         print(f"❌ Error publishing slot #{slot_num} for {channel_id}: {e}")
     return False
 
-def get_slot_scheduled_time(slot_index, offset_minutes):
-    """Calculates the scheduled wall-clock datetime for slot_index (1-based)."""
-    # Slot 1 starts at 07:00 AM + offset_minutes
-    # Slot 2 at 07:30 AM + offset_minutes
-    minutes_from_start = (slot_index - 1) * 30 + offset_minutes
-    total_minutes = START_HOUR * 60 + minutes_from_start
-    h = total_minutes // 60
-    m = total_minutes % 60
-    return h, m
-
 def run_all_4channels_dispatcher():
-    acquire_singleton_lock()
-
     print("========================================================")
-    print("  🚀 5-CHANNEL 30 REELS/DAY AUTOMATED MASTER DISPATCHER")
+    print("  🚀 4-CHANNEL 30 REELS/DAY AUTOMATED DISPATCHER")
     print("========================================================")
-    print("Channels & Staggered Schedule (30-min window per channel):")
-    for ch, name, handle, offset in CHANNELS:
-        print(f"  • {name} ({handle}) ➔ 30 Reels/Day | Offset: +{offset}m (:{(offset):02d} & :{(offset+30):02d})")
-    print(f"\nTotal Posts per Day: {len(CHANNELS) * DAILY_TARGET_PER_CHANNEL} Reels")
-    print("Window: 07:00 AM - 11:30 PM (Strict 25-30 min gap per channel)")
-    print("Anti-Duplicate: Kernel-Level Singleton Socket Lock (Active)")
-    print("Anti-Burst: Database-Backed Minimum 25-Min Interval Enforcement")
+    print("Channels:")
+    for ch, name, handle in CHANNELS:
+        print(f"  • {name} ({handle}) ➔ 30 Reels / Day")
+    print(f"\nTotal Posts per Day: {len(CHANNELS) * 30} Reels")
+    print("Time Window: 07:00 AM - 10:00 PM (Every ~31 minutes)")
+    print("Architecture: Database-Backed Persistent Scheduler")
+    print("Anti-Spam Pacing: Minimum 7-min gap per channel")
     print("========================================================\n")
 
-    last_cleanup_time = 0
+    last_post_time = {}
 
     while True:
-        try:
-            now = datetime.now()
-            now_utc = datetime.now(timezone.utc)
+        now = datetime.now()
 
-            # Automatic Disk Space Garbage Collector (Runs every 4 hours)
-            if time.time() - last_cleanup_time > 14400:
-                try:
-                    run_global_cleanup()
-                    last_cleanup_time = time.time()
-                except Exception as e_clean:
-                    print(f"Note on cleanup: {e_clean}")
+        # Posting window is strictly 07:00 AM to 10:00 PM (10 PM to 2 AM is pre-baking window)
+        if now.hour < 7 or now.hour >= 22:
+            time.sleep(60)
+            continue
 
-            # Sleep during night hours before 07:00 AM
-            if now.hour < START_HOUR:
-                time.sleep(60)
-                continue
+        # Calculate target slots that should be published by current wall-clock time
+        elapsed_slots = [
+            s for s, h, m in SCHEDULE_SLOTS 
+            if (now.hour > h) or (now.hour == h and now.minute >= m)
+        ]
+        target_slots_by_now = len(elapsed_slots)
 
-            for ch_id, name, handle, offset in CHANNELS:
-                try:
-                    cfg = get_channel_config(ch_id)
-                    db = ChannelDatabase(cfg["runtime"]["db_path"])
-                    posted_today = db.get_today_count()
+        for ch_id, name, handle in CHANNELS:
+            cfg = get_channel_config(ch_id)
+            db = ChannelDatabase(cfg["runtime"]["db_path"])
+            posted_today_count = db.get_today_count()
 
-                    # Check if daily quota is already completed
-                    if posted_today >= DAILY_TARGET_PER_CHANNEL:
-                        continue
-
-                    # 1. Strict Cooldown Guard: Must be >= 25 minutes since channel's last post
-                    last_dt = db.get_last_post_datetime()
-                    if last_dt:
-                        elapsed_seconds = (now_utc - last_dt).total_seconds()
-                        if elapsed_seconds < MIN_CHANNEL_INTERVAL_SECONDS:
-                            remaining_min = int((MIN_CHANNEL_INTERVAL_SECONDS - elapsed_seconds) / 60)
-                            # Still in cooldown, do not dispatch
-                            continue
-
-                    # 2. Wall-Clock Schedule Guard: Is the current slot due yet?
-                    next_slot = posted_today + 1
-                    target_h, target_m = get_slot_scheduled_time(next_slot, offset)
-                    is_slot_due = (now.hour > target_h) or (now.hour == target_h and now.minute >= target_m)
-
-                    if not is_slot_due:
-                        # Slot is scheduled for a future time today
-                        continue
-
-                    # Slot is DUE and Channel Cooldown is MET! Proceed to publish!
+            # If this channel is behind the scheduled target and hasn't hit 30:
+            if posted_today_count < target_slots_by_now and posted_today_count < 30:
+                last_time = last_post_time.get(ch_id, 0)
+                # Ensure at least 420 seconds (7 minutes) gap between consecutive posts on the SAME channel
+                if time.time() - last_time >= 420:
+                    next_slot = posted_today_count + 1
                     queue_dir = os.path.join(cfg["runtime"]["workspace_dir"], "tomorrow_reels")
-                    print(f"\n⏰ [Schedule Trigger] {name}: Slot #{next_slot}/30 due (Scheduled: {target_h:02d}:{target_m:02d}). Dispatching...")
-
+                    print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/30 (Target by now: {target_slots_by_now}). Dispatching Slot #{next_slot}...")
+                    
                     success = publish_channel_slot(ch_id, name, handle, next_slot, queue_dir)
                     if success:
-                        print(f"✅ [{name}] Slot #{next_slot} successfully posted! Next slot in ~30 minutes.")
-                        # Small 15-second breather before evaluating next channel
-                        time.sleep(15)
+                        last_post_time[ch_id] = time.time()
+                        # Small stagger of 20 seconds between different channels
+                        time.sleep(20)
                     else:
-                        print(f"⚠️ [{name}] Slot #{next_slot} dispatch deferred. Retrying next check cycle.")
+                        # On temporary failure, back off 3 minutes before retrying this channel
+                        last_post_time[ch_id] = time.time() - 240
 
-                except Exception as ch_err:
-                    print(f"⚠️ Error in dispatcher channel loop for {ch_id}: {ch_err}")
-                    time.sleep(5)
-
-            # Heartbeat check every 30 seconds
-            time.sleep(30)
-        except Exception as loop_err:
-            print(f"⚠️ Master dispatcher loop exception: {loop_err}")
-            time.sleep(30)
+        # Heartbeat check every 30 seconds
+        time.sleep(30)
 
 if __name__ == '__main__':
     run_all_4channels_dispatcher()

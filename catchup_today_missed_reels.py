@@ -17,10 +17,8 @@ from core.telegram_hub import TelegramHub
 from core.database import ChannelDatabase
 
 CHANNELS = [
-    ("startup_road", "💼 Startup Road", "@startup_road"),
-    ("trading_pulse", "📈 Trading Road", "@trading_road_"),
-    ("healthy_diet", "🥗 Gudtree", "@gudtree_"),
-    ("viral_finds", "🛍️ Trending Road", "@trending_road")
+    ("thestartup_street", "🚀 The Startup Street", "@thestartup_street"),
+    ("theloan_road", "💳 The Loan Road", "@theloan_road")
 ]
 
 def catchup_channel(channel_id, display_name, handle):

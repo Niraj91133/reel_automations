@@ -1,9 +1,12 @@
+.env
+.env.*
 temp_*
 final_*
 *.mp4
 *.mp3
 *.png
 *.jpg
+*.part
 __pycache__/
 .pytest_cache/
 *.log
@@ -11,8 +14,8 @@ ffmpeg.exe
 ffprobe.exe
 PERMANENT_PAGE_TOKEN.txt
 scratch/
-
-
-local_secrets.json
-
-databases/locks/
+workspaces/
+*.db
+databases/*.db
+cookies.txt
+cookies/

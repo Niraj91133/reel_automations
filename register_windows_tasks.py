@@ -5,7 +5,7 @@ import subprocess
 sys.stdout.reconfigure(encoding='utf-8')
 
 def setup_tasks():
-    cwd = r"C:\Users\DHEERAJ\OneDrive\Desktop\Insta Video"
+    cwd = os.path.dirname(os.path.abspath(__file__))
     
     # 1. PowerShell script to register Daily 10:00 PM Task
     ps_daily_task = f"""

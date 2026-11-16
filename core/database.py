@@ -58,10 +58,14 @@ class ChannelDatabase:
                     )
                 """)
                 conn.execute("""
-                    CREATE TABLE IF NOT EXISTS rejected_reels (
+                    CREATE TABLE IF NOT EXISTS auto_replied_comments (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        shortcode TEXT UNIQUE,
-                        reason TEXT,
+                        comment_id TEXT UNIQUE,
+                        media_id TEXT,
+                        username TEXT,
+                        comment_text TEXT,
+                        dm_status TEXT,
+                        public_reply_status TEXT,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
@@ -180,23 +184,6 @@ class ChannelDatabase:
         finally:
             conn.close()
 
-    def get_last_post_datetime(self):
-        """Returns the UTC datetime of the most recently published reel, or None."""
-        conn = self._get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute("SELECT created_at FROM processed_reels ORDER BY id DESC LIMIT 1")
-            row = cursor.fetchone()
-            if row and row[0]:
-                from datetime import timezone
-                try:
-                    return datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-                except Exception:
-                    pass
-            return None
-        finally:
-            conn.close()
-
     def get_recent_hunted(self, limit=10):
         conn = self._get_connection()
         try:
@@ -209,36 +196,6 @@ class ChannelDatabase:
         finally:
             conn.close()
 
-    def is_reel_rejected(self, shortcode):
-        if not shortcode:
-            return False
-        conn = self._get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM rejected_reels WHERE shortcode = ?", (shortcode,))
-            return cursor.fetchone() is not None
-        finally:
-            conn.close()
-
-    def mark_reel_rejected(self, shortcode, reason="gatekeeper_rejection"):
-        if not shortcode:
-            return False
-        conn = self._get_connection()
-        try:
-            with conn:
-                conn.execute(
-                    """
-                    INSERT OR REPLACE INTO rejected_reels (shortcode, reason, created_at)
-                    VALUES (?, ?, CURRENT_TIMESTAMP)
-                    """,
-                    (shortcode, reason)
-                )
-            return True
-        except:
-            return False
-        finally:
-            conn.close()
-
     def get_unprocessed_hunted_reels(self, limit=10):
         conn = self._get_connection()
         try:
@@ -248,7 +205,6 @@ class ChannelDatabase:
                 SELECT shortcode, creator, views_text 
                 FROM hunted_reels 
                 WHERE shortcode NOT IN (SELECT shortcode FROM processed_reels)
-                  AND shortcode NOT IN (SELECT shortcode FROM rejected_reels)
                 ORDER BY has_comment_cta DESC, id DESC 
                 LIMIT ?
                 """,

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
 
-BASE_DIR = os.path.abspath('reel_automations-main')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
@@ -60,7 +60,7 @@ def run_schedule_loop():
     publisher = InstagramPublisher(creds.get("instagram_account_id"), creds.get("page_access_token"))
     db = ChannelDatabase(config["runtime"]["db_path"])
 
-    qdir = 'reel_automations-main/workspaces/startup_road/ready_queue'
+    qdir = os.path.join(BASE_DIR, 'workspaces', 'startup_road', 'ready_queue')
     queue_files = sorted(glob.glob(f'{qdir}/*.mp4'))
     
     if not queue_files:

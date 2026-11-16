@@ -33,18 +33,32 @@ def get_channel_config(channel_id):
     Loads config for a specific channel and resolves environment variables if present.
     Creates an isolated workspace and database path for this channel.
     """
-    config_file = CONFIGS_DIR / f"{channel_id}.json"
+    alias_map = {
+        "startup_road": "thestartup_street",
+        "startup": "thestartup_street",
+        "trading_pulse": "trading_pulse",
+        "trading_road": "trading_pulse",
+        "loan_road": "theloan_road",
+        "thestartup_streett": "thestartup_street"
+    }
+    resolved_id = alias_map.get(channel_id, channel_id)
+    config_file = CONFIGS_DIR / f"{resolved_id}.json"
+    if not config_file.exists():
+        # Fallback to direct channel_id if alias file not found
+        config_file = CONFIGS_DIR / f"{channel_id}.json"
     if not config_file.exists():
         raise FileNotFoundError(f"Config file not found for channel: {channel_id} at {config_file}")
 
     with open(config_file, "r", encoding="utf-8") as f:
         config = json.load(f)
 
+    actual_id = config.get("channel_id", resolved_id)
+
     # Set up isolated workspace and DB path
-    channel_workspace = WORKSPACES_DIR / channel_id
+    channel_workspace = WORKSPACES_DIR / actual_id
     channel_workspace.mkdir(parents=True, exist_ok=True)
     
-    channel_db = DATABASES_DIR / f"{channel_id}_history.db"
+    channel_db = DATABASES_DIR / f"{actual_id}_history.db"
 
     config["runtime"] = {
         "workspace_dir": str(channel_workspace),
@@ -54,18 +68,6 @@ def get_channel_config(channel_id):
     # Allow environment variables to override sensitive credentials if set
     env_prefix = channel_id.upper()
     creds = config.get("credentials", {})
-
-    # Load from local_secrets.json if available
-    secrets_file = BASE_DIR / "local_secrets.json"
-    if secrets_file.exists():
-        try:
-            with open(secrets_file, "r", encoding="utf-8") as sf:
-                sec_data = json.load(sf)
-                if channel_id in sec_data:
-                    creds.update(sec_data[channel_id])
-        except Exception:
-            pass
-
     creds["gemini_api_key"] = os.environ.get(f"{env_prefix}_GEMINI_KEY", creds.get("gemini_api_key", ""))
     creds["instagram_account_id"] = os.environ.get(f"{env_prefix}_IG_ID", creds.get("instagram_account_id", ""))
     creds["page_access_token"] = os.environ.get(f"{env_prefix}_PAGE_TOKEN", creds.get("page_access_token", ""))

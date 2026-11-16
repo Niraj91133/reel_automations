@@ -1,0 +1,72 @@
+{
+  "channel_id": "thestartup_street",
+  "display_name": "The Startup Street",
+  "instagram_username": "thestartup_street",
+  "category": "startup",
+  "description": "Startup Stories, Billion-Dollar Business Models, Small Manufacturing Machines, Low Capital Startups & Real Founder Lessons in Hindi",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "${GEMINI_API_KEY}",
+    "instagram_account_id": "17841464149880503",
+    "page_access_token": "EAAhE6xjRCjsBTNz2mziqyJPDy00YjyyLCJ8tRpCbHxG7DbdqdpPW0VEEU91zggi9ZBdfwCwEbrxFSagcMc9AWdm00DM6fkxSbLHifYBJKPyHZBsiVgzoWXeBeQrS5i4fZAwYTXxzQrP1XJKhJ9kbZCdWrHu57xGZAZB09xn6PNiZBlT4EbBFUfQMzlmyaRku2ODh3WA",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  },
+  "hunting_settings": {
+    "dm_target_chat": "im_raaaj_",
+    "hunt_target_daily": 30,
+    "min_views": 25000,
+    "prioritize_comment_cta": true,
+    "require_comment_cta": true,
+    "keywords": [
+      "small manufacturing machine business hindi",
+      "low investment business ideas hindi",
+      "chhoti machine se dhandha supplier hindi",
+      "pouch packing machine business hindi",
+      "scrap recycling business model hindi",
+      "wholesale to retail business profit margin",
+      "petrol pump franchise codo model",
+      "amul parlor franchise apply hindi",
+      "billion dollar startup story hindi",
+      "high profit margin small business hindi",
+      "offline business ideas comment for pdf",
+      "startup case study hindi breakdown"
+    ],
+    "hashtags": [
+      "#startupstreet",
+      "#businessideas",
+      "#lowinvestmentbusiness",
+      "#manufacturingbusiness",
+      "#franchisebusiness",
+      "#businesscasestudy",
+      "#dhandha",
+      "#startupindia",
+      "#entrepreneurship"
+    ],
+    "cookie_file": "cookies/thestartup_street_cookies.txt"
+  },
+  "content_settings": {
+    "default_hook_pill": "STARTUP MODEL",
+    "tag_text": "STARTUP STREET:",
+    "first_comment_template": "Want the complete supplier list, machine contact & breakdown? Comment \"STARTUP\" below and I will DM you instantly! 🚀",
+    "theme_color_primary": [
+      249,
+      115,
+      22,
+      255
+    ],
+    "theme_color_accent": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "daily_post_limit": 30
+  },
+  "schedule_settings": {
+    "start_hour": 6,
+    "end_hour": 21,
+    "interval_minutes": 30
+  }
+}
+

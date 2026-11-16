@@ -1,64 +1,15 @@
 {
-    "channel_id": "trading_road24",
-    "display_name": "Trading Road 24",
-    "instagram_username": "trading_road24",
-    "email": "tradingroad24@gmail.com",
-    "category": "trading",
-    "description": "Chart Patterns, Price Action, Trading Psychology & Risk Management",
-    "enabled": true,
-    "credentials": {
-        "gemini_api_key": "YOUR_GEMINI_API_KEY",
-        "instagram_account_id": "17841469230135214",
-        "page_access_token": "EAAhE6xjRCjsBS0N1MuZBYmg1vskOr62uzvnUNUDSGE2PUwrjSjb34OZCDy3uIpDx6g18KVHhscztB2ohPmZBxo75cemhjnTav22ZAZAn7arzO8FNYNwnsykBUcUjB0xwvB8AMNLpv0GXmZCEN9Jd31tUu8Ubk07X2z25FQZAZBrawPRhM7NNUoBtZCI7Lo8AwNnJuXKVubWec",
-        "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
-        "telegram_chat_id": "711598335"
-    },
-    "hunting_settings": {
-        "dm_target_chat": "",
-        "hunt_target_daily": 30,
-        "min_views": 200000,
-        "min_comments": 2000,
-        "prioritize_comment_cta": true,
-        "auto_send_dm": false,
-        "keywords": [
-            "candlestick pattern analysis",
-            "price action technical rules",
-            "trading risk management hindi",
-            "stop loss discipline rules",
-            "trading psychology mistakes",
-            "support resistance technical basics"
-        ],
-        "hashtags": [
-            "#technicalanalysis",
-            "#priceaction",
-            "#chartpatterns",
-            "#tradingpsychology",
-            "#stockmarketeducation",
-            "#tradingdiscipline"
-        ],
-        "cookie_file": "cookies/trading_road24_cookies.txt"
-    },
-    "content_settings": {
-        "default_hook_pill": "RISK FIRST",
-        "tag_text": "RISK MANAGEMENT:",
-        "first_comment_template": "Always define your stop loss and risk per trade. What chart pattern do you trust the most? \ud83d\udcca",
-        "theme_color_primary": [
-            14,
-            165,
-            233,
-            255
-        ],
-        "theme_color_accent": [
-            239,
-            68,
-            68,
-            255
-        ],
-        "daily_post_limit": 30
-    },
-    "schedule_settings": {
-        "start_hour": 6,
-        "end_hour": 21,
-        "interval_minutes": 30
-    }
+  "channel_id": "trading_road24",
+  "display_name": "Trading Knowledge",
+  "instagram_username": "trading_road24",
+  "category": "trading",
+  "description": "Trading Knowledge, Chart Patterns, Stock Market Basics in Hindi",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "${GEMINI_API_KEY}",
+    "instagram_account_id": "17841469230135214",
+    "page_access_token": "EAAhE6xjRCjsBTMYUwVLo3ShHcdCC1jj0L2ureULgizAcbkNhZBrvqqoPq1TyIx3n1UhYz6rRGulcBaDAmQta321rZBrQKeL2RBtzSxZAmlZBwNsWCUPe0LwpcNEAnBW65MZC19Kby3DtNjVnLwDQCoyDbTZBKEUPuSDsXYr6qanFx2YtTRs0IXDXIzqcTYOgdZBhkW310oe",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  }
 }

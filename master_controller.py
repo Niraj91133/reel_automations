@@ -32,6 +32,8 @@ delivery_mode = master_cfg.get("delivery_mode", "direct")
 job_lock = threading.Lock()
 
 CHANNEL_DISPLAY = {
+    "thestartup_street": ("🚀 The Startup Street", "@thestartup_street"),
+    "theloan_road": ("💳 The Loan Road", "@theloan_road"),
     "startup_road": ("💼 Startup Road", "@startup_road"),
     "healthy_diet": ("🥗 Gudtree", "@gudtree_"),
     "trading_pulse": ("📈 Trading Road", "@trading_road_"),
@@ -41,23 +43,27 @@ CHANNEL_DISPLAY = {
 def resolve_channel(query):
     """Normalizes natural names or abbreviations to standard channel_id."""
     if not query:
-        return "startup_road"
+        return "thestartup_street"
     q = str(query).lower().strip().replace("@", "").replace("-", "_").replace(" ", "_")
     alias_map = {
-        "startup": "startup_road",
-        "startup_road": "startup_road",
-        "startuproad": "startup_road",
+        "startup": "thestartup_street",
+        "startup_street": "thestartup_street",
+        "thestartup_street": "thestartup_street",
+        "thestartup_streett": "thestartup_street",
+        "startup_road": "thestartup_street",
+        "startuproad": "thestartup_street",
+        "loan": "theloan_road",
+        "theloan_road": "theloan_road",
+        "loan_road": "theloan_road",
         "gudtree": "healthy_diet",
         "gudtree_": "healthy_diet",
         "health": "healthy_diet",
         "diet": "healthy_diet",
         "healthy_diet": "healthy_diet",
-        "healthydiet": "healthy_diet",
         "trading": "trading_pulse",
         "trading_pulse": "trading_pulse",
         "tradingpulse": "trading_pulse",
         "trading_road": "trading_pulse",
-        "tradingroad": "trading_pulse",
         "trending": "viral_finds",
         "viral": "viral_finds",
         "viral_finds": "viral_finds",
@@ -545,17 +551,18 @@ def scheduler_24h_loop():
     last_scheduled_day = None
 
     HUNT_HOURS = {
-        6: "startup_road",
-        7: "healthy_diet",
-        8: "trading_pulse",
-        9: "viral_finds"
+        6: ["thestartup_street"],
+        7: ["theloan_road"],
+        8: ["trading_pulse"],
+        9: ["healthy_diet"],
+        10: ["viral_finds"]
     }
 
     SCHED_HOURS = {
-        22: "startup_road",
-        23: "healthy_diet",
-        0: "trading_pulse",
-        1: "viral_finds"
+        22: ["thestartup_street", "theloan_road"],
+        23: ["trading_pulse"],
+        0: ["healthy_diet"],
+        1: ["viral_finds"]
     }
 
     hunted_today = set()
@@ -577,22 +584,26 @@ def scheduler_24h_loop():
                 # 1. MORNING HUNTING (06:00 AM - 02:00 PM)
                 # Catch-up enabled: Even if PC woke up late, catches up missed morning hunts
                 if 6 <= now.hour <= 14:
-                    for target_hour, ch in HUNT_HOURS.items():
-                        if now.hour >= target_hour and ch not in hunted_today:
-                            hunted_today.add(ch)
-                            print(f"⏰ [06-10 AM Hunt Clock] Triggering hunting for: {ch}...")
-                            run_hunt_job(ch, limit=30)
-                            break
+                    for target_hour, ch_list in HUNT_HOURS.items():
+                        if now.hour >= target_hour:
+                            for ch in ch_list:
+                                if ch not in hunted_today:
+                                    hunted_today.add(ch)
+                                    print(f"⏰ [06-10 AM Hunt Clock] Triggering hunting for: {ch}...")
+                                    run_hunt_job(ch, limit=30)
+                                    break
 
                 # 2. NIGHTLY PRE-BAKING & CLOUD-SCHEDULING (10:00 PM - 02:00 AM)
                 elif now.hour >= 22 or now.hour < 2:
-                    for target_hour, ch in SCHED_HOURS.items():
+                    for target_hour, ch_list in SCHED_HOURS.items():
                         is_time = (now.hour == target_hour) or (target_hour >= 22 and now.hour >= target_hour) or (target_hour < 2 and now.hour == target_hour)
-                        if is_time and ch not in scheduled_today:
-                            scheduled_today.add(ch)
-                            print(f"⏰ [10 PM - 02 AM Pre-Baking Clock] Triggering pre-baking for: {ch}...")
-                            run_cloud_schedule_job(ch, limit=30)
-                            break
+                        if is_time:
+                            for ch in ch_list:
+                                if ch not in scheduled_today:
+                                    scheduled_today.add(ch)
+                                    print(f"⏰ [10 PM - 02 AM Pre-Baking Clock] Triggering pre-baking for: {ch}...")
+                                    run_cloud_schedule_job(ch, limit=30)
+                                    break
 
                 # 3. 02:00 AM NOTIFICATION: All channels done for tomorrow
                 elif now.hour == 2 and now.minute == 5 and last_scheduled_day != today_str:

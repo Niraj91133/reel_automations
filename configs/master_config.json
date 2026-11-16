@@ -1,12 +1,10 @@
 {
   "channels": [
-    "startup_road",
-    "healthy_diet",
-    "trading_pulse",
+    "thestartup_street",
+    "theloan_road",
     "viral_finds",
-    "trading_road24",
-    "the_loan_road",
-    "the_startuproad"
+    "healthy_diet",
+    "trading_pulse"
   ],
   "default_model": "gemini-3.1-flash-lite",
   "meta_app_version": "v21.0",

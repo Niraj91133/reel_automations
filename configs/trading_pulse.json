@@ -1,64 +1,64 @@
 {
-    "channel_id": "trading_pulse",
-    "display_name": "Trading Road",
-    "instagram_username": "trading_road_",
-    "email": "tradingroad24@gmail.com",
-    "category": "trading",
-    "description": "Chart Patterns, Price Action, Trading Psychology & Risk Management",
-    "enabled": true,
-    "credentials": {
-        "gemini_api_key": "YOUR_GEMINI_API_KEY",
-        "instagram_account_id": "17841479926101159",
-        "page_access_token": "EAAhE6xjRCjsBS52swhpZCXr8z64PsRuf3e7OBZBB01hBIQ7qFWwnMOtmvNS7VveC2iZCsoDpUTuIQZAUZAW8MZAJnZAlkOMD6oJ31JkRKfzGVJuMY82g5WbQYAAdq4WXzLEWfSbNJ23TivNZCeFSQIe9ZAByKxNbj27z19ZC4ZAsHH5EaYcEmikYBcmcvrbcusMaf3BoZAEqehTQ",
-        "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
-        "telegram_chat_id": "711598335"
-    },
-    "hunting_settings": {
-        "dm_target_chat": "",
-        "hunt_target_daily": 30,
-        "min_views": 200000,
-        "min_comments": 2000,
-        "prioritize_comment_cta": true,
-        "auto_send_dm": false,
-        "keywords": [
-            "candlestick pattern analysis",
-            "price action technical rules",
-            "trading risk management hindi",
-            "stop loss discipline rules",
-            "trading psychology mistakes",
-            "support resistance technical basics"
-        ],
-        "hashtags": [
-            "#technicalanalysis",
-            "#priceaction",
-            "#chartpatterns",
-            "#tradingpsychology",
-            "#stockmarketeducation",
-            "#tradingdiscipline"
-        ],
-        "cookie_file": "cookies/trading_pulse_cookies.txt"
-    },
-    "content_settings": {
-        "default_hook_pill": "RISK FIRST",
-        "tag_text": "RISK MANAGEMENT:",
-        "first_comment_template": "Always define your stop loss and risk per trade. What chart pattern do you trust the most? \ud83d\udcca",
-        "theme_color_primary": [
-            14,
-            165,
-            233,
-            255
-        ],
-        "theme_color_accent": [
-            239,
-            68,
-            68,
-            255
-        ],
-        "daily_post_limit": 30
-    },
-    "schedule_settings": {
-        "start_hour": 6,
-        "end_hour": 21,
-        "interval_minutes": 30
-    }
+  "channel_id": "trading_pulse",
+  "display_name": "Trading Road",
+  "instagram_username": "trading_road_",
+  "category": "trading",
+  "description": "Price Action, Candlestick Patterns, Risk Management, Chart Analysis, Trading Psychology & Option Strategies in Hindi",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "${GEMINI_API_KEY}",
+    "instagram_account_id": "17841479926101159",
+    "page_access_token": "EAAhE6xjRCjsBTP903ZB1cj2GJBq9jyHerLNGfvWTU5GX5UZCvWHBA9CKdvXdrqCZBZB6cCH2X4g2xKM34l5MoPPmFMlrOGZCuQTCDWNkfKaJMsHpKELTQ0mFviKENZBeEzZC7AkCTFT6uQSgspoEm2yott3ZAX2lUfSMV3aaqPCOl2Fqzp49BBZBSWKZAB4qBqY6D5a462quO8",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  },
+  "hunting_settings": {
+    "dm_target_chat": "im_raaaj_",
+    "hunt_target_daily": 30,
+    "min_views": 25000,
+    "prioritize_comment_cta": true,
+    "require_comment_cta": true,
+    "keywords": [
+      "price action hindi",
+      "candlestick pattern trading",
+      "trading psychology rules hindi",
+      "risk management trading",
+      "support resistance breakout",
+      "option buying strategy hindi",
+      "intraday trading rules hindi"
+    ],
+    "hashtags": [
+      "#tradingroad",
+      "#priceaction",
+      "#candlestickpatterns",
+      "#stockmarketindia",
+      "#optionstrading",
+      "#tradingpsychology",
+      "#intradaytrading"
+    ],
+    "cookie_file": "cookies/trading_pulse_cookies.txt"
+  },
+  "content_settings": {
+    "default_hook_pill": "TRADING RULE",
+    "tag_text": "TRADING ROAD:",
+    "first_comment_template": "Complete Candlestick & Price Action Cheat Sheet chahiye? Comment 'TRADE' aur main aapko DM kar dunga! 📈",
+    "theme_color_primary": [
+      239,
+      68,
+      68,
+      255
+    ],
+    "theme_color_accent": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "daily_post_limit": 30
+  },
+  "schedule_settings": {
+    "start_hour": 6,
+    "end_hour": 21,
+    "interval_minutes": 30
+  }
 }

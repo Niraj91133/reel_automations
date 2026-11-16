@@ -1,14 +1,29 @@
 import os
 import sys
 import time
+import json
 import requests
+from pathlib import Path
 
-# Instagram Account & Page Credentials for @startup_road
-INSTAGRAM_ACCOUNT_ID = os.environ.get("INSTAGRAM_ACCOUNT_ID", "17841464149880503")
-PAGE_ACCESS_TOKEN = os.environ.get(
-    "PAGE_ACCESS_TOKEN",
-    "EAAhE6xjRCjsBS9QW3YqZCbdjNM6vFgREntYNLVmYctuKqhvHSYm7tZBBZBQlSZA6TKg0zKn7oZBO3iFKuomLKuJIZAZAiZCmF176vGyrLYTlB2QrDXmfZBrFKMZCqcTgBg52ljuWymuTvBWpLFEZBDWFapjByjSiNd8G7aESyqOKCEZBQTqkEGUYgrrcZCPR3C5dbnCK75AIF"
-)
+BASE_DIR = str(Path(__file__).resolve().parent)
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+try:
+    from core.config_manager import get_channel_config
+    cfg = get_channel_config("thestartup_street")
+    INSTAGRAM_ACCOUNT_ID = cfg.get("credentials", {}).get("instagram_account_id", "17841464149880503")
+    PAGE_ACCESS_TOKEN = cfg.get("credentials", {}).get("page_access_token", "")
+except Exception:
+    cfg_file = os.path.join(BASE_DIR, "configs", "thestartup_street.json")
+    if os.path.exists(cfg_file):
+        with open(cfg_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            INSTAGRAM_ACCOUNT_ID = data.get("credentials", {}).get("instagram_account_id", "17841464149880503")
+            PAGE_ACCESS_TOKEN = data.get("credentials", {}).get("page_access_token", "")
+    else:
+        INSTAGRAM_ACCOUNT_ID = os.environ.get("INSTAGRAM_ACCOUNT_ID", "17841464149880503")
+        PAGE_ACCESS_TOKEN = os.environ.get("PAGE_ACCESS_TOKEN", "")
 
 GRAPH_API_VERSION = "v21.0"
 BASE_URL = f"https://graph.facebook.com/{GRAPH_API_VERSION}"

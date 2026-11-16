@@ -286,9 +286,9 @@ def scout_money_making_reels(target_count=10, notify_callback=None):
                 time.sleep(3.0)
 
                 mark_scouted(item["shortcode"], creator_name, reel_link, views_info)
-                    sent_count += 1
-                    print(f"  ✅ [Sent {sent_count}/{len(discovered_candidates)}] Delivered to @im_raaaj_: {reel_link} (Views: {views_info} | @{creator_name})", flush=True)
-                except Exception as e:
+                sent_count += 1
+                print(f"  ✅ [Sent {sent_count}/{len(discovered_candidates)}] Delivered to @im_raaaj_: {reel_link} (Views: {views_info} | @{creator_name})", flush=True)
+            except Exception as e:
                     print(f"Error sending candidate {item['shortcode']}: {e}", flush=True)
         else:
             print("Could not find message input box in DM chat!", flush=True)

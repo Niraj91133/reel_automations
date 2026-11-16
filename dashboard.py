@@ -62,6 +62,8 @@ st.caption("AI-Powered Viral Hunting • Two-Way DM Curation • Auto-Scheduler 
 
 channels = list_available_channels()
 channel_names = {
+    "thestartup_street": "🚀 The Startup Street (@thestartup_street)",
+    "theloan_road": "💳 The Loan Road (@theloan_road)",
     "startup_road": "💼 Startup Road (@startup_road)",
     "healthy_diet": "🥗 Gudtree (@gudtree_)",
     "trading_pulse": "📈 Trading Road (@trading_road_)",

@@ -230,7 +230,7 @@ def process_channel_pipeline(channel_id, max_reels=1, dry_run=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Multi-Channel Reel Pipeline Runner")
-    parser.add_argument("--channel", type=str, default="startup_road", help="Channel ID (startup_road, healthy_diet, trading_pulse, viral_finds)")
+    parser.add_argument("--channel", type=str, default="thestartup_street", help="Channel ID (thestartup_street, theloan_road)")
     parser.add_argument("--limit", type=int, default=1, help="Max reels to process in this run")
     parser.add_argument("--dry-run", action="store_true", help="Render & send to Telegram without posting to Instagram")
     args = parser.parse_args()

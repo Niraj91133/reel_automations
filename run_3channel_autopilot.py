@@ -5,16 +5,15 @@ from datetime import datetime, timedelta
 
 sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
 
-BASE_DIR = os.path.abspath('reel_automations-main')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from core.full_autopilot import run_channel_autopilot, run_3_channels_autopilot_cycle
 
 AUTOPILOT_CHANNELS = [
-    ("trading_pulse", "📈 Trading Road", "@trading_road_"),
-    ("healthy_diet", "🥗 Gudtree", "@gudtree_"),
-    ("viral_finds", "🛍️ Trending Road", "@trending_road")
+    ("thestartup_street", "🚀 The Startup Street", "@thestartup_street"),
+    ("theloan_road", "💳 The Loan Road", "@theloan_road")
 ]
 
 # Daily slots for the 3 autopilot accounts (4 posts/day per account)
@@ -30,8 +29,7 @@ def run_now_for_all_3():
     print("========================================================")
     print("  🚀 TRIGGERING INSTANT AUTOPILOT CYCLE (3 CHANNELS)")
     print("========================================================")
-    print("Target Accounts: @trading_road_, @gudtree_, @trending_road")
-    print("Exclusion: @startup_road is strictly kept in manual/curated mode")
+    print("Target Accounts: @thestartup_street, @theloan_road")
     print("========================================================\n")
 
     results = {}

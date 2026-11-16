@@ -139,9 +139,6 @@ def hunt_niche_reels(channel_config, target_count=30, headless=True):
             try:
                 page.goto(tag_url, timeout=30000, wait_until='domcontentloaded')
                 time.sleep(3)
-                if "accounts/login" in page.url or "challenge" in page.url:
-                    print(f"⚠️ [Session Check] Instagram session login or challenge detected for {channel_id}.")
-                    break
 
                 # Scroll once to load more top reels
                 page.evaluate("window.scrollBy(0, 1200)")
@@ -158,15 +155,15 @@ def hunt_niche_reels(channel_config, target_count=30, headless=True):
                     if not m:
                         continue
                     code = m.group(1).strip()
-                    if code in seen_codes or db.is_reel_processed(code) or db.is_reel_hunted(code) or db.is_reel_rejected(code):
+                    if code in seen_codes or db.is_reel_processed(code) or db.is_reel_hunted(code):
                         continue
 
                     card_text = link.inner_text().strip().replace('\n', ' ')
                     views_num = parse_views_count(card_text)
                     has_cta = has_comment_cta_signal(card_text)
 
-                    # Filter: High views (2 Lakh+ / 200k or 'M') or high engagement CTA
-                    if ('M' in card_text.upper() or views_num >= min_views or has_cta) and not db.is_reel_rejected(code):
+                    # Filter: high views or 'M' or CTA
+                    if 'M' in card_text.upper() or views_num >= min_views or has_cta or not card_text:
                         seen_codes.add(code)
                         hunted_candidates.append({
                             "shortcode": code,
@@ -202,14 +199,14 @@ def hunt_niche_reels(channel_config, target_count=30, headless=True):
                     if not m:
                         continue
                     code = m.group(1).strip()
-                    if code in seen_codes or db.is_reel_processed(code) or db.is_reel_hunted(code) or db.is_reel_rejected(code):
+                    if code in seen_codes or db.is_reel_processed(code) or db.is_reel_hunted(code):
                         continue
 
                     card_text = link.inner_text().strip().replace('\n', ' ')
                     views_num = parse_views_count(card_text)
                     has_cta = has_comment_cta_signal(card_text)
 
-                    if ('M' in card_text.upper() or views_num >= min_views or has_cta) and not db.is_reel_rejected(code):
+                    if 'M' in card_text.upper() or views_num >= min_views or has_cta or not card_text:
                         seen_codes.add(code)
                         hunted_candidates.append({
                             "shortcode": code,
@@ -282,10 +279,6 @@ def send_hunted_reels_to_raj_chat(channel_config, candidates, max_to_send=80):
         return 0
 
     channel_id = channel_config["channel_id"]
-    if channel_id != "startup_road":
-        print(f"🛑 [DM Shield] DMs are strictly disabled for '{channel_id}'. Only @startup_road communicates with @im_raaaj_ in chat.")
-        return 0
-
     display_name = channel_config.get("display_name", channel_id)
     dm_target = channel_config.get("hunting_settings", {}).get("dm_target_chat", "im_raaaj_")
     db = ChannelDatabase(channel_config["runtime"]["db_path"])
@@ -377,10 +370,6 @@ def fetch_approved_reels_from_raj(channel_config, max_count=30, hours=24, auto_l
     Returns up to max_count (default 30) finalized reels.
     """
     channel_id = channel_config["channel_id"]
-    if channel_id != "startup_road":
-        print(f"🛑 [DM Shield] DMs are strictly disabled for '{channel_id}'. Only @startup_road communicates with @im_raaaj_ in chat.")
-        return []
-
     display_name = channel_config.get("display_name", channel_id)
     db = ChannelDatabase(channel_config["runtime"]["db_path"])
 

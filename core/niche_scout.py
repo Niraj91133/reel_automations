@@ -15,24 +15,19 @@ NICHE_DISCOVERY_PROFILES = {
     "startup_road": {
         "display_name": "Startup Road (Practical Business & Small Machines)",
         "keywords": [
-            "shipping container business model comment",
             "small manufacturing machine business comment",
-            "rental arbitrage empty land business comment",
             "low investment business ideas hindi comment",
             "chhoti machine se dhandha comment supplier",
-            "scrap recycling waste to wealth business comment",
             "pouch packing machine business hindi",
+            "scrap recycling business model hindi comment",
+            "wholesale to retail business profit margin",
             "petrol pump franchise codo model comment",
-            "mini food processing unit business comment",
             "offline business ideas comment for pdf"
         ],
         "creators": [
             "ideas_logix",
             "businessidea_841",
             "speedgyaan",
-            "farming_champions",
-            "mayankraj_tandan",
-            "teekendra_sharma",
             "kartikcreatebusiness",
             "abhirathore_1",
             "theexportdiary",
@@ -105,48 +100,55 @@ NICHE_DISCOVERY_PROFILES = {
             "coolgadgetsofficial"
         ]
     },
-    "trading_road24": {
-        "display_name": "Trading Road 24",
+    "thestartup_street": {
+        "display_name": "The Startup Street (Startup Stories & Practical Business)",
         "keywords": [
-            "price action hindi",
-            "candlestick pattern trading",
-            "trading psychology rules",
-            "risk management trading",
-            "support resistance trading"
+            "small manufacturing machine business hindi",
+            "low investment business ideas hindi",
+            "chhoti machine se dhandha supplier hindi",
+            "pouch packing machine business hindi",
+            "scrap recycling business model hindi",
+            "billion dollar startup story hindi",
+            "high profit margin small business hindi",
+            "startup case study hindi breakdown"
         ],
         "creators": [
-            "boomingbulls",
-            "poweroftocks",
-            "ghanshyamtech",
-            "artofoptionlearning",
-            "pushkarrajthakur",
-            "tradewithmayank",
-            "neerajjoshi"
+            "ideas_logix",
+            "businessidea_841",
+            "speedgyaan",
+            "kartikcreatebusiness",
+            "theexportdiary",
+            "actual.abhishek",
+            "ecom.deep",
+            "pushkarrajthakur"
         ]
     },
-    "the_loan_road": {
-        "display_name": "The Loan Road",
+    "theloan_road": {
+        "display_name": "The Loan Road (Loans, Mudra & CIBIL)",
         "keywords": [
-            "home loan prepayment tips hindi",
-            "sip mutual fund compounding calculator",
-            "personal loan interest rate truth",
-            "cibil score boost tips hindi",
-            "car loan emi calculation tips",
-            "zero cost emi hidden reality"
+            "business loan kaise le hindi",
+            "mudra loan apply kaise kare hindi",
+            "bina guarantee business loan",
+            "low cibil score loan options hindi",
+            "cibil score kaise badhaye hindi",
+            "loan reject hone ke reasons hindi",
+            "government loan schemes for small business hindi",
+            "personal loan eligibility hindi",
+            "msme loan apply online hindi"
         ],
         "creators": [
-            "financewithsharan",
-            "bekhisab",
-            "anuragthecoach",
-            "ca_rachanaranade",
-            "labourlawadvisor",
+            "asset_yogi",
             "pranjalkamra",
-            "warikoo"
+            "ca_rachanaranade",
+            "bekhisabi",
+            "financewithsharan",
+            "neerajjoshi",
+            "pushkarrajthakur"
         ]
     }
 }
 
-ORDERED_CHANNELS = ["startup_road", "healthy_diet", "trading_pulse", "viral_finds", "trading_road24", "the_loan_road"]
+ORDERED_CHANNELS = ["thestartup_street", "theloan_road", "viral_finds"]
 
 def get_channel_cookie_file(channel_id):
     """
@@ -258,6 +260,8 @@ def is_shortcode_scouted(shortcode):
     db_paths = [
         "reels_history.db",
         "politics_history.db",
+        "databases/thestartup_street_history.db",
+        "databases/theloan_road_history.db",
         "databases/startup_road_history.db",
         "databases/healthy_diet_history.db",
         "databases/trading_pulse_history.db",

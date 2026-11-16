@@ -1,61 +1,65 @@
 {
-  "channel_id": "the_loan_road",
+  "channel_id": "theloan_road",
   "display_name": "The Loan Road",
   "instagram_username": "the_loan_road",
-  "category": "loan_sip_finance",
-  "description": "Smart Loan Hacks, Home & Car Loan Prepayment, SIP Compounding, Mutual Funds & CIBIL Boost Tips in Hindi",
+  "category": "loan",
+  "description": "Business Loans, Personal Loans, Government Loan Schemes, Mudra Loans, CIBIL Knowledge, Small Business Funding & Practical Loan Guidance in Hindi",
   "enabled": true,
   "credentials": {
-    "gemini_api_key": "YOUR_GEMINI_API_KEY",
+    "gemini_api_key": "${GEMINI_API_KEY}",
     "instagram_account_id": "17841479884637862",
-    "page_access_token": "EAAhE6xjRCjsBSZClXokNKEqvR5jEBS9YtQDTRQVTzrWRZBsHAARicNKjKVJPKd0D38QBSeXZAW0mLkqHHtIQi3BoZCWZCUMZCh2JzMB0j8Wgh0S2Xwp1w0ZBqPb638i2MQ1XTmGIA1Sg3IQbvzb7o1p8yhpcZBanjZCyGpLvVLfSucPOoWzbdGyntylFBfzGjqONhWGICC2dx",
+    "page_access_token": "EAAhE6xjRCjsBTDqPVmD0Ltju5zgH9BEdG1H08cJhjGZBzPmZAakZByC8P8Ucx64MFU2kgdqHEWNlw8R40tcHWNODKj4fhFRohhFu1Wnp4PAvkoYq476AEGjjfMb03hO4tkT0V3bOCYaFbIxdHAHVzdMRTngGQqZBk1B05mxQ5GlfBAMPI8ivoVYqeRf42IXoMTKA",
     "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
     "telegram_chat_id": "711598335"
   },
   "hunting_settings": {
-    "dm_target_chat": "",
+    "dm_target_chat": "im_raaaj_",
     "hunt_target_daily": 30,
-    "min_views": 150000,
-    "min_comments": 1000,
+    "min_views": 25000,
     "prioritize_comment_cta": true,
     "require_comment_cta": true,
-    "auto_send_dm": false,
     "keywords": [
-      "home loan prepayment calculation comment",
-      "sip mutual fund compounding calculator comment",
-      "personal loan interest rate trap comment",
-      "cibil score badhane ka tarika comment",
-      "car loan emi tenure save money comment",
-      "zero cost emi hidden charges reality comment",
-      "index fund vs sip wealth creation comment",
-      "smart loan foreclosure tips hindi comment"
+      "business loan kaise le hindi",
+      "bina guarantee business loan kaise milega",
+      "mudra loan apply kaise kare hindi",
+      "low cibil score loan options hindi",
+      "cibil score kaise badhaye hindi",
+      "loan reject hone ke reasons hindi",
+      "government loan schemes for small business hindi",
+      "personal loan eligibility hindi",
+      "msme loan apply online hindi",
+      "mahila business loan scheme hindi",
+      "startup loan government scheme hindi",
+      "loan fraud se kaise bache"
     ],
     "hashtags": [
-      "#homeloan",
-      "#sipinvestment",
-      "#mutualfundsindia",
-      "#cibilscore",
-      "#loanprepayment",
+      "#theloanroad",
+      "#businessloan",
       "#personalloan",
-      "#smartmoneytips",
-      "#financialplanning"
+      "#mudraloan",
+      "#governmentloan",
+      "#cibilscore",
+      "#msmeloan",
+      "#startuploan",
+      "#loanknowledge",
+      "#financehindi"
     ],
-    "cookie_file": "cookies/the_loan_road_cookies.txt"
+    "cookie_file": "cookies/theloan_road_cookies.txt"
   },
   "content_settings": {
-    "default_hook_pill": "LOAN HACK",
-    "tag_text": "SMART FINANCE:",
-    "first_comment_template": "Want the free Loan Prepayment & SIP Wealth Calculator sheet in your DM? Comment \"LOAN\" or \"SIP\" below! 💰📈",
+    "default_hook_pill": "LOAN KNOWLEDGE",
+    "tag_text": "LOAN ROAD:",
+    "first_comment_template": "Business Loan, Mudra Loan ya Personal Loan ki eligibility aur documents ki complete details chahiye? Comment 'LOAN' aur apna question batayein! 📩",
     "theme_color_primary": [
-      16,
-      185,
-      129,
+      59,
+      130,
+      246,
       255
     ],
     "theme_color_accent": [
-      245,
-      158,
-      11,
+      255,
+      255,
+      255,
       255
     ],
     "daily_post_limit": 30
@@ -66,3 +70,4 @@
     "interval_minutes": 30
   }
 }
+

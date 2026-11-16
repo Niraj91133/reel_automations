@@ -28,8 +28,7 @@ from datetime import datetime
 # ------------------------------------------------------------------------------
 BANNED_DANGER_ZONES = {
     "FINANCIAL_GET_RICH_QUICK": [
-        r"\bearn\s+₹?\d+\s*(?:lakh|crore|cr)\b", r"\bkamaye\s+₹?\d+\s*(?:lakh|crore)\b",
-        r"\bcrorepati bane\b", r"\blakhpati bane\b", r"\b\d+\s*(?:lakh|lakhs|crore|crores)\s*(?:per|\/)\s*(?:month|mo|day|din)\b",
+        r"\bcrore\b", r"\bcrores\b", r"\blakh\b", r"\blakhs\b", r"\bcr\b",
         r"\bmake money\b", r"\bearn money\b", r"\bearn ₹", r"\bmake ₹",
         r"\bpassive income\b", r"\bghar baithe\b", r"\bandha paisa\b",
         r"\bprint money\b", r"\bwithout selling\b", r"\bwithout investment\b",
@@ -73,7 +72,7 @@ BANNED_DANGER_ZONES = {
         r"\bosama\b", r"\bbin laden\b", r"\bterrorist\b", r"\bterrorism\b",
         r"\bkill\b", r"\bkilled\b", r"\bmurder\b", r"\bweapon\b", r"\bbomb\b",
         r"\battack\b", r"\bcartel\b", r"\bisis\b", r"\bexplosive\b",
-        r"\bsuicide\b", r"\bshooting(?!\s+star)\b", r"\bhostage\b", r"\bmassacre\b"
+        r"\bsuicide\b", r"\bshooting\b", r"\bhostage\b", r"\bmassacre\b"
     ],
 
     "SENSITIVE_CIVIC_UNREST_AND_DISASTER": [

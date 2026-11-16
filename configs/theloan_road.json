@@ -1,0 +1,73 @@
+{
+  "channel_id": "theloan_road",
+  "display_name": "The Loan Road",
+  "instagram_username": "the_loan_road",
+  "category": "loan",
+  "description": "Business Loans, Personal Loans, Government Loan Schemes, Mudra Loans, CIBIL Knowledge, Small Business Funding & Practical Loan Guidance in Hindi",
+  "enabled": true,
+  "credentials": {
+    "gemini_api_key": "${GEMINI_API_KEY}",
+    "instagram_account_id": "17841479884637862",
+    "page_access_token": "EAAhE6xjRCjsBTDqPVmD0Ltju5zgH9BEdG1H08cJhjGZBzPmZAakZByC8P8Ucx64MFU2kgdqHEWNlw8R40tcHWNODKj4fhFRohhFu1Wnp4PAvkoYq476AEGjjfMb03hO4tkT0V3bOCYaFbIxdHAHVzdMRTngGQqZBk1B05mxQ5GlfBAMPI8ivoVYqeRf42IXoMTKA",
+    "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
+    "telegram_chat_id": "711598335"
+  },
+  "hunting_settings": {
+    "dm_target_chat": "im_raaaj_",
+    "hunt_target_daily": 30,
+    "min_views": 25000,
+    "prioritize_comment_cta": true,
+    "require_comment_cta": true,
+    "keywords": [
+      "business loan kaise le hindi",
+      "bina guarantee business loan kaise milega",
+      "mudra loan apply kaise kare hindi",
+      "low cibil score loan options hindi",
+      "cibil score kaise badhaye hindi",
+      "loan reject hone ke reasons hindi",
+      "government loan schemes for small business hindi",
+      "personal loan eligibility hindi",
+      "msme loan apply online hindi",
+      "mahila business loan scheme hindi",
+      "startup loan government scheme hindi",
+      "loan fraud se kaise bache"
+    ],
+    "hashtags": [
+      "#theloanroad",
+      "#businessloan",
+      "#personalloan",
+      "#mudraloan",
+      "#governmentloan",
+      "#cibilscore",
+      "#msmeloan",
+      "#startuploan",
+      "#loanknowledge",
+      "#financehindi"
+    ],
+    "cookie_file": "cookies/theloan_road_cookies.txt"
+  },
+  "content_settings": {
+    "default_hook_pill": "LOAN KNOWLEDGE",
+    "tag_text": "LOAN ROAD:",
+    "first_comment_template": "Business Loan, Mudra Loan ya Personal Loan ki eligibility aur documents ki complete details chahiye? Comment 'LOAN' aur apna question batayein! 📩",
+    "theme_color_primary": [
+      59,
+      130,
+      246,
+      255
+    ],
+    "theme_color_accent": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "daily_post_limit": 30
+  },
+  "schedule_settings": {
+    "start_hour": 6,
+    "end_hour": 21,
+    "interval_minutes": 30
+  }
+}
+
