@@ -10,9 +10,9 @@ from core.niche_prompts import get_niche_prompt
 
 # Primary lightning-fast models with fallback
 WORKING_MODELS = [
-    "gemini-3.1-flash-lite",
-    "gemini-flash-latest",
-    "gemini-3-flash-preview"
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview",
+    "gemini-3.1-flash-lite"
 ]
 
 def extract_audio_isolated(video_path, output_dir):
