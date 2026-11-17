@@ -378,7 +378,7 @@ def fetch_approved_reels_from_raj(channel_config, max_count=30, hours=24, auto_l
     # Use dm_scraper battle-tested extraction
     try:
         from dm_scraper import get_shared_reels_from_chat
-        shared = get_shared_reels_from_chat(max_count=max_count)
+        shared = get_shared_reels_from_chat(max_count=max_count, channel_id=channel_id)
         approved_reels = []
         for item in shared:
             code = item["shortcode"]

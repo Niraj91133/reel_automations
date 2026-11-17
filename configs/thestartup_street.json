@@ -46,13 +46,13 @@
     "cookie_file": "cookies/thestartup_street_cookies.txt"
   },
   "content_settings": {
-    "default_hook_pill": "STARTUP MODEL",
-    "tag_text": "STARTUP STREET:",
+    "default_hook_pill": "ZERO COMPETITION",
+    "tag_text": "STARTUP:",
     "first_comment_template": "Want the complete supplier list, machine contact & breakdown? Comment \"STARTUP\" below and I will DM you instantly! 🚀",
     "theme_color_primary": [
-      249,
-      115,
-      22,
+      225,
+      29,
+      72,
       255
     ],
     "theme_color_accent": [

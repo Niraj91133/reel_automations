@@ -167,87 +167,87 @@ def publish_single_reel(queue_index):
         conn.close()
         return False, err
 
-    # Step 2: Create Reel Container on target @the_startuproad
-    create_url = f"https://graph.facebook.com/v21.0/{TARGET_IG_ID}/media"
-    payload = urllib.parse.urlencode({
-        "media_type": "REELS",
-        "video_url": video_url,
-        "caption": caption,
-        "share_to_feed": "true",
-        "access_token": TARGET_TOKEN
-    }).encode("utf-8")
+    # Step 2: Download locally & Upload to Telegram for public accessible CDN URL
+    temp_dir = os.path.join("C:/reel_cache", "the_startuproad")
+    os.makedirs(temp_dir, exist_ok=True)
+    local_temp = os.path.join(temp_dir, f"temp_mirror_{queue_index}.mp4")
 
     try:
-        req = urllib.request.Request(create_url, data=payload)
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            res_data = json.loads(resp.read().decode("utf-8"))
-            container_id = res_data.get("id")
-            print(f"   Created Reel Container ID: {container_id}")
+        print(f"   Downloading video to local cache...")
+        urllib.request.urlretrieve(video_url, local_temp)
     except Exception as e:
-        err = f"Container creation failed: {e}"
+        err = f"Failed downloading video: {e}"
         print(f"❌ {err}")
         c.execute("UPDATE mirror_queue SET status='FAILED', error_msg=? WHERE queue_index=?", (err, queue_index))
         conn.commit()
         conn.close()
         return False, err
 
-    # Step 3: Poll Meta until video is FINISHED processing
-    status_url = f"https://graph.facebook.com/v21.0/{container_id}?fields=status_code&access_token={TARGET_TOKEN}"
-    ready = False
-    for attempt in range(12):
-        time.sleep(5)
+    from core.telegram_hub import TelegramHub
+    from core.publisher import InstagramPublisher
+
+    hub = TelegramHub(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
+    cap_preview = (caption or "Mirror Reel")[:80].replace("\n", " ")
+    print(f"   Uploading to Telegram CDN...")
+    sent, cdn_url = hub.send_video_with_cdn_url(local_temp, f"<b>[@the_startuproad Mirror #{queue_index}]</b>\n\n{cap_preview}")
+
+    if not cdn_url:
+        err = "Failed uploading to Telegram CDN"
+        print(f"❌ {err}")
+        c.execute("UPDATE mirror_queue SET status='FAILED', error_msg=? WHERE queue_index=?", (err, queue_index))
+        conn.commit()
+        conn.close()
+        if os.path.exists(local_temp):
+            try: os.remove(local_temp)
+            except: pass
+        return False, err
+
+    # Step 3: Publish via InstagramPublisher
+    print(f"   Publishing to Instagram @the_startuproad via Meta API...")
+    publisher = InstagramPublisher(TARGET_IG_ID, TARGET_TOKEN)
+    pub_res = publisher.publish_reel(public_video_url=cdn_url, caption=caption)
+
+    if pub_res and "permalink" in pub_res:
+        target_link = pub_res["permalink"]
+        target_media_id = pub_res.get("media_id", "")
+        print(f"🎉 PUBLISHED SUCCESSFULLY! Live Link: {target_link}")
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        c.execute("""
+            UPDATE mirror_queue 
+            SET status='PUBLISHED', target_media_id=?, published_at=?, error_msg=NULL 
+            WHERE queue_index=?
+        """, (target_media_id, now_str, queue_index))
+        conn.commit()
+
+        # Also register in channel database
         try:
-            with urllib.request.urlopen(status_url, timeout=10) as resp:
-                s_data = json.loads(resp.read().decode("utf-8"))
-                code = s_data.get("status_code")
-                print(f"   Processing status: {code} (attempt {attempt+1}/12)")
-                if code == "FINISHED":
-                    ready = True
-                    break
-                elif code == "ERROR":
-                    err = f"Meta video processing returned ERROR"
-                    c.execute("UPDATE mirror_queue SET status='FAILED', error_msg=? WHERE queue_index=?", (err, queue_index))
-                    conn.commit()
-                    conn.close()
-                    return False, err
+            conn_h = sqlite3.connect(DB_DIR / "the_startuproad_history.db")
+            ch = conn_h.cursor()
+            shortcode = target_link.strip("/").split("/")[-1]
+            ch.execute("""
+                INSERT OR REPLACE INTO processed_reels (shortcode, username, title, permalink, created_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """, (shortcode, "the_startuproad", cap_preview, target_link))
+            conn_h.commit()
+            conn_h.close()
         except Exception as e:
-            print(f"   Status check error: {e}")
+            print(f"Note on history db: {e}")
 
-    if not ready:
-        err = "Container processing timed out"
-        c.execute("UPDATE mirror_queue SET status='FAILED', error_msg=? WHERE queue_index=?", (err, queue_index))
+        conn.close()
+        if os.path.exists(local_temp):
+            try: os.remove(local_temp)
+            except: pass
+        return True, target_link
+    else:
+        err = pub_res.get("error", "Publish failed") if pub_res else "No response"
+        print(f"❌ Publish error: {err}")
+        c.execute("UPDATE mirror_queue SET status='FAILED', error_msg=? WHERE queue_index=?", (str(err), queue_index))
         conn.commit()
         conn.close()
+        if os.path.exists(local_temp):
+            try: os.remove(local_temp)
+            except: pass
         return False, err
-
-    # Step 4: Publish Container
-    pub_url = f"https://graph.facebook.com/v21.0/{TARGET_IG_ID}/media_publish"
-    pub_payload = urllib.parse.urlencode({
-        "creation_id": container_id,
-        "access_token": TARGET_TOKEN
-    }).encode("utf-8")
-
-    try:
-        req = urllib.request.Request(pub_url, data=pub_payload)
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            pub_data = json.loads(resp.read().decode("utf-8"))
-            target_media_id = pub_data.get("id")
-            print(f"🎉 PUBLISHED SUCCESSFULLY! Target Media ID: {target_media_id}")
-            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            c.execute("""
-                UPDATE mirror_queue 
-                SET status='PUBLISHED', target_media_id=?, published_at=?, error_msg=NULL 
-                WHERE queue_index=?
-            """, (target_media_id, now_str, queue_index))
-            conn.commit()
-            conn.close()
-            return True, target_media_id
-    except Exception as e:
-        err = f"Publish endpoint error: {e}"
-        print(f"❌ {err}")
-        c.execute("UPDATE mirror_queue SET status='FAILED', error_msg=? WHERE queue_index=?", (err, queue_index))
-        conn.commit()
-        conn.close()
         return False, err
 
 def run_daily_batch(limit=30, delay_between=45):

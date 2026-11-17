@@ -54,10 +54,15 @@ def create_base_layer(
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    content_settings = channel_config.get("content_settings", {})
-    tag_text = content_settings.get("tag_text", "FEATURED:")
-    primary_color = tuple(content_settings.get("theme_color_primary", [225, 29, 72, 255]))
-    accent_color = tuple(content_settings.get("theme_color_accent", [255, 255, 255, 255]))
+    # 🛡️ UNBREAKABLE MULTI-CHANNEL BRAND INTEGRITY SHIELD:
+    # Guarantees authentic colors, tag_text, and logos across all channels
+    ch_id = channel_config.get("channel_id", "").lower()
+    from core.brand_security_guard import get_guaranteed_brand_settings
+    brand_guard = get_guaranteed_brand_settings(ch_id)
+    tag_text = brand_guard.get("tag_text", "FEATURED:")
+    primary_color = brand_guard.get("primary_color", (225, 29, 72, 255))
+    accent_color = brand_guard.get("accent_color", (255, 255, 255, 255))
+    display_title = brand_guard.get("top_logo", "official")
 
     font_logo = get_font(52, bold=True)
     font_tag = get_font(54, bold=True)
@@ -66,8 +71,7 @@ def create_base_layer(
     font_quote = get_font(34, bold=False)
 
     # 1. Top Right Channel Branding / Category
-    display_title = channel_config.get("display_name", "Official").lower()
-    draw.text((width - 340, 100), display_title[:14], fill="white", font=font_logo)
+    draw.text((width - 340, 100), display_title, fill="white", font=font_logo)
 
     # 2. Smooth Gradient Top Fade (220px fade)
     bg_start_y = height - 900

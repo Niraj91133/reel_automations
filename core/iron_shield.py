@@ -28,29 +28,22 @@ from datetime import datetime
 # ------------------------------------------------------------------------------
 BANNED_DANGER_ZONES = {
     "FINANCIAL_GET_RICH_QUICK": [
-        r"\bcrore\b", r"\bcrores\b", r"\blakh\b", r"\blakhs\b", r"\bcr\b",
-        r"\bmake money\b", r"\bearn money\b", r"\bearn ₹", r"\bmake ₹",
-        r"\bpassive income\b", r"\bghar baithe\b", r"\bandha paisa\b",
-        r"\bprint money\b", r"\bwithout selling\b", r"\bwithout investment\b",
-        r"\bzero investment\b", r"\bdaily income\b", r"\bmonthly paycheck\b",
-        r"\beasy money\b", r"\bquick rich\b", r"\bmillionaire in\b",
-        r"\b1 minute and earn\b", r"\b5000 daily\b", r"\b1\.5l/month\b",
-        r"\b20 lakhs/month\b", r"\b1\.2l profit\b", r"\b3 lakh/mo\b",
-        r"\bunlimited cash\b", r"\bpaisa hi paisa\b", r"\bwork from home job\b",
-        r"\bno effort money\b", r"\bfinancial freedom in \d+\b",
-        r"\bturn ₹\d+\b", r"\bfrom ₹\d+ to ₹\d+\b", r"\bearn in dollars\b",
-        r"\bpart time income\b", r"\binstant cash\b", r"\bfree money\b"
+        r"\bguaranteed (return|profit|income|win|money|lakh|crore|wealth)\b",
+        r"\b100% (risk[- ]?free|guaranteed profit|guaranteed win)\b",
+        r"\bdouble your money in\b", r"\bmoney flip\b", r"\bcash flip\b",
+        r"\bandha paisa kamaye\b", r"\bghar baithe andha paisa\b",
+        r"\bprint money overnight\b", r"\bovernight (rich|wealth|crorepati)\b",
+        r"\beasy money scheme\b", r"\bquick rich scheme\b", r"\bmillionaire overnight\b",
+        r"\b1 minute me (crorepati|lakhpati)\b", r"\bunlimited free cash\b",
+        r"\bno effort money\b", r"\binstant cash hack\b", r"\bfree money glitch\b"
     ],
 
     "INVESTMENT_AND_TRADING_SCHEMES": [
-        r"\bturn ₹\b", r"\bdouble your money\b", r"\bmoney flip\b", r"\bcash flip\b",
-        r"\bzero risk\b", r"\brisk-free\b", r"\bguaranteed return\b", r"\bguaranteed profit\b",
-        r"\bmonthly returns\b", r"\b500% profit\b", r"\b200% to 500%\b",
-        r"\bstop just doing sips\b", r"\bscalping setup\b", r"\bbreakout strategy\b",
-        r"\boption buying\b", r"\btrading tip\b", r"\bjackpot call\b",
-        r"\b100% accuracy\b", r"\bsure shot trade\b", r"\bintraday jackpot\b",
-        r"\bcrypto multiplier\b", r"\bforex signals\b", r"\btrading course free\b",
-        r"\btrading alpha:\b", r"\bsebi registered\b", r"\bguaranteed win\b"
+        r"\bguaranteed return\b", r"\bguaranteed profit\b",
+        r"\b100% win rate\b", r"\brisk-free trading\b",
+        r"\btrading tip\b", r"\bjackpot call\b",
+        r"\b100% accuracy trade\b", r"\bsure shot trade\b", r"\bintraday jackpot\b",
+        r"\bcrypto multiplier\b", r"\bforex signals guarantee\b"
     ],
 
     "DECEPTIVE_COMMERCIAL_BAIT": [

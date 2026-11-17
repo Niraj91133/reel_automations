@@ -4,7 +4,7 @@
   "instagram_username": "trading_road_",
   "category": "trading",
   "description": "Price Action, Candlestick Patterns, Risk Management, Chart Analysis, Trading Psychology & Option Strategies in Hindi",
-  "enabled": true,
+  "enabled": false,
   "credentials": {
     "gemini_api_key": "${GEMINI_API_KEY}",
     "instagram_account_id": "17841479926101159",

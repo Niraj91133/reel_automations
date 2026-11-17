@@ -3,6 +3,7 @@ import sys
 import time
 import json
 import shutil
+import glob
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
@@ -21,6 +22,7 @@ AUTOPILOT_CHANNELS = [
     ("thestartup_street", "🚀 Startup Road", "@startup_road"),
     ("theloan_road", "💳 The Loan Road", "@the_loan_road"),
     ("trading_pulse", "📈 Trading Road", "@trading_road_"),
+    ("trading_road24", "📊 Trading Knowledge", "@trading_road24"),
     ("healthy_diet", "🥗 Gud Tree", "@gudtree_"),
     ("viral_finds", "🛍️ Trending Road", "@trending_road")
 ]
@@ -40,6 +42,7 @@ def prebake_channel_reels(channel_id, count=30):
     # 1. BRUTAL 4-TIER REEL SOURCING PIPELINE (Applies to ALL Channels)
     candidates = []
     approved_codes = set()
+    target_pool = max(count * 3, count + 20)
 
     # TIER 1: Check if Raj approved/shared any reels in DM chat for this channel
     dm_target = config.get("hunting_settings", {}).get("dm_target_chat") or config.get("content_settings", {}).get("dm_target_chat", "im_raaaj_")
@@ -58,15 +61,15 @@ def prebake_channel_reels(channel_id, count=30):
         print(f"Note on Raj DM fetch for {display_name}: {e}")
 
     # TIER 2: 10 PM AUTO-FALLBACK: Auto-fill deficit from channel's local hunted_reels DB pool!
-    if len(candidates) < count:
-        deficit = count - len(candidates)
-        print(f"ℹ️ [{display_name} 10 PM Auto-Fallback] Approved: {len(candidates)}/{count}. Auto-filling {deficit} reels from DB hunted pool...")
-        pool_candidates = db.get_unprocessed_hunted_reels(limit=deficit * 3)
+    if len(candidates) < target_pool:
+        deficit = target_pool - len(candidates)
+        print(f"ℹ️ [{display_name} 10 PM Auto-Fallback] Pool: {len(candidates)}/{target_pool}. Pulling up to {deficit} reels from DB hunted pool...")
+        pool_candidates = db.get_unprocessed_hunted_reels(limit=deficit * 2)
         for sc, cr, vw in pool_candidates:
             if sc not in approved_codes and not db.is_reel_processed(sc):
                 candidates.append((sc, cr, vw))
                 approved_codes.add(sc)
-            if len(candidates) >= count:
+            if len(candidates) >= target_pool:
                 break
 
     # TIER 3: LIVE NICHE CREATOR SCOUT (If DB pool runs low)
@@ -107,25 +110,34 @@ def prebake_channel_reels(channel_id, count=30):
         except Exception as e:
             print(f"Tier 4 Emergency notice: {e}")
 
-    print(f"🔒 [FINAL GUARANTEE] {len(candidates)}/{count} Candidates Locked in for {display_name} Pre-Baking!")
+    print(f"🔒 [FINAL GUARANTEE] {len(candidates)} Candidates Queued for {display_name} (Target: {count} Baked)!")
+
+    # Find highest existing slot index in queue
+    existing_slots = set()
+    for f in glob.glob(os.path.join(queue_dir, "ready_*.mp4")):
+        b = os.path.basename(f)
+        parts = b.split("_")
+        if len(parts) >= 2 and parts[1].isdigit():
+            existing_slots.add(int(parts[1]))
+    slot_idx = (max(existing_slots) + 1) if existing_slots else 1
 
     baked = []
-    idx = 1
     for shortcode, creator, views_text in candidates:
-        if idx > count:
+        if len(baked) >= count:
             break
 
-        out_file = os.path.join(queue_dir, f"ready_{idx:02d}_{shortcode}.mp4")
-        meta_file = os.path.join(queue_dir, f"ready_{idx:02d}_{shortcode}.json")
+        out_file = os.path.join(queue_dir, f"ready_{slot_idx:02d}_{shortcode}.mp4")
+        meta_file = os.path.join(queue_dir, f"ready_{slot_idx:02d}_{shortcode}.json")
 
         if os.path.exists(out_file) and os.path.getsize(out_file) > 100_000 and os.path.exists(meta_file):
-            print(f"[{idx}/{count}] Already pre-baked: {out_file}")
-            baked.append((idx, shortcode, creator, "Already Baked"))
-            idx += 1
+            print(f"[{len(baked)+1}/{count}] Already pre-baked: {out_file}")
+            baked.append((slot_idx, shortcode, creator, "Already Baked"))
+            slot_idx += 1
             continue
 
         reel_url = f"https://www.instagram.com/reel/{shortcode}/"
-        print(f"\n▶ [{idx}/{count}] Pre-baking {shortcode} (by @{creator}, {views_text})...")
+        curr_num = len(baked) + 1
+        print(f"\n▶ [{curr_num}/{count}] Pre-baking {shortcode} (by @{creator}, {views_text})...")
 
         # Download
         temp_dl = os.path.join(queue_dir, f"raw_{shortcode}.mp4")
@@ -139,6 +151,10 @@ def prebake_channel_reels(channel_id, count=30):
         try:
             # AI synthesis
             ai_data = analyze_reel_for_channel(raw_video, config, creator)
+            if ai_data.get("rejected"):
+                print(f"🛑 [AI Filter Rejected] Reel {shortcode}: {ai_data.get('reason')}. Trying next candidate...")
+                continue
+
             hook_pill = ai_data.get("hook_pill", "KEY TAKEAWAY")
             main_title = ai_data.get("main_title", "VIRAL INSIGHT")
             sub_quote = ai_data.get("sub_quote", "")
@@ -172,9 +188,9 @@ def prebake_channel_reels(channel_id, count=30):
                     "hook_pill": hook_pill
                 }, f, indent=2)
 
-            baked.append((idx, shortcode, creator, main_title))
-            print(f"✅ [{idx}/{count}] Successfully pre-baked: {main_title}")
-            idx += 1
+            baked.append((slot_idx, shortcode, creator, main_title))
+            print(f"✅ [{curr_num}/{count}] Successfully pre-baked: {main_title} -> {out_file}")
+            slot_idx += 1
 
         except Exception as e:
             print(f"❌ Error pre-baking {shortcode}: {e}")

@@ -42,6 +42,43 @@ def get_best_hardware_encoder():
     _CACHED_ENCODER = ("libx264", ["-threads", "2", "-c:v", "libx264", "-preset", "fast", "-crf", "23"])
     return _CACHED_ENCODER
 
+def probe_video_stream_info(video_path):
+    """
+    Returns (duration_seconds, has_audio)
+    Probes video duration and presence of an audio stream to prevent infinite FFmpeg loops.
+    """
+    duration = None
+    has_audio = False
+    
+    cmd_dur = [
+        "ffprobe", "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        video_path
+    ]
+    try:
+        res = subprocess.run(cmd_dur, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res.returncode == 0 and res.stdout.strip():
+            duration = float(res.stdout.strip())
+    except Exception:
+        pass
+
+    cmd_aud = [
+        "ffprobe", "-v", "error",
+        "-select_streams", "a",
+        "-show_entries", "stream=codec_type",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        video_path
+    ]
+    try:
+        res = subprocess.run(cmd_aud, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        if res.returncode == 0 and "audio" in res.stdout:
+            has_audio = True
+    except Exception:
+        pass
+
+    return duration, has_audio
+
 def extract_thumbnail_isolated(video_path, output_dir, job_id):
     """Extracts high-res keyframe at 2.5s for the circular zoom hook."""
     output_path = os.path.join(output_dir, f"thumb_{job_id}.jpg")
@@ -139,6 +176,9 @@ def render_channel_video(
     circle_layer_path = os.path.join(workspace_dir, f"circle_{job_id}.png")
     final_render_path = os.path.join(workspace_dir, f"final_{job_id}.mp4")
 
+    # 0. Probe duration and audio stream to prevent hangs
+    duration, has_audio = probe_video_stream_info(input_video_path)
+
     # 1. Extract circle thumbnail
     circle_thumb = extract_thumbnail_isolated(input_video_path, workspace_dir, job_id)
 
@@ -159,31 +199,48 @@ def render_channel_video(
     # 3. Detect best hardware encoder
     enc_name, enc_args = get_best_hardware_encoder()
 
+    filter_complex = (
+        "[0:v]eq=contrast=1.03:brightness=0.01:saturation=1.03,scale=1080:1920:force_original_aspect_ratio=decrease:flags=fast_bilinear,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
+        "[vid][1:v]overlay=0:0:shortest=1[with_base];"
+        "[2:v]fade=t=out:st=4.3:d=0.7:alpha=1[circle_faded];"
+        "[with_base][circle_faded]overlay=0:0:enable='between(t,0,5)':shortest=1[v_out]"
+    )
+
+    duration_args = []
+    if duration and duration > 0:
+        duration_args = ["-t", f"{duration:.3f}"]
+
+    audio_inputs = []
+    if has_audio:
+        audio_maps = ["-map", "0:a", "-af", "aresample=44100", "-c:a", "aac", "-b:a", "192k"]
+    else:
+        # Fallback silent audio track so Instagram accepts the reel cleanly without hanging
+        audio_inputs = ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
+        audio_maps = ["-map", "3:a", "-c:a", "aac", "-b:a", "128k"]
+
     # 4. Ultra-Fast Compositor
     cmd = [
         "ffmpeg", "-y",
         "-i", input_video_path,
         "-loop", "1", "-i", base_layer_path,
         "-loop", "1", "-i", circle_layer_path,
-        "-filter_complex",
-        (
-            "[0:v]eq=contrast=1.03:brightness=0.01:saturation=1.03,scale=1080:1920:force_original_aspect_ratio=decrease:flags=fast_bilinear,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
-            "[vid][1:v]overlay=0:0[with_base];"
-            "[2:v]fade=t=out:st=4.3:d=0.7:alpha=1[circle_faded];"
-            "[with_base][circle_faded]overlay=0:0:enable='between(t,0,5)'[v_out]"
-        ),
+        *audio_inputs,
+        "-filter_complex", filter_complex,
         "-map", "[v_out]",
-        "-map", "0:a?",
-        "-af", "aresample=44100",
+        *audio_maps,
         "-map_metadata", "-1",
         *enc_args,
-        "-c:a", "aac",
-        "-b:a", "192k",
+        *duration_args,
         "-shortest",
         final_render_path
     ]
 
-    res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+    except subprocess.TimeoutExpired:
+        print(f"⚠️ FFmpeg timed out after 120s with {enc_name}. Retrying CPU fallback with strict timeout...")
+        res = subprocess.CompletedProcess(cmd, returncode=1, stderr=b"Timed out")
+
     if res.returncode != 0:
         err = res.stderr.decode("utf-8", errors="ignore")[-500:]
         print(f"FFmpeg error with {enc_name}: {err}")
@@ -195,26 +252,22 @@ def render_channel_video(
             "-i", input_video_path,
             "-loop", "1", "-i", base_layer_path,
             "-loop", "1", "-i", circle_layer_path,
-            "-filter_complex",
-            (
-                "[0:v]eq=contrast=1.03:brightness=0.01:saturation=1.03,scale=1080:1920:force_original_aspect_ratio=decrease:flags=fast_bilinear,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[vid];"
-                "[vid][1:v]overlay=0:0[with_base];"
-                "[2:v]fade=t=out:st=4.3:d=0.7:alpha=1[circle_faded];"
-                "[with_base][circle_faded]overlay=0:0:enable='between(t,0,5)'[v_out]"
-            ),
+            *audio_inputs,
+            "-filter_complex", filter_complex,
             "-map", "[v_out]",
-            "-map", "0:a?",
-            "-af", "aresample=44100",
+            *audio_maps,
             "-map_metadata", "-1",
             "-c:v", "libx264",
             "-preset", "fast",
             "-crf", "23",
-            "-c:a", "aac",
-            "-b:a", "192k",
+            *duration_args,
             "-shortest",
             final_render_path
         ]
-        res_cpu = subprocess.run(cpu_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            res_cpu = subprocess.run(cpu_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
+        except subprocess.TimeoutExpired:
+            raise RuntimeError("FFmpeg processing timed out completely after 180s.")
         if res_cpu.returncode != 0:
             raise RuntimeError(f"FFmpeg processing failed completely: {res_cpu.stderr.decode('utf-8', errors='ignore')[-300:]}")
 

@@ -9,7 +9,8 @@
     "credentials": {
         "gemini_api_key": "${GEMINI_API_KEY}",
         "instagram_account_id": "17841477704155531",
-        "page_access_token": "EAAhE6xjRCjsBTOnnMYUXxhMnDAlCoIvn97cCkawjzL6Uz72BLxOBT2MF5SsyrmbKzka90gVvtPuZB1Sl8l3ZCGhurS5TeuyeqmvnmNsTv4kXAGs4s6vTs3uMfssJYHvk0z2vSdWZA6nCJNqo6lMXiwdsaIoEZAHJveaXcWHxpE4ytFsWWFgAEWa9Y61MlvSTxANQ",
+        "page_access_token": "EAAhE6xjRCjsBTGkIM53npQSEd4mrW2T2n3xZAyGi2ck5JZBmCzBJ9DZCQ57Y7aXZADpIEsnfVmbKK4d6423X5CY21jz2x6oCSCYx9waRCS6vRqPmQ3JNUnzTjb6BOpL7pxIa0ZBLatGbltA9S9ItQYLOqynjdMivWMebOLdZCYndgPMaIyOCc2JaDEgN1kmwmadh2f",
+        "user_access_token": "EAAhE6xjRCjsBTE9yav4jy3hpRi9fKP86AMng9AP1tJ9XE2jO2ZCZA21IGfuXmX3h8aqHBqEaDIkZBXZAQ53z8EJi8jbQH4ukehWurB51kxDCl2Oi3XXQOPLptGJHNnjw0lIWRoL8fktHdOsrZAHj6ZBjoENsKzmj3S5XbjwlAqOocLUFn3kZB6TErqZB3PPYaxvt",
         "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
         "telegram_chat_id": "711598335"
     },

@@ -11,8 +11,8 @@ from core.niche_prompts import get_niche_prompt
 # Primary lightning-fast models with fallback
 WORKING_MODELS = [
     "gemini-3.1-flash-lite",
-    "gemini-3-flash-preview",
-    "gemini-flash-latest"
+    "gemini-flash-latest",
+    "gemini-3-flash-preview"
 ]
 
 def extract_audio_isolated(video_path, output_dir):
@@ -37,6 +37,11 @@ def extract_audio_isolated(video_path, output_dir):
 
 def clean_json_response(raw_text):
     """Safely extracts clean JSON from model response text."""
+    if not raw_text:
+        return ""
+    m = re.search(r'(\{.*\})', raw_text, re.DOTALL)
+    if m:
+        return m.group(1).strip()
     clean = raw_text.strip()
     if clean.startswith("```json"):
         clean = clean[7:]
@@ -67,12 +72,19 @@ def analyze_reel_for_channel(video_file_path, channel_config, creator_username="
         "caption": f"Valuable insights from @{creator_username}\n\nCredits: @{creator_username}"
     }
 
-    if not api_key or api_key.startswith("YOUR_GEMINI"):
+    if not api_key or api_key.startswith("YOUR_GEMINI") or api_key.startswith("$"):
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+
+    if not api_key or api_key.startswith("YOUR_GEMINI") or api_key.startswith("$"):
         print(f"⚠️ [AI Engine] No valid Gemini API key configured for {channel_config.get('channel_id')}. Using fallback metadata.")
         return fallback_data
 
     # Extract isolated audio
     audio_path = extract_audio_isolated(video_file_path, workspace_dir)
+    if not audio_path or not os.path.exists(audio_path) or os.path.getsize(audio_path) < 1000:
+        print(f"🛑 [Audio Guard] REJECTED reel for {channel_config.get('channel_id')}: Video has no valid audio stream.")
+        return {"rejected": True, "reason": "no_audio_stream"}
+
     client = None
     uploaded_file = None
 
@@ -92,8 +104,16 @@ def analyze_reel_for_channel(video_file_path, channel_config, creator_username="
 Context Metadata:
 {context_text}
 
-Listen carefully to the audio and extract the most compelling viral hook and punchline.
-Ensure output matches the required JSON format exactly.
+🎯 CRITICAL AUDIT & TRANSCRIPTION DIRECTIVE (ZERO GENERIC FILLER):
+1. Listen carefully to the entire audio track. Identify the EXACT business model, machine, physical product, raw material, or service being taught (e.g., shipping container cabins, glass recycling cullet, tire puncture machine, dumper truck logistics, petrol pump franchise, tape rewinding machine, amul franchise, vanilla farming).
+2. Extract the EXACT figures and unit economics mentioned in the audio: investment amounts (e.g. ₹50,000), monthly/daily profits (e.g. ₹1 Lakh/month, ₹20,000/day), profit margins (e.g. 200% to 500%), and operational steps.
+3. Ground the Title, Hook Pill, Sub Quote, and Caption 100% in this video's specific business and numbers!
+   - NO generic entrepreneurship cliches (NEVER write "build systems that operate without you", "turn passion into profit", "hustle hard").
+   - Title MUST name the specific business or numbers (e.g. "START THIS BUSINESS WITH JUST ₹50,000 INVESTMENT", "OWN CONTAINERS EARN PASSIVE RENT", "START A BUSINESS WITH 200% TO 500% PROFIT MARGIN").
+   - Hook Pill MUST be 2-4 uppercase words naming the killer angle (e.g. "1 LAKH/MO RENT", "ZERO MARKETING COST", "ZERO COMPETITION BUSINESS", "12-TYRE DUMPER PROFIT").
+   - Caption MUST use the 5-Part Founder Breakdown detailing the actual setup, unit economics, and steps from the audio.
+   - Comment CTA MUST use a specific 1-word keyword matching this product (e.g. Comment "CONTAINER", Comment "GLASS", Comment "MACHINE").
+4. ALL OUTPUT MUST BE 100% IN ENGLISH SCRIPT. NEVER USE DEVANAGARI HINDI SCRIPT (हिंदी लिपि).
 """
 
         contents = []
@@ -114,29 +134,44 @@ Ensure output matches the required JSON format exactly.
                     contents=contents,
                     config=types.GenerateContentConfig(
                         temperature=0.7,
-                        max_output_tokens=800
+                        max_output_tokens=800,
+                        response_mime_type="application/json"
                     )
                 )
                 if response and response.text:
                     clean_txt = clean_json_response(response.text)
                     data = json.loads(clean_txt)
                     if "main_title" in data and "hook_pill" in data:
-                        # Language & Speech Gatekeeper (Strict Hindi & Voice requirement)
+                        # Language, Speech & Niche Gatekeeper
                         is_hindi = data.get("is_hindi", True)
                         has_speech = data.get("has_speech", True)
+                        is_niche_match = data.get("is_niche_match", True)
                         if is_hindi is False:
                             print(f"🛑 [Language Guard] REJECTED reel for {channel_config.get('channel_id')}: Audio is NOT in Hindi.")
                             return {"rejected": True, "reason": "non_hindi_audio"}
                         if has_speech is False:
                             print(f"🛑 [Audio Guard] REJECTED reel for {channel_config.get('channel_id')}: Audio has NO clear human speech (only music/silence).")
                             return {"rejected": True, "reason": "no_speech_music_only"}
+                        if is_niche_match is False:
+                            print(f"🛑 [Niche Guard] REJECTED reel for {channel_config.get('channel_id')}: Content does NOT match channel niche.")
+                            return {"rejected": True, "reason": "wrong_niche"}
 
                         # Meta Policy Compliance Validation
                         from core.compliance_guard import is_reel_compliant
                         is_safe, reason = is_reel_compliant(data.get("main_title", ""), data.get("hook_pill", ""), data.get("caption", ""))
                         if not is_safe:
-                            print(f"🛡️ [Compliance Guard] AI generated unsafe content ({reason}). Reverting to clean fallback.")
-                            return fallback_data
+                            print(f"🛑 [Compliance Guard REJECTED] Unsafe content ({reason}). Trying next candidate...")
+                            return {"rejected": True, "reason": f"compliance_{reason}"}
+
+                        # 🛡️ UNBREAKABLE CHANNEL BRAND INTEGRITY AUDIT (ALL CHANNELS)
+                        from core.brand_security_guard import audit_and_enforce_channel_brand
+                        ch_id = channel_config.get("channel_id", "")
+                        is_brand_ok, brand_reason, sanitized_data = audit_and_enforce_channel_brand(ch_id, data, creator_username)
+                        if not is_brand_ok:
+                            print(f"🛑 [Channel Brand Guard REJECTED] Violation: {brand_reason}. Trying next candidate...")
+                            return {"rejected": True, "reason": brand_reason}
+                        data = sanitized_data
+
                         return data
             except Exception as e_model:
                 print(f"Model {model_name} attempt failed: {e_model}")

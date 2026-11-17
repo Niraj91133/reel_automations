@@ -53,9 +53,14 @@ def get_already_processed_shortcodes():
                 pass
     return processed
 
-def get_shared_reels_from_chat(max_count=10):
-    print("Navigating to Instagram chat with @im_raaaj_ (Startup)...")
-    cookies = parse_cookie_file(COOKIE_FILE)
+def get_shared_reels_from_chat(max_count=10, cookie_file=None, thread_url=None, channel_id="thestartup_street"):
+    is_startup = channel_id in ("thestartup_street", "startup_road")
+    cfile = cookie_file or (os.path.join(BASE_DIR, f"cookies/{channel_id}_cookies.txt") if not is_startup else COOKIE_FILE)
+    if not os.path.exists(cfile):
+        cfile = COOKIE_FILE
+
+    print(f"Navigating to Instagram chat with @im_raaaj_ for [{channel_id}]...")
+    cookies = parse_cookie_file(cfile)
     processed_codes = get_already_processed_shortcodes()
     print(f"Loaded {len(processed_codes)} already-processed shortcodes from history databases.")
 
@@ -90,7 +95,20 @@ def get_shared_reels_from_chat(max_count=10):
         page.route("**/*", block_media_only)
 
         try:
-            page.goto(STARTUP_THREAD_URL, timeout=35000, wait_until="domcontentloaded")
+            if is_startup or thread_url:
+                nav_url = thread_url or STARTUP_THREAD_URL
+                page.goto(nav_url, timeout=35000, wait_until="domcontentloaded")
+            else:
+                # Direct navigation to Raj's profile message button for other accounts
+                page.goto("https://www.instagram.com/im_raaaj_/", timeout=35000, wait_until="domcontentloaded")
+                time.sleep(3)
+                msg_btn = page.query_selector("div[role='button']:has-text('Message'), button:has-text('Message')")
+                if msg_btn:
+                    msg_btn.click()
+                else:
+                    print(f"Note: Message button not found on @im_raaaj_ profile for {channel_id}.")
+                    browser.close()
+                    return []
             time.sleep(3)
 
             not_now = page.query_selector("button:has-text('Not Now')")

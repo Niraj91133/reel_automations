@@ -5,7 +5,9 @@ import json
 import time
 import shutil
 
-sys.path.insert(0, 'reel_automations-main')
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
 from core.config_manager import get_channel_config
 from core.database import ChannelDatabase
@@ -17,38 +19,38 @@ from scraper import download_reel_video
 CHANNELS_TO_REPLENISH = [
     {
         "channel_id": "healthy_diet",
-        "name": "Healthy Diet",
-        "cookie_file": "reel_automations-main/cookies/healthy_diet_cookies.txt",
+        "name": "Healthy Diet (@gudtree_)",
+        "cookie_file": os.path.join(BASE_DIR, "cookies", "healthy_diet_cookies.txt"),
         "target_buffer": 5
     },
     {
         "channel_id": "viral_finds",
-        "name": "Viral Finds",
-        "cookie_file": "reel_automations-main/cookies/viral_finds_cookies.txt",
+        "name": "Trending Road (@trending_road)",
+        "cookie_file": os.path.join(BASE_DIR, "cookies", "viral_finds_cookies.txt"),
         "target_buffer": 5
     },
     {
         "channel_id": "trading_pulse",
-        "name": "Trading Pulse",
-        "cookie_file": "reel_automations-main/cookies/trading_pulse_cookies.txt",
+        "name": "Trading Road (@trading_road_)",
+        "cookie_file": os.path.join(BASE_DIR, "cookies", "trading_pulse_cookies.txt"),
         "target_buffer": 5
     },
     {
-        "channel_id": "startup_road",
-        "name": "Startup Road",
-        "cookie_file": "reel_automations-main/cookies/startup_road_cookies.txt",
+        "channel_id": "thestartup_street",
+        "name": "Startup Road (@startup_road)",
+        "cookie_file": os.path.join(BASE_DIR, "cookies", "thestartup_street_cookies.txt"),
         "target_buffer": 5
     },
     {
         "channel_id": "trading_road24",
-        "name": "Trading Road 24",
-        "cookie_file": "reel_automations-main/cookies/trading_road24_cookies.txt",
+        "name": "Trading Road 24 (@trading_road24)",
+        "cookie_file": os.path.join(BASE_DIR, "cookies", "trading_road24_cookies.txt"),
         "target_buffer": 5
     },
     {
-        "channel_id": "the_loan_road",
-        "name": "The Loan Road",
-        "cookie_file": "reel_automations-main/cookies/the_loan_road_cookies.txt",
+        "channel_id": "theloan_road",
+        "name": "The Loan Road (@the_loan_road)",
+        "cookie_file": os.path.join(BASE_DIR, "cookies", "the_loan_road_cookies.txt"),
         "target_buffer": 5
     }
 ]

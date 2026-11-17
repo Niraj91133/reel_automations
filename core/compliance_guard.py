@@ -13,6 +13,9 @@ from core.iron_shield import (
 
 # Backwards compatible alias
 def is_reel_compliant(title: str, hook_pill: str = "", caption: str = "", gemini_api_key: str = None) -> tuple[bool, str]:
+    from core.brand_security_guard import contains_devanagari
+    if contains_devanagari(title) or contains_devanagari(hook_pill) or contains_devanagari(caption):
+        return False, "🛑 [BRAND INTEGRITY GUARD BLOCKED] Devanagari script is strictly forbidden. Must be 100% English script."
     return is_reel_100pct_safe(title, hook_pill, caption, gemini_api_key)
 
 def check_text_compliance(text: str) -> tuple[bool, str, str]:

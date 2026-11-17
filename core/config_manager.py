@@ -1,8 +1,10 @@
 import os
 import json
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 CONFIGS_DIR = BASE_DIR / "configs"
 DATABASES_DIR = BASE_DIR / "databases"
 
@@ -39,7 +41,9 @@ def get_channel_config(channel_id):
         "trading_pulse": "trading_pulse",
         "trading_road": "trading_pulse",
         "loan_road": "theloan_road",
-        "thestartup_streett": "thestartup_street"
+        "thestartup_streett": "thestartup_street",
+        "trending_road": "viral_finds",
+        "trending": "viral_finds"
     }
     resolved_id = alias_map.get(channel_id, channel_id)
     config_file = CONFIGS_DIR / f"{resolved_id}.json"
@@ -68,7 +72,13 @@ def get_channel_config(channel_id):
     # Allow environment variables to override sensitive credentials if set
     env_prefix = channel_id.upper()
     creds = config.get("credentials", {})
-    creds["gemini_api_key"] = os.environ.get(f"{env_prefix}_GEMINI_KEY", creds.get("gemini_api_key", ""))
+    
+    # Resolve Gemini Key (support fallback to global GEMINI_API_KEY from .env)
+    g_key = creds.get("gemini_api_key", "")
+    if not g_key or g_key.startswith("$") or g_key.startswith("YOUR_"):
+        g_key = os.environ.get(f"{env_prefix}_GEMINI_KEY") or os.environ.get("GEMINI_API_KEY", "")
+    creds["gemini_api_key"] = g_key
+
     creds["instagram_account_id"] = os.environ.get(f"{env_prefix}_IG_ID", creds.get("instagram_account_id", ""))
     creds["page_access_token"] = os.environ.get(f"{env_prefix}_PAGE_TOKEN", creds.get("page_access_token", ""))
     creds["telegram_chat_id"] = os.environ.get(f"{env_prefix}_CHAT_ID", creds.get("telegram_chat_id", ""))
