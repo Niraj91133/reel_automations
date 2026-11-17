@@ -20,21 +20,9 @@
         "min_views": 25000,
         "prioritize_comment_cta": true,
         "keywords": [
-            "smart gadgets you need",
-            "amazon problem solver products",
-            "cool home gadgets india",
-            "best amazon finds 2026",
-            "unique tech gadgets",
-            "amazon kitchen finds"
+            "AutoDm style indian viral product videos often use a direct comment call-to-action to boost engagement. The format opens with a problem or hook in the first 3 seconds, shows the product in use, and ends with text like \"comment 'How'\" to drive replies."
         ],
-        "hashtags": [
-            "#amazonfinds",
-            "#smartgadgets",
-            "#coolgadgets",
-            "#amazonmusthaves",
-            "#techgadgets",
-            "#homefinds"
-        ],
+        "hashtags": [],
         "cookie_file": "cookies/viral_finds_cookies.txt"
     },
     "content_settings": {

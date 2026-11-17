@@ -11,5 +11,17 @@
     "page_access_token": "EAAhE6xjRCjsBTMYUwVLo3ShHcdCC1jj0L2ureULgizAcbkNhZBrvqqoPq1TyIx3n1UhYz6rRGulcBaDAmQta321rZBrQKeL2RBtzSxZAmlZBwNsWCUPe0LwpcNEAnBW65MZC19Kby3DtNjVnLwDQCoyDbTZBKEUPuSDsXYr6qanFx2YtTRs0IXDXIzqcTYOgdZBhkW310oe",
     "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
     "telegram_chat_id": "711598335"
+  },
+  "hunting_settings": {
+    "dm_target_chat": "im_raaaj_",
+    "hunt_target_daily": 30,
+    "min_views": 25000,
+    "prioritize_comment_cta": true,
+    "require_comment_cta": true,
+    "keywords": [
+      "AutoDm style indian trading videos often use a direct comment call-to-action to boost engagement. The format opens with a problem or hook in the first 3 seconds, teach and train about trading and how to earn money, and ends with text like \"comment 'How'\" to drive replies."
+    ],
+    "hashtags": [],
+    "cookie_file": "cookies/trading_road24_cookies.txt"
   }
 }
