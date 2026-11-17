@@ -67,9 +67,9 @@ CHANNEL_BRAND_REGISTRY = {
         "primary_color": (37, 99, 235, 255),   # Royal Blue #2563EB
         "accent_color": (255, 255, 255, 255),
         "top_logo": "loan road",
-        "default_pill": "GROW MONEY WISELY",
+        "default_pill": "LOAN KNOWLEDGE",
         "follow_handle": "@the_loan_road",
-        "hashtags": "#GrowMoneyWisely #SavingsAmount #IncomeEngine #PersonalFinance #MoneySecrets #WealthBuilding #FinancialFreedom"
+        "hashtags": "#LoanRoad #BusinessLoans #MudraYojana #CIBILScore #MSMEIndia #FinancialLiteracy #BankingAwareness"
     }
 }
 

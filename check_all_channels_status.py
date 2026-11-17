@@ -8,7 +8,7 @@ print(f"Current System Time: {now_str}\n")
 
 channels = [
     {"name": "🚀 Startup Road (@startup_road)", "db": "databases/thestartup_street_history.db"},
-    {"name": "🔄 The Startup Road [Mirror] (@the_startuproad)", "db": "databases/the_startuproad_history.db"},
+    {"name": "🔄 The Startup Road [Mirror] (@the_startuproad)", "db": "databases/the_startuproad_mirror.db", "is_mirror": True},
     {"name": "📈 Trading Road (@trading_road_)", "db": "databases/trading_pulse_history.db"},
     {"name": "🥗 Gud Tree (@gudtree_)", "db": "databases/healthy_diet_history.db"},
     {"name": "🛍️ Trending Road (@trending_road)", "db": "databases/viral_finds_history.db"},
@@ -21,6 +21,7 @@ total_posted_today = 0
 for ch in channels:
     name = ch["name"]
     db_path = ch["db"]
+    is_mirror = ch.get("is_mirror", False)
     print("=" * 65)
     print(f"📌 {name}")
     print("=" * 65)
@@ -33,11 +34,18 @@ for ch in channels:
     c = conn.cursor()
 
     # 1. Reels
-    c.execute(
-        "SELECT id, shortcode, title, permalink, created_at FROM processed_reels WHERE created_at LIKE ? ORDER BY id ASC",
-        (f"{today}%",)
-    )
-    reels = c.fetchall()
+    if is_mirror:
+        c.execute(
+            "SELECT queue_index, source_media_id, caption, permalink, published_at FROM mirror_queue WHERE published_at LIKE ? ORDER BY published_at ASC",
+            (f"{today}%",)
+        )
+        reels = c.fetchall()
+    else:
+        c.execute(
+            "SELECT id, shortcode, title, permalink, created_at FROM processed_reels WHERE created_at LIKE ? ORDER BY id ASC",
+            (f"{today}%",)
+        )
+        reels = c.fetchall()
     total_posted_today += len(reels)
     print(f"  🎬 REELS POSTED TODAY ({today}): {len(reels)} / 30 slots")
     if reels:
