@@ -20,7 +20,7 @@ from core.database import ChannelDatabase
 
 CHANNELS = [
     ("thestartup_street", "🚀 Startup Road", "@startup_road"),
-    ("the_startuproad", "🔄 The Startup Road [Mirror]", "@the_startuproad"),
+    ("marketing_road24", "📱 Marketing Road", "@marketing_road24"),
     ("trading_pulse", "📈 Trading Road", "@trading_road_"),
     ("healthy_diet", "🥗 Gud Tree", "@gudtree_"),
     ("viral_finds", "🛍️ Trending Road", "@trending_road"),

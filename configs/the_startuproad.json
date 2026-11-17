@@ -1,9 +1,9 @@
 {
   "channel_id": "the_startuproad",
-  "display_name": "The Startup Road",
-  "instagram_username": "the_startuproad",
-  "category": "startup_mirror",
-  "description": "Chronological mirror of @startup_road from the very first video onwards (30 reels/day)",
+  "display_name": "Marketing Road 24",
+  "instagram_username": "marketing_road24",
+  "category": "marketing",
+  "description": "Digital Marketing Strategies, SEO, Paid Ads, Social Media Hacks, Funnel Building, Growth Hacking, and Online Business Marketing in Hindi",
   "enabled": true,
   "credentials": {
     "gemini_api_key": "${GEMINI_API_KEY}",
@@ -12,13 +12,39 @@
     "telegram_bot_token": "8149202459:AAGRZBE4uZY7UXUV4HySazIuc-M5V2hHK8A",
     "telegram_chat_id": "711598335"
   },
-  "mirror_settings": {
-    "source_channel": "startup_road",
-    "source_instagram_account_id": "17841464149880503",
-    "daily_post_limit": 30,
-    "strategy": "chronological_oldest_first",
+  "hunting_settings": {
+    "dm_target_chat": "im_raaaj_",
+    "hunt_target_daily": 30,
+    "min_views": 25000,
+    "prioritize_comment_cta": true,
+    "require_comment_cta": true,
+    "keywords": [
+      "AutoDm style digital marketing and marketing videos often use a direct comment call-to-action to boost engagement. The format opens with a problem or hook in the first 3 seconds, teach and educate about marketing and digital marketing, and ends with text like \"comment 'How'\" to drive replies."
+    ],
+    "hashtags": [],
+    "cookie_file": "cookies/the_startuproad_cookies.txt"
+  },
+  "content_settings": {
+    "default_hook_pill": "MARKETING HACK",
+    "tag_text": "MARKETING ROAD:",
+    "first_comment_template": "Digital marketing checklist, ad templates & growth framework chahiye? Comment 'MARKETING' aur apna brand niche batayein! 🚀",
+    "theme_color_primary": [
+      147,
+      51,
+      234,
+      255
+    ],
+    "theme_color_accent": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "daily_post_limit": 30
+  },
+  "schedule_settings": {
     "start_hour": 6,
-    "end_hour": 22,
-    "interval_minutes": 32
+    "end_hour": 21,
+    "interval_minutes": 30
   }
 }

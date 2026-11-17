@@ -8,7 +8,7 @@ print(f"Current System Time: {now_str}\n")
 
 channels = [
     {"name": "🚀 Startup Road (@startup_road)", "db": "databases/thestartup_street_history.db"},
-    {"name": "🔄 The Startup Road [Mirror] (@the_startuproad)", "db": "databases/the_startuproad_mirror.db", "is_mirror": True},
+    {"name": "📱 Marketing Road (@marketing_road24)", "db": "databases/marketing_road24_history.db"},
     {"name": "📈 Trading Road (@trading_road_)", "db": "databases/trading_pulse_history.db"},
     {"name": "🥗 Gud Tree (@gudtree_)", "db": "databases/healthy_diet_history.db"},
     {"name": "🛍️ Trending Road (@trending_road)", "db": "databases/viral_finds_history.db"},
