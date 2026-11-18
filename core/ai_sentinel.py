@@ -19,7 +19,7 @@ import sqlite3
 import shutil
 import urllib.request
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Ensure root directory is in sys.path
@@ -53,7 +53,7 @@ class SentinelBot:
 
     def _get_ist_time(self):
         """Returns current Indian Standard Time as formatted string."""
-        ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
+        ist_now = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
         return ist_now.strftime("%Y-%m-%d %I:%M:%S %p IST")
 
     # ==========================================
@@ -166,17 +166,17 @@ class SentinelBot:
                 if os.path.exists(db_path):
                     conn = sqlite3.connect(db_path)
                     c = conn.cursor()
-                    c.execute("SELECT count(*) FROM processed_reels WHERE created_at LIKE ?", (f"{datetime.utcnow().strftime('%Y-%m-%d')}%",))
+                    c.execute("SELECT count(*) FROM processed_reels WHERE created_at LIKE ?", (f"{datetime.now(timezone.utc).strftime('%Y-%m-%d')}%",))
                     ch_telemetry["today_posts_count"] = c.fetchone()[0]
                     c.execute("SELECT created_at FROM processed_reels ORDER BY id DESC LIMIT 1")
                     last_row = c.fetchone()
                     conn.close()
                     if last_row and last_row[0]:
                         try:
-                            last_utc = datetime.strptime(last_row[0], "%Y-%m-%d %H:%M:%S")
+                            last_utc = datetime.strptime(last_row[0], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
                             last_ist = last_utc + timedelta(hours=5, minutes=30)
                             ch_telemetry["last_post_time_ist"] = last_ist.strftime("%I:%M %p")
-                            diff_sec = (datetime.utcnow() - last_utc).total_seconds()
+                            diff_sec = (datetime.now(timezone.utc) - last_utc).total_seconds()
                             ch_telemetry["minutes_since_last_post"] = round(diff_sec / 60, 1)
                         except:
                             pass
@@ -280,12 +280,106 @@ Generate the complete Predictive SRE Health Audit Report now.
             return fallback_report
 
     # ==========================================
-    # 3. DISPATCH & REPORTING
+    # 3. AUTONOMOUS SELF-HEALING REMEDIATION
     # ==========================================
-    def execute_audit(self, notify_telegram=True):
-        """Full end-to-end execution: Collect Telemetry -> Run AI Diagnosis -> Send to Telegram."""
+    def execute_auto_remediation(self, telemetry):
+        """
+        Autonomous Self-Healing:
+        Takes immediate corrective action whenever anomalies or bottlenecks are detected:
+        1. Revives Dispatcher if it stopped or crashed.
+        2. Auto-prebakes fresh reels if any channel's ready buffer drops below MIN_BUFFER_THRESHOLD (< 6).
+        3. Sends real-time action notifications to Telegram.
+        """
+        remediations = []
+        print("🛠️ [Sentinel AI] Evaluating Auto-Remediation conditions...")
+
+        # 1. Dispatcher Auto-Revival
+        if not telemetry.get("dispatcher_active"):
+            print("🚨 [Sentinel Self-Heal] Dispatcher is DOWN! Auto-reviving dispatcher daemon...")
+            try:
+                import subprocess
+                cmd = [sys.executable, str(BASE_DIR / "run_all_4channels_tomorrow_dispatcher.py")]
+                proc = subprocess.Popen(cmd, cwd=str(BASE_DIR), creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == 'win32' else 0)
+                action_info = {
+                    "action": "restart_dispatcher",
+                    "pid": proc.pid,
+                    "detail": "Restarted dead dispatcher daemon process",
+                    "time": self._get_ist_time()
+                }
+                remediations.append(action_info)
+                print(f"✅ [Sentinel Self-Heal] Dispatcher revived! New PID: {proc.pid}")
+                if self.hub:
+                    self.hub.send_message(
+                        "🚨 <b>[AUTO-HEAL TRIGGERED]</b> Dispatcher daemon was inactive. Sentinel AI automatically restarted <code>run_all_4channels_tomorrow_dispatcher.py</code> in background!",
+                        parse_mode="HTML"
+                    )
+            except Exception as e_disp:
+                print(f"Error reviving dispatcher: {e_disp}")
+
+        # 2. Buffer Auto-Replenishment (Threshold: < 6 reels)
+        MIN_SAFE_BUFFER = 6
+        for ch_id, ch_data in telemetry.get("channels", {}).items():
+            buf_count = ch_data.get("ready_buffer_count", 0)
+            ch_name = ch_data.get("display_name", ch_id)
+            if buf_count < MIN_SAFE_BUFFER:
+                needed = MIN_SAFE_BUFFER - buf_count + 3  # Pre-bake up to safe level
+                print(f"⚡ [Sentinel Self-Heal] Deficit detected for [{ch_name}] (Buffer: {buf_count}). Auto-baking {needed} reels...")
+                try:
+                    from prebake_autopilot_channels import prebake_channel_reels
+                    prebake_channel_reels(ch_id, count=needed)
+                    action_info = {
+                        "action": "refill_buffer",
+                        "channel": ch_id,
+                        "reels_baked": needed,
+                        "previous_buffer": buf_count,
+                        "time": self._get_ist_time()
+                    }
+                    remediations.append(action_info)
+                    print(f"✅ [Sentinel Self-Heal] Successfully replenished buffer for {ch_name}!")
+                    if self.hub:
+                        self.hub.send_message(
+                            f"🛠️ <b>[AUTO-HEAL TRIGGERED]</b> Buffer for <b>{ch_name}</b> was low ({buf_count} reels). Sentinel AI automatically baked {needed} fresh reels. Buffer safely restored! 🟢",
+                            parse_mode="HTML"
+                        )
+                except Exception as e_bake:
+                    print(f"Error auto-baking buffer for {ch_id}: {e_bake}")
+
+        return remediations
+
+    def save_live_state(self, telemetry, ai_report, remediations):
+        """Saves machine-readable live state for Antigravity AI Agent and external systems."""
+        state_file = BASE_DIR / "databases" / "sentinel_live_state.json"
+        state_data = {
+            "last_updated_ist": self._get_ist_time(),
+            "dispatcher_active": telemetry.get("dispatcher_active", False),
+            "system_disk_free_gb": telemetry.get("system", {}).get("disk_free_gb", 0),
+            "recent_log_anomalies": telemetry.get("recent_log_anomalies", []),
+            "channels": telemetry.get("channels", {}),
+            "latest_remediations": remediations,
+            "latest_audit_summary": ai_report[:600] if ai_report else ""
+        }
+        try:
+            with open(state_file, "w", encoding="utf-8") as f:
+                json.dump(state_data, f, indent=2)
+            print("💾 [Sentinel AI] Machine-readable live state saved to databases/sentinel_live_state.json")
+        except Exception as e:
+            print(f"Error saving live state: {e}")
+
+    # ==========================================
+    # 4. DISPATCH, REPORTING & WATCHDOG
+    # ==========================================
+    def execute_audit(self, notify_telegram=True, auto_heal=True):
+        """Full end-to-end execution: Collect Telemetry -> Auto-Remediate -> Run AI Diagnosis -> Send to Telegram."""
         telemetry = self.collect_telemetry()
+        remediations = []
+        if auto_heal:
+            remediations = self.execute_auto_remediation(telemetry)
+            # Re-collect channel buffer counts if remediation modified them
+            if remediations:
+                telemetry = self.collect_telemetry()
+
         ai_report = self.run_ai_predictive_audit(telemetry)
+        self.save_live_state(telemetry, ai_report, remediations)
 
         # 1. Print to console
         print("\n" + "=" * 65)
@@ -300,6 +394,7 @@ Generate the complete Predictive SRE Health Audit Report now.
                 f.write(json.dumps({
                     "timestamp": telemetry["timestamp_ist"],
                     "telemetry": telemetry,
+                    "remediations": remediations,
                     "report_summary": ai_report[:300]
                 }) + "\n")
         except:
@@ -308,10 +403,8 @@ Generate the complete Predictive SRE Health Audit Report now.
         # 3. Send to Telegram
         if notify_telegram and self.hub:
             print(f"📲 [Sentinel AI] Dispatching report to Telegram ({self.chat_id})...")
-            # Wrap in HTML header
             header = f"🛡️ <b>SENTINEL AI • LIVE PIPELINE AUDIT</b>\n<i>Autonomous System Reliability & Prediction</i>\n\n"
             full_msg = header + ai_report
-            # Truncate if exceeds Telegram 4096 character limit
             if len(full_msg) > 4000:
                 chunks = [full_msg[i:i+3900] for i in range(0, len(full_msg), 3900)]
                 for chunk in chunks:
@@ -322,6 +415,38 @@ Generate the complete Predictive SRE Health Audit Report now.
 
         return ai_report
 
+    def run_continuous_watchdog(self, interval_seconds=900):
+        """
+        Standing Autonomous Sentinel Daemon:
+        Runs every `interval_seconds` (default: 15 minutes / 900s).
+        Continuously senses health, heals deficits, and reports status.
+        """
+        print("========================================================")
+        print("🛡️ SENTINEL AI CONTINUOUS SRE WATCHDOG STARTED")
+        print(f"Interval: Every {interval_seconds // 60} minutes")
+        print("Capabilities: Telemetry Sensing + Auto-Healing + Predictive Audits")
+        print("========================================================\n")
+        
+        cycle = 0
+        while True:
+            cycle += 1
+            print(f"\n--- [Sentinel Watchdog Cycle #{cycle} @ {self._get_ist_time()}] ---")
+            try:
+                # Send full executive report every 4 cycles (hourly) or if an action was taken
+                self.execute_audit(notify_telegram=True, auto_heal=True)
+            except Exception as e:
+                print(f"⚠️ Error during Sentinel cycle #{cycle}: {e}")
+
+            print(f"⏳ Sleeping {interval_seconds // 60}m until next Sentinel audit cycle...")
+            time.sleep(interval_seconds)
+
 if __name__ == '__main__':
+    daemon_mode = "--daemon" in sys.argv
+    skip_telegram = "--no-telegram" in sys.argv
+    no_heal = "--no-heal" in sys.argv
+
     sentinel = SentinelBot()
-    sentinel.execute_audit(notify_telegram=True)
+    if daemon_mode:
+        sentinel.run_continuous_watchdog(interval_seconds=900)
+    else:
+        sentinel.execute_audit(notify_telegram=not skip_telegram, auto_heal=not no_heal)

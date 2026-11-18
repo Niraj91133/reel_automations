@@ -252,20 +252,48 @@ def run_all_channels_dispatcher(run_once=False):
         ]
         target_slots_by_now = max(1, len(elapsed_slots))
 
-        any_action = False
+        # Dynamic Fair-Share Scheduler:
+        # Collect candidate channels and sort by highest deficit & longest time without post.
+        # This completely eliminates starvation and guarantees all channels stay in sync.
+        candidate_pool = []
         for ch_id, name, handle in CHANNELS:
             cfg = get_channel_config(ch_id)
             if not cfg.get("enabled", True):
                 continue
             db = ChannelDatabase(cfg["runtime"]["db_path"])
-            posted_today_count = db.get_today_count()
+            posted_today = db.get_today_count()
+            last_time = last_post_time.get(ch_id, 0)
+            elapsed_channel = time.time() - last_time
+            deficit = target_slots_by_now - posted_today
+
+            candidate_pool.append({
+                "ch_id": ch_id,
+                "name": name,
+                "handle": handle,
+                "cfg": cfg,
+                "db": db,
+                "posted_today": posted_today,
+                "last_time": last_time,
+                "elapsed_channel": elapsed_channel,
+                "deficit": deficit
+            })
+
+        # Sort: Primary = highest deficit, Secondary = longest time since last post
+        candidate_pool.sort(key=lambda x: (x["deficit"], x["elapsed_channel"]), reverse=True)
+
+        any_action = False
+        elapsed_since_global = time.time() - global_last_post_time
+
+        for cand in candidate_pool:
+            ch_id = cand["ch_id"]
+            name = cand["name"]
+            handle = cand["handle"]
+            cfg = cand["cfg"]
+            posted_today_count = cand["posted_today"]
+            elapsed_since_channel = cand["elapsed_channel"]
 
             # If this channel is behind the scheduled target and hasn't hit 30:
             if posted_today_count < target_slots_by_now and posted_today_count < 30:
-                last_time = last_post_time.get(ch_id, 0)
-                elapsed_since_channel = time.time() - last_time
-                elapsed_since_global = time.time() - global_last_post_time
-
                 # Enforce:
                 # 1. At least 5 minutes since ANY channel posted across the system
                 # 2. At least 25 minutes since THIS specific channel posted
@@ -273,7 +301,7 @@ def run_all_channels_dispatcher(run_once=False):
                    (elapsed_since_channel >= MIN_GAP_PER_CHANNEL or run_once):
                     next_slot = posted_today_count + 1
                     queue_dir = os.path.join(cfg["runtime"]["workspace_dir"], "tomorrow_reels")
-                    print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/30 (Target by now: {target_slots_by_now}, Last posted: {elapsed_since_channel/60:.1f}m ago). Dispatching Slot #{next_slot}...")
+                    print(f"\n⏰ [Fair Schedule Trigger] {name}: Posted {posted_today_count}/30 (Deficit: {cand['deficit']}, Last posted: {elapsed_since_channel/60:.1f}m ago). Dispatching Slot #{next_slot}...")
                     
                     success = publish_channel_slot(ch_id, name, handle, next_slot, queue_dir)
                     if success:
