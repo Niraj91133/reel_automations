@@ -104,16 +104,11 @@ def analyze_reel_for_channel(video_file_path, channel_config, creator_username="
 Context Metadata:
 {context_text}
 
-🎯 CRITICAL AUDIT & TRANSCRIPTION DIRECTIVE (ZERO GENERIC FILLER):
-1. Listen carefully to the entire audio track. Identify the EXACT business model, machine, physical product, raw material, or service being taught (e.g., shipping container cabins, glass recycling cullet, tire puncture machine, dumper truck logistics, petrol pump franchise, tape rewinding machine, amul franchise, vanilla farming).
-2. Extract the EXACT figures and unit economics mentioned in the audio: investment amounts (e.g. ₹50,000), monthly/daily profits (e.g. ₹1 Lakh/month, ₹20,000/day), profit margins (e.g. 200% to 500%), and operational steps.
-3. Ground the Title, Hook Pill, Sub Quote, and Caption 100% in this video's specific business and numbers!
-   - NO generic entrepreneurship cliches (NEVER write "build systems that operate without you", "turn passion into profit", "hustle hard").
-   - Title MUST name the specific business or numbers (e.g. "START THIS BUSINESS WITH JUST ₹50,000 INVESTMENT", "OWN CONTAINERS EARN PASSIVE RENT", "START A BUSINESS WITH 200% TO 500% PROFIT MARGIN").
-   - Hook Pill MUST be 2-4 uppercase words naming the killer angle (e.g. "1 LAKH/MO RENT", "ZERO MARKETING COST", "ZERO COMPETITION BUSINESS", "12-TYRE DUMPER PROFIT").
-   - Caption MUST use the 5-Part Founder Breakdown detailing the actual setup, unit economics, and steps from the audio.
-   - Comment CTA MUST use a specific 1-word keyword matching this product (e.g. Comment "CONTAINER", Comment "GLASS", Comment "MACHINE").
-4. ALL OUTPUT MUST BE 100% IN ENGLISH SCRIPT. NEVER USE DEVANAGARI HINDI SCRIPT (हिंदी लिपि).
+🎯 CRITICAL AUDIT & TRANSCRIPTION DIRECTIVES (ZERO GENERIC FILLER):
+1. Listen carefully to the entire audio track and deeply ground your output in the EXACT topic, framework, advice, or numbers spoken in this specific video.
+2. STRICT TITLE LENGTH RULE: The `main_title` MUST BE MAXIMUM 2 SHORT LINES (strictly between 5 to 9 total uppercase words, under 42 characters total). NEVER write 3 or 4 lines! Keep it bold, punchy, curiosity-inducing, and highly engaging.
+3. NICHE MATCH RULE: The content MUST strictly belong to this channel's defined niche. If this video is completely unrelated to the channel niche (for example, a trading video on loan page, or loan video on trading page), you MUST set "is_niche_match": false!
+4. LANGUAGE & SCRIPT: The audio must be in Hindi/Hinglish. ALL OUTPUT FIELDS MUST BE 100% IN ENGLISH SCRIPT. NEVER USE DEVANAGARI HINDI SCRIPT (हिंदी लिपि).
 """
 
         contents = []
@@ -142,6 +137,16 @@ Context Metadata:
                     clean_txt = clean_json_response(response.text)
                     data = json.loads(clean_txt)
                     if "main_title" in data and "hook_pill" in data:
+                        # ✂️ STRICT 2-LINE TITLE SANITIZER (NEVER ALLOWS 3 OR 4 LINES)
+                        raw_t = data.get("main_title", "").strip()
+                        t_lines = [l.strip() for l in raw_t.split("\n") if l.strip()]
+                        if len(t_lines) > 2:
+                            data["main_title"] = "\n".join(t_lines[:2])
+                        elif len(t_lines) == 1 and len(raw_t.split()) > 7:
+                            # Split into two balanced lines if single line is too long
+                            w = raw_t.split()
+                            mid = len(w) // 2
+                            data["main_title"] = " ".join(w[:mid]) + "\n" + " ".join(w[mid:])
                         # Language, Speech & Niche Gatekeeper
                         is_hindi = data.get("is_hindi", True)
                         has_speech = data.get("has_speech", True)

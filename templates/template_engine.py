@@ -18,6 +18,59 @@ def get_font(size, bold=True):
             continue
     return ImageFont.load_default()
 
+def wrap_title_strictly_max_2_lines(text, base_font_size, max_width, draw, bold=True):
+    """
+    Guarantees title NEVER exceeds 2 lines on the video overlay.
+    Dynamically adapts font size if needed and strictly limits to max 2 lines.
+    """
+    clean_text = ' '.join(text.replace('\n', ' ').split())
+    words = clean_text.split()
+    for f_size in [base_font_size, base_font_size - 4, base_font_size - 8]:
+        font = get_font(f_size, bold=bold)
+        lines = []
+        current = []
+        for w in words:
+            test_line = ' '.join(current + [w])
+            bbox = draw.textbbox((0, 0), test_line, font=font)
+            if bbox[2] - bbox[0] <= max_width:
+                current.append(w)
+            else:
+                if current:
+                    lines.append(' '.join(current))
+                    current = [w]
+                else:
+                    lines.append(w)
+                    current = []
+        if current:
+            lines.append(' '.join(current))
+        if len(lines) <= 2:
+            return '\n'.join(lines), font
+            
+    font = get_font(base_font_size - 8, bold=bold)
+    line1_words = []
+    idx = 0
+    while idx < len(words):
+        test_l1 = ' '.join(line1_words + [words[idx]])
+        bbox = draw.textbbox((0, 0), test_l1, font=font)
+        if bbox[2] - bbox[0] <= max_width:
+            line1_words.append(words[idx])
+            idx += 1
+        else:
+            break
+            
+    line2_words = []
+    while idx < len(words):
+        test_l2 = ' '.join(line2_words + [words[idx]])
+        bbox = draw.textbbox((0, 0), test_l2, font=font)
+        if bbox[2] - bbox[0] <= max_width:
+            line2_words.append(words[idx])
+            idx += 1
+        else:
+            break
+            
+    res = [l for l in [' '.join(line1_words), ' '.join(line2_words)] if l]
+    return '\n'.join(res[:2]), font
+
 def wrap_text_to_width(text, font, max_width, draw):
     words = text.split()
     lines = []
@@ -104,12 +157,12 @@ def create_base_layer(
     )
     draw.text((tag_x + 10, pill_y - 2), hook_pill, fill="white", font=font_pill)
 
-    # 5. Main Title (Auto-wrapped strictly to 770px)
-    wrapped_title = wrap_text_to_width(main_title.replace("\n", " "), font_title, 770, draw)
+    # 5. Main Title (STRICTLY MAXIMUM 2 LINES - NEVER EXCEEDS 2 LINES)
+    wrapped_title, title_font = wrap_title_strictly_max_2_lines(main_title, 54, 770, draw, bold=True)
     title_y = pill_y + pill_height + 26
-    draw.multiline_text((tag_x, title_y), wrapped_title, fill="white", font=font_title, spacing=14)
+    draw.multiline_text((tag_x, title_y), wrapped_title, fill="white", font=title_font, spacing=14)
     
-    title_bbox = draw.multiline_textbbox((tag_x, title_y), wrapped_title, font=font_title, spacing=14)
+    title_bbox = draw.multiline_textbbox((tag_x, title_y), wrapped_title, font=title_font, spacing=14)
     title_height = title_bbox[3] - title_bbox[1]
 
     # 6. Sub Quote (Auto-wrapped within 770px)

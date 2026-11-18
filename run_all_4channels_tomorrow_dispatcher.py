@@ -20,12 +20,12 @@ from core.database import ChannelDatabase
 
 CHANNELS = [
     ("thestartup_street", "🚀 Startup Road", "@startup_road"),
-    ("marketing_road24", "📱 Marketing Road", "@marketing_road24"),
-    ("trading_pulse", "📈 Trading Road", "@trading_road_"),
     ("healthy_diet", "🥗 Gud Tree", "@gudtree_"),
-    ("viral_finds", "🛍️ Trending Road", "@trending_road"),
+    ("trading_road24", "📊 Trading Knowledge", "@trading_road24"),
     ("theloan_road", "💳 The Loan Road", "@the_loan_road"),
-    ("trading_road24", "📊 Trading Knowledge", "@trading_road24")
+    ("marketing_road24", "📱 Marketing Road", "@marketing_road24"),
+    ("viral_finds", "🛍️ Trending Road", "@trending_road"),
+    ("trading_pulse", "📈 Trading Road", "@trading_road_")
 ]
 
 # 30 Slots across 07:00 AM - 09:50 PM (~30.7 minutes apart, finishing before 10:00 PM nightly editing window)
@@ -221,12 +221,21 @@ def run_all_channels_dispatcher(run_once=False):
     print("Anti-Spam Pacing: Strict ~25-30 min gap per channel")
     print("========================================================\n")
 
-    MIN_GAP_PER_CHANNEL = 1500  # 25 minutes minimum gap per channel (approx. half-hour pacing)
+    MIN_GAP_PER_CHANNEL = 1500      # 25-30 minutes minimum gap on the SAME channel
+    CROSS_CHANNEL_STAGGER = 300     # 5 minutes exact stagger between different channels
     last_post_time = {}
+    global_last_post_time = 0
+
     for ch_id, name, handle in CHANNELS:
         cfg = get_channel_config(ch_id)
         if cfg.get("enabled", True):
-            last_post_time[ch_id] = get_channel_last_post_epoch(cfg["runtime"]["db_path"])
+            epoch = get_channel_last_post_epoch(cfg["runtime"]["db_path"])
+            last_post_time[ch_id] = epoch
+            if epoch > global_last_post_time:
+                global_last_post_time = epoch
+
+    print(f"⏱️ Cross-Channel Stagger Active: Exactly 5 minutes between different IDs.")
+    print(f"⏱️ Per-Channel Pacing Active: ~25-30 minutes between posts on the same ID.\n")
 
     while True:
         now = datetime.now()
@@ -254,22 +263,28 @@ def run_all_channels_dispatcher(run_once=False):
             # If this channel is behind the scheduled target and hasn't hit 30:
             if posted_today_count < target_slots_by_now and posted_today_count < 30:
                 last_time = last_post_time.get(ch_id, 0)
-                elapsed_since_last = time.time() - last_time
-                # Enforce strict ~25-30 minute pacing between consecutive posts on the SAME channel
-                if elapsed_since_last >= MIN_GAP_PER_CHANNEL or run_once:
+                elapsed_since_channel = time.time() - last_time
+                elapsed_since_global = time.time() - global_last_post_time
+
+                # Enforce:
+                # 1. At least 5 minutes since ANY channel posted across the system
+                # 2. At least 25 minutes since THIS specific channel posted
+                if (elapsed_since_global >= CROSS_CHANNEL_STAGGER or run_once) and \
+                   (elapsed_since_channel >= MIN_GAP_PER_CHANNEL or run_once):
                     next_slot = posted_today_count + 1
                     queue_dir = os.path.join(cfg["runtime"]["workspace_dir"], "tomorrow_reels")
-                    print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/30 (Target by now: {target_slots_by_now}, Last posted: {elapsed_since_last/60:.1f}m ago). Dispatching Slot #{next_slot}...")
+                    print(f"\n⏰ [Schedule Trigger] {name}: Posted {posted_today_count}/30 (Target by now: {target_slots_by_now}, Last posted: {elapsed_since_channel/60:.1f}m ago). Dispatching Slot #{next_slot}...")
                     
                     success = publish_channel_slot(ch_id, name, handle, next_slot, queue_dir)
                     if success:
-                        last_post_time[ch_id] = time.time()
+                        now_epoch = time.time()
+                        last_post_time[ch_id] = now_epoch
+                        global_last_post_time = now_epoch
                         any_action = True
-                        # Small stagger of 25 seconds between different channels
-                        time.sleep(25)
+                        break  # Yield to wait the 5-minute stagger window before next channel
                     else:
-                        # On temporary failure, back off 5 minutes before retrying this channel
-                        last_post_time[ch_id] = time.time() - (MIN_GAP_PER_CHANNEL - 300)
+                        # On temporary failure, back off 3 minutes before retrying this channel
+                        last_post_time[ch_id] = time.time() - (MIN_GAP_PER_CHANNEL - 180)
 
         if run_once:
             print("Run-once cycle completed.")

@@ -287,7 +287,9 @@ Your job is to educate borrowers on genuine eligibility, government subsidies, a
 CRITICAL SCRIPT & LANGUAGE RULES (ZERO TOLERANCE):
 1. AUDIO INPUT: The audio MUST be spoken in Hindi (or natural Hinglish by Indian creators). If purely in English or foreign language, set "is_hindi": false.
 2. HUMAN SPEECH: Clear human voice explaining. If music only or silence, set "has_speech": false.
-3. CRITICAL RBI & META COMPLIANCE: Purely educational. NEVER promise 100% guaranteed loan approvals without documents. NEVER ask for OTPs or advance fees.
+3. NICHE RELEVANCE: The video MUST be about loans (business loan, Mudra loan, home loan, MSME funding), banking rules, CIBIL score, government loan schemes/subsidies, or credit repair. If it is about stock market trading, candlestick charts, food, or general startup, set "is_niche_match": false!
+4. CRITICAL RBI & META COMPLIANCE: Purely educational. NEVER promise 100% guaranteed loan approvals without documents. NEVER ask for OTPs or advance fees.
+5. STRICT TITLE LENGTH RULE: The `main_title` MUST BE STRICTLY MAXIMUM 2 LINES (5 to 9 uppercase words, under 42 characters). NEVER write 3 or 4 lines! Keep it bold, clear, and punchy.
 4. OUTPUT SCRIPT: ALL OUTPUT FIELDS ("hook_pill", "main_title", "sub_quote", "caption") MUST BE 100% IN ENGLISH SCRIPT.
    ⚠️ NEVER WRITE IN DEVANAGARI HINDI SCRIPT (हिंदी लिपि). Any Devanagari character is strictly forbidden and will trip the security guard.
 5. DEEP AUDIO GROUNDING (ZERO GENERIC CONTENT):
