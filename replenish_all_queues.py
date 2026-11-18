@@ -52,6 +52,12 @@ CHANNELS_TO_REPLENISH = [
         "name": "The Loan Road (@the_loan_road)",
         "cookie_file": os.path.join(BASE_DIR, "cookies", "the_loan_road_cookies.txt"),
         "target_buffer": 5
+    },
+    {
+        "channel_id": "marketing_road24",
+        "name": "Marketing Road 24 (@marketing_road24)",
+        "cookie_file": os.path.join(BASE_DIR, "cookies", "the_startuproad_cookies.txt"),
+        "target_buffer": 5
     }
 ]
 

@@ -54,8 +54,8 @@ for ch in channels:
             time_part = r[4].split()[1] if " " in str(r[4]) else r[4]
             try:
                 utc_dt = datetime.strptime(r[4], "%Y-%m-%d %H:%M:%S")
-                # If timestamps in DB are already IST or UTC
-                ist_time_str = utc_dt.strftime("%I:%M %p")
+                ist_dt = utc_dt + timedelta(hours=5, minutes=30)
+                ist_time_str = ist_dt.strftime("%I:%M %p")
             except:
                 ist_time_str = time_part
             print(f"     Slot #{idx:02d} | Time: {ist_time_str} | Title: {title} | Link: {r[3]}")

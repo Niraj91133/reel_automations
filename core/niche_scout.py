@@ -145,6 +145,48 @@ NICHE_DISCOVERY_PROFILES = {
             "neerajjoshi",
             "pushkarrajthakur"
         ]
+    },
+    "marketing_road24": {
+        "display_name": "Marketing Road 24 (Digital Marketing & Meta Ads)",
+        "keywords": [
+            "digital marketing strategy hindi comment",
+            "meta ads targeting hack hindi comment",
+            "social media growth hacks hindi",
+            "ai tools for marketing comment",
+            "content creation hook formula hindi",
+            "how to get clients digital marketing hindi",
+            "performance marketing roas hack"
+        ],
+        "creators": [
+            "soravjain",
+            "digitalsatish",
+            "iamdigitalpratik",
+            "digital_deepak",
+            "himanshhh.ai",
+            "noob.to.ai",
+            "adovionlabs",
+            "actual.abhishek",
+            "ecom.deep"
+        ]
+    },
+    "trading_road24": {
+        "display_name": "Trading Road 24 (Price Action & Charts)",
+        "keywords": [
+            "price action hindi",
+            "candlestick pattern trading",
+            "trading psychology rules",
+            "risk management trading",
+            "support resistance trading"
+        ],
+        "creators": [
+            "boomingbulls",
+            "poweroftocks",
+            "ghanshyamtech",
+            "artofoptionlearning",
+            "pushkarrajthakur",
+            "tradewithmayank",
+            "neerajjoshi"
+        ]
     }
 }
 
