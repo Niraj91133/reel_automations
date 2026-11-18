@@ -75,6 +75,7 @@ def download_reel_video(reel_url, output_path="downloaded_reel.mp4", return_meta
                     "description": info.get("description", ""),
                     "like_count": info.get("like_count", 0),
                     "view_count": info.get("view_count", 0),
+                    "comment_count": info.get("comment_count", 0),
                     "creator": info.get("uploader", "")
                 }
         if os.path.exists(output_path):

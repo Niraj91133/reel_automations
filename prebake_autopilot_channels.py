@@ -140,18 +140,43 @@ def prebake_channel_reels(channel_id, count=30):
         curr_num = len(baked) + 1
         print(f"\n▶ [{curr_num}/{count}] Pre-baking {shortcode} (by @{creator}, {views_text})...")
 
-        # Download
+        # Download with metadata
         temp_dl = os.path.join(queue_dir, f"raw_{shortcode}.mp4")
         cookie_file = os.path.join(BASE_DIR, f"cookies/{channel_id}_cookies.txt")
-        raw_video = download_reel_video(reel_url, temp_dl, cookie_file=cookie_file)
+        raw_video, dl_meta = download_reel_video(reel_url, temp_dl, return_meta=True, cookie_file=cookie_file)
 
         if not raw_video or not os.path.exists(raw_video):
             print(f"⚠️ Failed download for {shortcode}. Trying next candidate.")
             continue
 
+        # 🎯 STRICT COMMENT ENGAGEMENT & AUTO-DM GUARD
+        dl_comments = dl_meta.get("comment_count", 0) or 0
+        dl_desc = dl_meta.get("description", "") or ""
+        dl_title = dl_meta.get("title", "") or ""
+        dl_cta_present = any(sig in dl_desc.lower() for sig in [
+            "comment", "dm", "link in bio", "bhejo", "comment karo",
+            "type ", "drop a", "share karunga", "link dunga", "list chahiye", "pdf chahiye"
+        ])
+
+        # Reject reels with trivial engagement (<50 comments) unless explicitly verified as comment CTA
+        if dl_comments > 0 and dl_comments < 50 and not dl_cta_present:
+            print(f"🛑 [Comment Guard REJECTED] Reel {shortcode} has only {dl_comments} comments and lacks comment CTA. Discarding for high-comment reel...")
+            try:
+                if os.path.exists(raw_video):
+                    os.remove(raw_video)
+            except:
+                pass
+            continue
+
         try:
-            # AI synthesis
-            ai_data = analyze_reel_for_channel(raw_video, config, creator)
+            # AI synthesis with original context
+            ai_data = analyze_reel_for_channel(
+                raw_video,
+                config,
+                creator,
+                original_description=dl_desc,
+                original_title=dl_title
+            )
             if ai_data.get("rejected"):
                 print(f"🛑 [AI Filter Rejected] Reel {shortcode}: {ai_data.get('reason')}. Trying next candidate...")
                 continue

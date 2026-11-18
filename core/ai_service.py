@@ -109,6 +109,7 @@ Context Metadata:
 2. STRICT TITLE LENGTH RULE: The `main_title` MUST BE MAXIMUM 2 SHORT LINES (strictly between 5 to 9 total uppercase words, under 42 characters total). NEVER write 3 or 4 lines! Keep it bold, punchy, curiosity-inducing, and highly engaging.
 3. NICHE MATCH RULE: The content MUST strictly belong to this channel's defined niche. If this video is completely unrelated to the channel niche (for example, a trading video on loan page, or loan video on trading page), you MUST set "is_niche_match": false!
 4. LANGUAGE & SCRIPT: The audio must be in Hindi/Hinglish. ALL OUTPUT FIELDS MUST BE 100% IN ENGLISH SCRIPT. NEVER USE DEVANAGARI HINDI SCRIPT (हिंदी लिपि).
+5. HIGH-ENGAGEMENT COMMENT CTA: In line 5 of the caption, ALWAYS include an irresistible keyword-specific Comment Call-To-Action (e.g. Comment "GUIDE", Comment "PDF", Comment "LINK", Comment "TOOL") so viewers are compelled to comment and trigger automated DM responses.
 """
 
         contents = []
