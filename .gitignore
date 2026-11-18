@@ -17,5 +17,7 @@ scratch/
 workspaces/
 *.db
 databases/*.db
+databases/*.json
+databases/*.jsonl
 cookies.txt
 cookies/
