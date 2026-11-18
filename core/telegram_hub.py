@@ -105,34 +105,43 @@ class TelegramHub:
                 if os.path.exists(temp_comp) and os.path.getsize(temp_comp) < 19 * 1024 * 1024:
                     upload_path = temp_comp
 
-            with open(upload_path, "rb") as video_file:
-                files = {"video": video_file}
-                data = {
-                    "chat_id": target_chat,
-                    "caption": caption[:1024],
-                    "parse_mode": "HTML",
-                    "supports_streaming": True
-                }
-                r = requests.post(url, data=data, files=files, timeout=180)
-                
             resp_obj = None
-            if r.status_code == 200:
-                success = True
-                resp_obj = r.json()
-            else:
-                # Retry plain text if HTML tags failed
-                with open(upload_path, "rb") as video_file:
-                    files = {"video": video_file}
-                    clean_caption = caption[:1024].replace("<b>", "").replace("</b>", "").replace("<i>", "").replace("</i>", "")
-                    data = {
-                        "chat_id": target_chat,
-                        "caption": clean_caption,
-                        "supports_streaming": True
-                    }
-                    r2 = requests.post(url, data=data, files=files, timeout=180)
-                    if r2.status_code == 200:
+            for attempt in range(1, 3):
+                try:
+                    with open(upload_path, "rb") as video_file:
+                        files = {"video": video_file}
+                        data = {
+                            "chat_id": target_chat,
+                            "caption": caption[:1024],
+                            "parse_mode": "HTML",
+                            "supports_streaming": True
+                        }
+                        r = requests.post(url, data=data, files=files, timeout=300)
+                    if r.status_code == 200:
                         success = True
-                        resp_obj = r2.json()
+                        resp_obj = r.json()
+                        break
+                    else:
+                        # Retry plain text if HTML tags failed
+                        with open(upload_path, "rb") as video_file:
+                            files = {"video": video_file}
+                            clean_caption = caption[:1024].replace("<b>", "").replace("</b>", "").replace("<i>", "").replace("</i>", "")
+                            data = {
+                                "chat_id": target_chat,
+                                "caption": clean_caption,
+                                "supports_streaming": True
+                            }
+                            r2 = requests.post(url, data=data, files=files, timeout=300)
+                            if r2.status_code == 200:
+                                success = True
+                                resp_obj = r2.json()
+                                break
+                except Exception as e_upload:
+                    if attempt < 2:
+                        print(f"⚠️ Telegram upload attempt {attempt} failed ({e_upload}). Retrying in 3s...")
+                        time.sleep(3)
+                    else:
+                        raise e_upload
 
             if success and resp_obj:
                 try:
