@@ -111,14 +111,18 @@ def ensure_telegram_size_limit(video_path, output_dir, job_id, max_size_mb=19.5)
 
     print(f"⚠️ Video size ({file_size / (1024*1024):.1f} MB) exceeds Telegram 20MB limit. Hardware compressing...", flush=True)
     compressed_path = os.path.join(output_dir, f"comp_{job_id}.mp4")
+    dur, _ = probe_video_stream_info(video_path)
+    target_kbits = 135000  # ~16.5 MB target for reliable Telegram CDN
+    calc_bitrate = int((target_kbits / max(dur or 60.0, 1.0)) - 128)
+    safe_video_bitrate = max(400, min(2200, calc_bitrate))
     
     enc_name, _ = get_best_hardware_encoder()
-    if enc_name in ["h264_mf", "h264_qsv"]:
-        v_args = ["-c:v", enc_name, "-b:v", "2200k"]
-    elif enc_name == "h264_nvenc":
-        v_args = ["-c:v", "h264_nvenc", "-preset", "p4", "-cq", "28"]
+    if enc_name == "h264_nvenc":
+        v_args = ["-c:v", "h264_nvenc", "-preset", "p4", "-b:v", f"{safe_video_bitrate}k", "-maxrate", f"{int(safe_video_bitrate*1.2)}k", "-bufsize", f"{safe_video_bitrate*2}k"]
+    elif enc_name in ["h264_mf", "h264_qsv"]:
+        v_args = ["-c:v", enc_name, "-b:v", f"{safe_video_bitrate}k"]
     else:
-        v_args = ["-threads", "2", "-c:v", "libx264", "-crf", "28", "-preset", "faster"]
+        v_args = ["-threads", "2", "-c:v", "libx264", "-b:v", f"{safe_video_bitrate}k", "-preset", "faster"]
 
     cmd = [
         "ffmpeg", "-y",
@@ -130,28 +134,8 @@ def ensure_telegram_size_limit(video_path, output_dir, job_id, max_size_mb=19.5)
     ]
     res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if res.returncode == 0 and os.path.exists(compressed_path):
-        if os.path.getsize(compressed_path) > max_bytes:
-            crf_31_path = os.path.join(output_dir, f"c31_{job_id}.mp4")
-            if enc_name in ["h264_mf", "h264_qsv"]:
-                v_args2 = ["-c:v", enc_name, "-b:v", "1600k"]
-            elif enc_name == "h264_nvenc":
-                v_args2 = ["-c:v", "h264_nvenc", "-preset", "p4", "-cq", "31"]
-            else:
-                v_args2 = ["-threads", "2", "-c:v", "libx264", "-crf", "31", "-preset", "faster"]
-
-            cmd2 = [
-                "ffmpeg", "-y",
-                "-i", video_path,
-                *v_args2,
-                "-c:a", "aac",
-                "-b:a", "96k",
-                crf_31_path
-            ]
-            res2 = subprocess.run(cmd2, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if res2.returncode == 0 and os.path.exists(crf_31_path):
-                try: os.remove(compressed_path)
-                except: pass
-                compressed_path = crf_31_path
+        print(f"✅ Video hardware compressed to {os.path.getsize(compressed_path) / (1024*1024):.1f} MB!", flush=True)
+        return compressed_path
 
         print(f"✅ Video hardware compressed to {os.path.getsize(compressed_path) / (1024*1024):.1f} MB!", flush=True)
         return compressed_path
