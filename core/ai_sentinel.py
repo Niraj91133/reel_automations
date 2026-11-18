@@ -50,6 +50,7 @@ class SentinelBot:
         self.hub = TelegramHub(self.bot_token, self.chat_id)
         self.audit_log_file = BASE_DIR / "databases" / "sentinel_audit_history.jsonl"
         self.audit_log_file.parent.mkdir(parents=True, exist_ok=True)
+        self.last_blocker_alerts = {}  # Tracks timestamp of sent alerts to prevent alert fatigue
 
     def _get_ist_time(self):
         """Returns current Indian Standard Time as formatted string."""
@@ -308,21 +309,17 @@ Generate the complete Predictive SRE Health Audit Report now.
                 }
                 remediations.append(action_info)
                 print(f"✅ [Sentinel Self-Heal] Dispatcher revived! New PID: {proc.pid}")
-                if self.hub:
-                    self.hub.send_message(
-                        "🚨 <b>[AUTO-HEAL TRIGGERED]</b> Dispatcher daemon was inactive. Sentinel AI automatically restarted <code>run_all_4channels_tomorrow_dispatcher.py</code> in background!",
-                        parse_mode="HTML"
-                    )
             except Exception as e_disp:
                 print(f"Error reviving dispatcher: {e_disp}")
+                telemetry["dispatcher_restart_failed"] = str(e_disp)
 
-        # 2. Buffer Auto-Replenishment (Threshold: < 6 reels)
-        MIN_SAFE_BUFFER = 6
+        # 2. Buffer Auto-Replenishment (Threshold: < 4 reels)
+        MIN_SAFE_BUFFER = 4
         for ch_id, ch_data in telemetry.get("channels", {}).items():
             buf_count = ch_data.get("ready_buffer_count", 0)
             ch_name = ch_data.get("display_name", ch_id)
             if buf_count < MIN_SAFE_BUFFER:
-                needed = MIN_SAFE_BUFFER - buf_count + 3  # Pre-bake up to safe level
+                needed = MIN_SAFE_BUFFER - buf_count + 2  # Pre-bake up to safe level
                 print(f"⚡ [Sentinel Self-Heal] Deficit detected for [{ch_name}] (Buffer: {buf_count}). Auto-baking {needed} reels...")
                 try:
                     from prebake_autopilot_channels import prebake_channel_reels
@@ -336,13 +333,9 @@ Generate the complete Predictive SRE Health Audit Report now.
                     }
                     remediations.append(action_info)
                     print(f"✅ [Sentinel Self-Heal] Successfully replenished buffer for {ch_name}!")
-                    if self.hub:
-                        self.hub.send_message(
-                            f"🛠️ <b>[AUTO-HEAL TRIGGERED]</b> Buffer for <b>{ch_name}</b> was low ({buf_count} reels). Sentinel AI automatically baked {needed} fresh reels. Buffer safely restored! 🟢",
-                            parse_mode="HTML"
-                        )
                 except Exception as e_bake:
                     print(f"Error auto-baking buffer for {ch_id}: {e_bake}")
+                    telemetry.setdefault("auto_bake_failures", {})[ch_id] = str(e_bake)
 
         return remediations
 
@@ -364,6 +357,68 @@ Generate the complete Predictive SRE Health Audit Report now.
             print("💾 [Sentinel AI] Machine-readable live state saved to databases/sentinel_live_state.json")
         except Exception as e:
             print(f"Error saving live state: {e}")
+
+    def detect_critical_blockers(self, telemetry, remediations):
+        """
+        Filters for TRUE issues that require Antigravity / human code intervention.
+        If everything is healthy or auto-healing succeeded, returns empty list [].
+        """
+        blockers = []
+
+        # 1. Dispatcher Failure
+        if not telemetry.get("dispatcher_active"):
+            blockers.append({
+                "key": "DISPATCHER_DOWN",
+                "title": "Posting Dispatcher Daemon is Inactive",
+                "detail": "run_all_4channels_tomorrow_dispatcher.py stopped running.",
+                "action": "Open Antigravity and start dispatcher: python run_all_4channels_tomorrow_dispatcher.py"
+            })
+
+        # 2. Channel Blockers (Meta token dead, Gemini API broken, or zero buffer starvation)
+        for ch_id, ch_data in telemetry.get("channels", {}).items():
+            ch_name = ch_data.get("display_name", ch_id)
+            meta_st = ch_data.get("meta_token_status", "")
+            gemini_st = ch_data.get("gemini_api_status", "")
+            buf_count = ch_data.get("ready_buffer_count", 0)
+
+            # Meta Token Expired / Error
+            if meta_st.startswith("ERROR_") or meta_st.startswith("HTTP_"):
+                blockers.append({
+                    "key": f"META_AUTH_{ch_id}",
+                    "title": f"Meta Graph API Token Failed for {ch_name}",
+                    "detail": f"Status: {meta_st} (Access Token invalid or expired).",
+                    "action": f"Generate fresh token and update configs/{ch_id}.json in Antigravity."
+                })
+
+            # Gemini API Key Failed
+            if gemini_st.startswith("FAILED:"):
+                blockers.append({
+                    "key": f"GEMINI_KEY_{ch_id}",
+                    "title": f"Gemini API Key Error on {ch_name}",
+                    "detail": f"Status: {gemini_st[:80]}",
+                    "action": f"Check or rotate Gemini API Key in configs/{ch_id}.json or .env."
+                })
+
+            # Buffer Starvation (0 reels and auto-bake failed)
+            if buf_count == 0:
+                blockers.append({
+                    "key": f"BUFFER_EMPTY_{ch_id}",
+                    "title": f"Zero Ready Buffer for {ch_name}",
+                    "detail": "Buffer is 0 reels. No reels available for scheduled dispatch.",
+                    "action": f"Run 'python prebake_autopilot_channels.py {ch_id} 5' or hunt fresh reels in Antigravity."
+                })
+
+        # 3. Disk Space Critical (< 3 GB)
+        disk_free = telemetry.get("system", {}).get("disk_free_gb", 100)
+        if isinstance(disk_free, (int, float)) and disk_free < 3.0:
+            blockers.append({
+                "key": "DISK_LOW",
+                "title": "Low Disk Space Alert",
+                "detail": f"Only {disk_free} GB free space remaining on C: drive.",
+                "action": "Clean up raw video files in C:/reel_cache."
+            })
+
+        return blockers
 
     # ==========================================
     # 4. DISPATCH, REPORTING & WATCHDOG
@@ -400,18 +455,44 @@ Generate the complete Predictive SRE Health Audit Report now.
         except:
             pass
 
-        # 3. Send to Telegram
-        if notify_telegram and self.hub:
-            print(f"📲 [Sentinel AI] Dispatching report to Telegram ({self.chat_id})...")
-            header = f"🛡️ <b>SENTINEL AI • LIVE PIPELINE AUDIT</b>\n<i>Autonomous System Reliability & Prediction</i>\n\n"
-            full_msg = header + ai_report
-            if len(full_msg) > 4000:
-                chunks = [full_msg[i:i+3900] for i in range(0, len(full_msg), 3900)]
-                for chunk in chunks:
-                    self.hub.send_message(chunk, parse_mode="HTML")
+        # 3. Check for critical blockers requiring human / Antigravity intervention
+        blockers = self.detect_critical_blockers(telemetry, remediations)
+
+        # STRICT SILENCE RULE:
+        # Alert to Telegram ONLY if there is an actual problem requiring Antigravity attention!
+        if blockers and self.hub and notify_telegram:
+            now_epoch = time.time()
+            # Send alert only if not alerted for this key within the last 2 hours (7200s)
+            new_blockers = []
+            for b in blockers:
+                last_time = self.last_blocker_alerts.get(b["key"], 0)
+                if now_epoch - last_time > 7200:
+                    new_blockers.append(b)
+                    self.last_blocker_alerts[b["key"]] = now_epoch
+
+            if new_blockers:
+                print(f"🚨 [Sentinel AI] {len(new_blockers)} CRITICAL ISSUE(S) REQUIRE ANTIGRAVITY ATTENTION! Alerting Telegram...")
+                alert_lines = [
+                    "🚨 <b>[ANTIGRAVITY ACTION REQUIRED]</b>",
+                    f"<i>Time: {telemetry['timestamp_ist']}</i>\n",
+                    f"<b>Sentinel AI detected {len(new_blockers)} issue(s) needing your code/config intervention:</b>\n"
+                ]
+                for b in new_blockers:
+                    alert_lines.append(f"⚠️ <b>{b['title']}</b>")
+                    alert_lines.append(f"  • Detail: <code>{b['detail']}</code>")
+                    alert_lines.append(f"  • Fix in Antigravity: {b['action']}\n")
+
+                alert_lines.append("<i>Check status anytime without tokens: run <code>python status.py</code></i>")
+                msg_text = "\n".join(alert_lines)
+                try:
+                    self.hub.send_message(msg_text, parse_mode="HTML")
+                    print("✅ Urgent alert dispatched to Telegram!")
+                except Exception as e_alert:
+                    print(f"Error sending Telegram alert: {e_alert}")
             else:
-                self.hub.send_message(full_msg, parse_mode="HTML")
-            print("✅ Telegram notification delivered successfully!")
+                print("ℹ️ [Sentinel AI] Critical blockers present but already alerted recently (backoff active).")
+        else:
+            print("🟢 [Sentinel AI] System running normally. Zero alerts sent to Telegram (Silent Mode active).")
 
         return ai_report
 
