@@ -199,8 +199,9 @@ def get_channel_last_post_epoch(db_path):
         conn.close()
         if row and row[0]:
             try:
-                dt = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
-                diff_seconds = (datetime.utcnow() - dt).total_seconds()
+                from datetime import timezone
+                dt = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                diff_seconds = (datetime.now(timezone.utc) - dt).total_seconds()
                 return time.time() - diff_seconds
             except:
                 pass
