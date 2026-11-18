@@ -120,7 +120,7 @@ def get_shared_reels_from_chat(max_count=10, cookie_file=None, thread_url=None, 
             # NOTE: Scan from bottom (newest messages first) upwards
             print("Scanning @im_raaaj_ chat from the BOTTOM (newest messages first)...")
 
-            max_scroll_rounds = max(15, max_count * 2)
+            max_scroll_rounds = min(8, max(4, max_count))
             for scroll_round in range(max_scroll_rounds):
                 if len(fresh_reels) >= max_count:
                     break
@@ -150,7 +150,7 @@ def get_shared_reels_from_chat(max_count=10, cookie_file=None, thread_url=None, 
                             return j1.includes('end') || j2.includes('end') || a1.includes('end') || a2.includes('end');
                         }""")
 
-                        if is_outgoing or box['x'] >= 540 or box['x'] < 350:
+                        if is_outgoing or box['x'] >= 540 or box['x'] < 280:
                             continue
 
                         if any(skip in card_text for skip in ['Message...', 'Search', 'Send message', 'Active']):
