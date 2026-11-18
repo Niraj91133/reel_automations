@@ -21,10 +21,11 @@ from scraper import download_reel_video
 AUTOPILOT_CHANNELS = [
     ("thestartup_street", "🚀 Startup Road", "@startup_road"),
     ("theloan_road", "💳 The Loan Road", "@the_loan_road"),
-    ("trading_pulse", "📈 Trading Road", "@trading_road_"),
     ("trading_road24", "📊 Trading Knowledge", "@trading_road24"),
     ("healthy_diet", "🥗 Gud Tree", "@gudtree_"),
-    ("viral_finds", "🛍️ Trending Road", "@trending_road")
+    ("marketing_road24", "📱 Marketing Road 24", "@marketing_road24"),
+    ("viral_finds", "🛍️ Trending Road", "@trending_road"),
+    ("trading_pulse", "📈 Trading Road", "@trading_road_")
 ]
 
 def prebake_channel_reels(channel_id, count=30):

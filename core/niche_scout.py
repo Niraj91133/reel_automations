@@ -158,15 +158,15 @@ NICHE_DISCOVERY_PROFILES = {
             "performance marketing roas hack"
         ],
         "creators": [
+            "himanshhh.ai",
+            "actual.abhishek",
+            "ecom.deep",
+            "adovionlabs",
+            "noob.to.ai",
             "soravjain",
             "digitalsatish",
             "iamdigitalpratik",
-            "digital_deepak",
-            "himanshhh.ai",
-            "noob.to.ai",
-            "adovionlabs",
-            "actual.abhishek",
-            "ecom.deep"
+            "digital_deepak"
         ]
     },
     "trading_road24": {
