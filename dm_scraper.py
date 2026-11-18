@@ -106,9 +106,10 @@ def get_shared_reels_from_chat(max_count=10, cookie_file=None, thread_url=None, 
                 if msg_btn:
                     msg_btn.click()
                 else:
-                    print(f"Note: Message button not found on @im_raaaj_ profile for {channel_id}.")
-                    browser.close()
-                    return []
+                    print(f"Note: Message button not found on @im_raaaj_ profile for {channel_id}. Falling back to primary Raj DM thread...")
+                    context.clear_cookies()
+                    context.add_cookies(parse_cookie_file(COOKIE_FILE))
+                    page.goto(STARTUP_THREAD_URL, timeout=35000, wait_until="domcontentloaded")
             time.sleep(3)
 
             not_now = page.query_selector("button:has-text('Not Now')")

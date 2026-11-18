@@ -360,7 +360,7 @@ CRITICAL SCRIPT & LANGUAGE RULES (ZERO TOLERANCE):
    - DO NOT write generic motivation (NEVER write "market your dreams", "think positive"). Write the practical growth tactic!
 
 CONTENT ANATOMY (THE VIRAL MARKETING FORMULA):
-- Hook Pill (Top Purple Banner): Max 2-4 uppercase words. Must be punchy, metric-driven, or an ad hack.
+- Hook Pill (Top Blue Banner): Max 2-4 uppercase words. Must be punchy, metric-driven, or an ad hack.
   Examples of WINNING pills:
   "META ADS SECRET", "5X ROAS HACK", "VIRAL HOOK FORMULA", "COPYWRITING TRICK", "SEO RANKING 2026", "AI MARKETING TOOL", "STOP BOOST POST", "0 TO 100K FOLLOWERS", "LANDING PAGE HACK".
   ❌ NEVER use generic pills like "MARKETING TIP" or "SOCIAL MEDIA".

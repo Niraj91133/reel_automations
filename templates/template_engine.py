@@ -123,8 +123,10 @@ def create_base_layer(
     font_title = get_font(54, bold=True)
     font_quote = get_font(34, bold=False)
 
-    # 1. Top Right Channel Branding / Category
-    draw.text((width - 340, 100), display_title, fill="white", font=font_logo)
+    # 1. Top Right Channel Branding / Category (Right-aligned with 70px right margin)
+    logo_bbox = draw.textbbox((0, 0), display_title, font=font_logo)
+    logo_w = logo_bbox[2] - logo_bbox[0]
+    draw.text((width - logo_w - 70, 100), display_title, fill="white", font=font_logo)
 
     # 2. Smooth Gradient Top Fade (220px fade)
     bg_start_y = height - 900

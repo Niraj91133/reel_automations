@@ -70,12 +70,23 @@ CHANNEL_BRAND_REGISTRY = {
         "default_pill": "LOAN KNOWLEDGE",
         "follow_handle": "@the_loan_road",
         "hashtags": "#LoanRoad #BusinessLoans #MudraYojana #CIBILScore #MSMEIndia #FinancialLiteracy #BankingAwareness"
+    },
+    "marketing": {
+        "tag_text": "MARKETING:",
+        "primary_color": (0, 102, 255, 255),   # Vibrant Electric Marketing Blue #0066FF
+        "accent_color": (255, 255, 255, 255),
+        "top_logo": "marketing road",
+        "default_pill": "MARKETING HACK",
+        "follow_handle": "@marketing_road24",
+        "hashtags": "#MarketingRoad #DigitalMarketing #MetaAds #GrowthHacking #ContentStrategy #Copywriting #SocialMediaMarketing #MarketingTips"
     }
 }
 
 def resolve_channel_key(channel_id: str) -> str:
     ch = (channel_id or "").lower().strip()
-    if ch in ("thestartup_street", "startup_road", "the_startuproad", "startup", "startuproad"):
+    if ch in ("marketing_road24", "marketing_road", "marketing", "digital_marketing"):
+        return "marketing"
+    elif ch in ("thestartup_street", "startup_road", "the_startuproad", "startup", "startuproad"):
         return "startup"
     elif ch in ("healthy_diet", "gudtree_", "gudtree", "health", "diet", "nutrition"):
         return "health"
@@ -85,7 +96,7 @@ def resolve_channel_key(channel_id: str) -> str:
         return "viral"
     elif ch in ("theloan_road", "the_loan_road", "loan_road", "loan", "loans"):
         return "loan"
-    return "startup"
+    return "marketing" if "marketing" in ch else "startup"
 
 def contains_devanagari(text: str) -> bool:
     """Returns True if text contains any Devanagari (Hindi script) characters."""

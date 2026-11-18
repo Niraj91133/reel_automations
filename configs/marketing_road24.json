@@ -35,12 +35,13 @@
   },
   "content_settings": {
     "default_hook_pill": "MARKETING HACK",
-    "tag_text": "MARKETING ROAD:",
+    "tag_text": "MARKETING:",
+    "top_logo": "marketing road",
     "first_comment_template": "Digital marketing checklist, ad templates & growth framework chahiye? Comment 'MARKETING' aur apna brand niche batayein! 🚀",
     "theme_color_primary": [
-      147,
-      51,
-      234,
+      0,
+      102,
+      255,
       255
     ],
     "theme_color_accent": [
