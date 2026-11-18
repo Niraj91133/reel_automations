@@ -28,11 +28,11 @@ CHANNELS = [
     ("trading_pulse", "📈 Trading Road", "@trading_road_")
 ]
 
-# 30 Slots across 07:00 AM - 09:50 PM (~30.7 minutes apart, finishing before 10:00 PM nightly editing window)
+# 30 Slots across 07:00 AM - 10:15 PM (~31.5 minutes apart, finishing before 10:30 PM nightly editing window)
 def generate_30_slots(total_slots=30):
     slots = []
     start_total = 7 * 60       # 07:00 AM
-    end_total = 21 * 60 + 50   # 09:50 PM
+    end_total = 22 * 60 + 15   # 10:15 PM
     interval = (end_total - start_total) / (total_slots - 1)
     for i in range(total_slots):
         m_total = int(start_total + i * interval)
@@ -178,6 +178,23 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
                     f"🔗 <b>Watch Reel:</b> {link}"
                 )
                 db.mark_reel_processed(shortcode, creator, title, link)
+                # Auto-archive published reel to keep queue pristine and avoid ghost re-use
+                try:
+                    import shutil
+                    arch_dir = os.path.join(queue_dir, "archive")
+                    os.makedirs(arch_dir, exist_ok=True)
+                    if os.path.exists(vid_file):
+                        shutil.move(vid_file, os.path.join(arch_dir, os.path.basename(vid_file)))
+                    meta_f = vid_file.rsplit(".", 1)[0] + ".json"
+                    if os.path.exists(meta_f):
+                        shutil.move(meta_f, os.path.join(arch_dir, os.path.basename(meta_f)))
+                    tg_comp = vid_file.rsplit(".", 1)[0] + ".tg_comp.mp4"
+                    if os.path.exists(tg_comp):
+                        try: os.remove(tg_comp)
+                        except: pass
+                    print(f"📦 [Archive] Moved posted reel {shortcode} to archive folder.")
+                except Exception as e_arch:
+                    print(f"Archiving notice: {e_arch}")
                 return True
             else:
                 err_msg = pub_res.get("error", "Unknown error") if pub_res else "No response"
@@ -222,8 +239,8 @@ def run_all_channels_dispatcher(run_once=False):
     print("Anti-Spam Pacing: Strict ~25-30 min gap per channel")
     print("========================================================\n")
 
-    MIN_GAP_PER_CHANNEL = 1500      # 25-30 minutes minimum gap on the SAME channel
-    CROSS_CHANNEL_STAGGER = 300     # 5 minutes exact stagger between different channels
+    MIN_GAP_PER_CHANNEL = 1200      # 20 minutes minimum gap on the SAME channel
+    CROSS_CHANNEL_STAGGER = 240     # 4 minutes exact stagger between different channels
     last_post_time = {}
     global_last_post_time = 0
 
@@ -235,14 +252,14 @@ def run_all_channels_dispatcher(run_once=False):
             if epoch > global_last_post_time:
                 global_last_post_time = epoch
 
-    print(f"⏱️ Cross-Channel Stagger Active: Exactly 5 minutes between different IDs.")
-    print(f"⏱️ Per-Channel Pacing Active: ~25-30 minutes between posts on the same ID.\n")
+    print(f"⏱️ Cross-Channel Stagger Active: Exactly 4 minutes between different IDs.")
+    print(f"⏱️ Per-Channel Pacing Active: ~20-25 minutes between posts on the same ID.\n")
 
     while True:
         now = datetime.now()
 
-        # Posting window is strictly 07:00 AM to 10:00 PM (10 PM to 2 AM is pre-baking window)
-        if not run_once and (now.hour < 7 or now.hour >= 22):
+        # Posting window is 07:00 AM to 10:30 PM (10:30 PM to 2 AM is pre-baking window)
+        if not run_once and (now.hour < 7 or (now.hour == 22 and now.minute > 30) or now.hour > 22):
             time.sleep(60)
             continue
 

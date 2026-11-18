@@ -15,14 +15,22 @@
         "telegram_chat_id": "711598335"
     },
     "hunting_settings": {
-        "dm_target_chat": "im_raaaj_",
         "hunt_target_daily": 30,
         "min_views": 25000,
         "prioritize_comment_cta": true,
         "keywords": [
-            "AutoDm style indian viral product videos often use a direct comment call-to-action to boost engagement. The format opens with a problem or hook in the first 3 seconds, shows the product in use, and ends with text like \"comment 'How'\" to drive replies."
+            "amazon gadgets hindi",
+            "cool gadgets hindi",
+            "useful gadgets hindi",
+            "viral products amazon india",
+            "smart gadgets hindi"
         ],
-        "hashtags": [],
+        "hashtags": [
+            "#amazongadgetshindi",
+            "#coolgadgetshindi",
+            "#smartgadgetsindia",
+            "#techgadgetshindi"
+        ],
         "cookie_file": "cookies/viral_finds_cookies.txt"
     },
     "content_settings": {

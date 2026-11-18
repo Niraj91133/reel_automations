@@ -40,26 +40,42 @@ def prebake_channel_reels(channel_id, count=30):
     print(f"🌙 [10 PM - 02 AM EDITING WINDOW] Pre-baking {count} Reels for: {display_name}")
     print(f"========================================================")
 
+    # 0. Clean up / archive any already-processed reels from queue_dir
+    arch_dir = os.path.join(queue_dir, "archive")
+    os.makedirs(arch_dir, exist_ok=True)
+    for vf in glob.glob(os.path.join(queue_dir, "ready_*.mp4")):
+        mf = vf.rsplit(".", 1)[0] + ".json"
+        if os.path.exists(mf):
+            try:
+                with open(mf, 'r', encoding='utf-8') as jf:
+                    sc = json.load(jf).get("shortcode")
+                if sc and db.is_reel_processed(sc):
+                    shutil.move(vf, os.path.join(arch_dir, os.path.basename(vf)))
+                    shutil.move(mf, os.path.join(arch_dir, os.path.basename(mf)))
+            except:
+                pass
+
     # 1. BRUTAL 4-TIER REEL SOURCING PIPELINE (Applies to ALL Channels)
     candidates = []
     approved_codes = set()
     target_pool = max(count * 3, count + 20)
 
-    # TIER 1: Check if Raj approved/shared any reels in DM chat for this channel
-    dm_target = config.get("hunting_settings", {}).get("dm_target_chat") or config.get("content_settings", {}).get("dm_target_chat", "im_raaaj_")
-    print(f"📥 [Tier 1: Raj DM Check] Checking @{dm_target} chat for [{display_name}]...")
-    try:
-        from core.niche_hunter import fetch_approved_reels_from_raj
-        approved = fetch_approved_reels_from_raj(config, max_count=count)
-        if approved:
-            for r in approved:
-                sc = r.get("shortcode")
-                if sc and sc not in approved_codes and not db.is_reel_processed(sc):
-                    candidates.append((sc, r.get("creator", "approved_creator"), "Raj Approved"))
-                    approved_codes.add(sc)
-            print(f"🎯 [{display_name}] Raj approved {len(candidates)} reels from chat!")
-    except Exception as e:
-        print(f"Note on Raj DM fetch for {display_name}: {e}")
+    # TIER 1: Check if Raj approved/shared any reels in DM chat for this channel (Marketing & Startup)
+    if channel_id in ("marketing_road24", "thestartup_street"):
+        dm_target = config.get("hunting_settings", {}).get("dm_target_chat") or config.get("content_settings", {}).get("dm_target_chat", "im_raaaj_")
+        print(f"📥 [Tier 1: Raj DM Check] Checking @{dm_target} chat for [{display_name}]...")
+        try:
+            from core.niche_hunter import fetch_approved_reels_from_raj
+            approved = fetch_approved_reels_from_raj(config, max_count=count)
+            if approved:
+                for r in approved:
+                    sc = r.get("shortcode")
+                    if sc and sc not in approved_codes and not db.is_reel_processed(sc):
+                        candidates.append((sc, r.get("creator", "approved_creator"), "Raj Approved"))
+                        approved_codes.add(sc)
+                print(f"🎯 [{display_name}] Raj approved {len(candidates)} reels from chat!")
+        except Exception as e:
+            print(f"Note on Raj DM fetch for {display_name}: {e}")
 
     # TIER 2: 10 PM AUTO-FALLBACK: Auto-fill deficit from channel's local hunted_reels DB pool!
     if len(candidates) < target_pool:
@@ -113,27 +129,33 @@ def prebake_channel_reels(channel_id, count=30):
 
     print(f"🔒 [FINAL GUARANTEE] {len(candidates)} Candidates Queued for {display_name} (Target: {count} Baked)!")
 
-    # Find highest existing slot index in queue
-    existing_slots = set()
+    # Identify which slots (1..count) are already filled with unposted videos
+    existing_slots = {}
     for f in glob.glob(os.path.join(queue_dir, "ready_*.mp4")):
         b = os.path.basename(f)
         parts = b.split("_")
         if len(parts) >= 2 and parts[1].isdigit():
-            existing_slots.add(int(parts[1]))
-    slot_idx = (max(existing_slots) + 1) if existing_slots else 1
+            existing_slots[int(parts[1])] = f
 
+    missing_slots = [s for s in range(1, count + 1) if s not in existing_slots]
     baked = []
+    print(f"📦 [{display_name}] {len(existing_slots)}/{count} slots already ready. {len(missing_slots)} slots needed.")
+    if not missing_slots:
+        print(f"🎉 [{display_name}] All {count} slots are already 100% pre-baked and ready!")
+        return [(s, 'ready', 'system', 'Already Baked') for s in existing_slots]
+
     for shortcode, creator, views_text in candidates:
-        if len(baked) >= count:
+        if not missing_slots:
             break
 
+        slot_idx = missing_slots[0]
         out_file = os.path.join(queue_dir, f"ready_{slot_idx:02d}_{shortcode}.mp4")
         meta_file = os.path.join(queue_dir, f"ready_{slot_idx:02d}_{shortcode}.json")
 
         if os.path.exists(out_file) and os.path.getsize(out_file) > 100_000 and os.path.exists(meta_file):
-            print(f"[{len(baked)+1}/{count}] Already pre-baked: {out_file}")
+            print(f"Already pre-baked: {out_file}")
             baked.append((slot_idx, shortcode, creator, "Already Baked"))
-            slot_idx += 1
+            missing_slots.pop(0)
             continue
 
         reel_url = f"https://www.instagram.com/reel/{shortcode}/"
@@ -216,7 +238,7 @@ def prebake_channel_reels(channel_id, count=30):
 
             baked.append((slot_idx, shortcode, creator, main_title))
             print(f"✅ [{curr_num}/{count}] Successfully pre-baked: {main_title} -> {out_file}")
-            slot_idx += 1
+            missing_slots.pop(0)
 
         except Exception as e:
             print(f"❌ Error pre-baking {shortcode}: {e}")
