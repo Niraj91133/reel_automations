@@ -73,10 +73,33 @@ def get_channel_config(channel_id):
     env_prefix = channel_id.upper()
     creds = config.get("credentials", {})
     
-    # Resolve Gemini Key (support fallback to global GEMINI_API_KEY from .env)
-    g_key = creds.get("gemini_api_key", "")
-    if not g_key or g_key.startswith("$") or g_key.startswith("YOUR_"):
-        g_key = os.environ.get(f"{env_prefix}_GEMINI_KEY") or os.environ.get("GEMINI_API_KEY", "")
+    # Check alias-mapped channel-specific Gemini Keys
+    channel_key_map = {
+        "thestartup_street": ["STARTUP_GEMINI_KEY", "THESTARTUP_STREET_GEMINI_KEY"],
+        "startup_road": ["STARTUP_GEMINI_KEY", "THESTARTUP_STREET_GEMINI_KEY"],
+        "healthy_diet": ["GUDTREE_GEMINI_KEY", "HEALTHY_DIET_GEMINI_KEY"],
+        "theloan_road": ["LOAN_GEMINI_KEY", "THELOAN_ROAD_GEMINI_KEY", "THE_LOAN_ROAD_GEMINI_KEY"],
+        "trading_road24": ["TRADING_GEMINI_KEY", "TRADING_ROAD24_GEMINI_KEY"],
+        "trading_pulse": ["TRADING_GEMINI_KEY", "TRADING_PULSE_GEMINI_KEY"],
+        "marketing_road24": ["MARKETING_GEMINI_KEY", "MARKETING_ROAD24_GEMINI_KEY"],
+        "the_startuproad": ["MARKETING_GEMINI_KEY", "THE_STARTUPROAD_GEMINI_KEY"],
+        "viral_finds": ["TRENDING_GEMINI_KEY", "VIRAL_FINDS_GEMINI_KEY"],
+        "trending_road": ["TRENDING_GEMINI_KEY", "TRENDING_ROAD_GEMINI_KEY"]
+    }
+
+    g_key = ""
+    for env_k in channel_key_map.get(channel_id, []):
+        if os.environ.get(env_k):
+            g_key = os.environ.get(env_k)
+            break
+
+    if not g_key:
+        raw_key = creds.get("gemini_api_key", "")
+        if not raw_key or raw_key.startswith("$") or raw_key.startswith("YOUR_"):
+            g_key = os.environ.get(f"{env_prefix}_GEMINI_KEY") or os.environ.get("GEMINI_API_KEY", "")
+        else:
+            g_key = raw_key
+
     creds["gemini_api_key"] = g_key
 
     creds["instagram_account_id"] = os.environ.get(f"{env_prefix}_IG_ID", creds.get("instagram_account_id", ""))
