@@ -3,7 +3,7 @@ import sys
 import glob
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -40,7 +40,12 @@ for ch_id, name, handle in CHANNELS:
             c.execute("SELECT created_at FROM processed_reels ORDER BY id DESC LIMIT 1")
             row = c.fetchone()
             if row and row[0]:
-                last_post_time = row[0].split()[1] if " " in row[0] else row[0]
+                try:
+                    utc_dt = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+                    ist_dt = utc_dt + timedelta(hours=5, minutes=30)
+                    last_post_time = ist_dt.strftime("%H:%M:%S") + " IST"
+                except:
+                    last_post_time = row[0].split()[1] if " " in row[0] else row[0]
 
             c.execute("SELECT COUNT(*) FROM hunted_reels WHERE shortcode NOT IN (SELECT shortcode FROM processed_reels)")
             hunted_pending = c.fetchone()[0]
