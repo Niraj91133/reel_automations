@@ -258,10 +258,27 @@ def run_all_channels_dispatcher(run_once=False):
     while True:
         now = datetime.now()
 
-        # Posting window is 07:00 AM to 10:30 PM (10:30 PM to 2 AM is pre-baking window)
-        if not run_once and (now.hour < 7 or (now.hour == 22 and now.minute > 30) or now.hour > 22):
-            time.sleep(60)
-            continue
+        # Target Achiever Window: Runs until all enabled channels reach 30/30 (up to 01:45 AM).
+        # Once all 30 are done, it safely sleeps until 07:00 AM next morning.
+        if not run_once:
+            all_30_done = True
+            for ch_id, _, _ in CHANNELS:
+                cfg = get_channel_config(ch_id)
+                if cfg.get("enabled", True):
+                    db = ChannelDatabase(cfg["runtime"]["db_path"])
+                    if db.get_today_count() < 30:
+                        all_30_done = False
+                        break
+
+            if all_30_done:
+                if now.hour < 7 or now.hour >= 22:
+                    time.sleep(60)
+                    continue
+            else:
+                # Night cutoff only applies after 01:45 AM until 07:00 AM
+                if 2 <= now.hour < 7:
+                    time.sleep(60)
+                    continue
 
         # Calculate target slots that should be published by current wall-clock time
         elapsed_slots = [
