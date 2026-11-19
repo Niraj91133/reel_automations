@@ -53,6 +53,43 @@ def get_already_processed_shortcodes():
                 pass
     return processed
 
+def has_reached_previous_day(page):
+    """
+    Detects if scrolling has reached 'Yesterday' or earlier messages in Instagram DM.
+    Stops scrolling when no more today's reels exist.
+    """
+    from datetime import datetime, timedelta
+    today_now = datetime.now()
+    yesterday_str = (today_now - timedelta(days=1)).strftime("%b %d").lower()
+    two_days_ago_str = (today_now - timedelta(days=2)).strftime("%b %d").lower()
+
+    try:
+        # Check text containers, spans and time elements
+        elements = page.query_selector_all("span, div, time")
+        for el in elements:
+            try:
+                txt = el.inner_text().strip().lower()
+                if not txt or len(txt) > 40:
+                    continue
+
+                # 1. Direct 'Yesterday' indicator
+                if "yesterday" in txt:
+                    return True, f"Encountered 'Yesterday' separator: '{txt}'"
+
+                # 2. Date string matching yesterday or earlier
+                if yesterday_str in txt or two_days_ago_str in txt:
+                    return True, f"Encountered previous date label: '{txt}'"
+
+                # 3. Relative indicators like '1d', '2d', '1 day ago'
+                if re.search(r'\b[1-9]\s*d\b', txt) or re.search(r'\b[1-9]\s*days?\s*ago\b', txt):
+                    return True, f"Encountered past-day indicator: '{txt}'"
+            except:
+                pass
+    except Exception:
+        pass
+
+    return False, ""
+
 def get_shared_reels_from_chat(max_count=10, cookie_file=None, thread_url=None, channel_id="thestartup_street"):
     is_startup = channel_id in ("thestartup_street", "startup_road")
     cfile = cookie_file or (os.path.join(BASE_DIR, f"cookies/{channel_id}_cookies.txt") if not is_startup else COOKIE_FILE)
@@ -117,12 +154,20 @@ def get_shared_reels_from_chat(max_count=10, cookie_file=None, thread_url=None, 
                 not_now.click()
                 time.sleep(1)
 
-            # NOTE: Scan from bottom (newest messages first) upwards
-            print("Scanning @im_raaaj_ chat from the BOTTOM (newest messages first)...")
+            # NOTE: Scan from bottom (newest messages first) upwards until 30 reels found OR previous day reached
+            print(f"Scanning chat from the BOTTOM (newest messages first, target={max_count} reels)...")
 
-            max_scroll_rounds = min(8, max(4, max_count))
+            max_scroll_rounds = 25  # Allow enough room to find 30 reels today
             for scroll_round in range(max_scroll_rounds):
                 if len(fresh_reels) >= max_count:
+                    print(f"🎯 [Target Achieved] Found all {max_count} fresh reels for today! Exiting scroll.")
+                    break
+
+                # Check if previous day boundary has already been passed
+                is_prev, reason = has_reached_previous_day(page)
+                if is_prev:
+                    print(f"\n🛑 [Previous Day Boundary Reached] {reason}.")
+                    print(f"   -> We have reached yesterday's messages. Concluding scan with {len(fresh_reels)} fresh reels found.")
                     break
 
                 cards = page.query_selector_all("div[role='button']")
@@ -206,12 +251,20 @@ def get_shared_reels_from_chat(max_count=10, cookie_file=None, thread_url=None, 
                         pass
 
                 if len(fresh_reels) >= max_count:
+                    print(f"🎯 [Target Achieved] Collected {len(fresh_reels)}/{max_count} reels! Stopping.")
                     break
 
                 # Scroll upwards slightly to load preceding messages if more are needed
                 page.mouse.move(600, 400)
                 page.mouse.wheel(0, -1400)
-                time.sleep(1.0)
+                time.sleep(1.2)
+
+                # Check if previous day boundary has been reached after scroll
+                is_prev, reason = has_reached_previous_day(page)
+                if is_prev:
+                    print(f"\n🛑 [Previous Day Boundary Reached] {reason}.")
+                    print(f"   -> Reached past yesterday's messages. Stopping scroll cleanly.")
+                    break
 
         except Exception as e:
             print("Chat extraction error:", e)
