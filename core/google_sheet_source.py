@@ -113,12 +113,15 @@ def fetch_reels_from_google_sheet(channel_id, max_count=30):
             if not shortcode:
                 continue
 
+            status = row[col_status].strip() if len(row) > col_status else ""
+            if status.lower() in ("sent", "posted"):
+                continue
+
             # Check if already processed in local DB
             if db and db.is_reel_processed(shortcode):
                 continue
-
+            
             caption = row[col_caption].strip() if len(row) > col_caption else ""
-            status = row[col_status].strip() if len(row) > col_status else ""
             
             # Extract creator username from caption if available (e.g. @username)
             creator = "creator"
@@ -215,6 +218,121 @@ def mark_reel_in_sheet_posted(channel_id, shortcode, live_permalink=None):
                 print(f"✅ [Google Sheet Sync] Successfully marked {shortcode} as Posted in {tab_name} tab.")
         except Exception as e_wh:
             print(f"⚠️ [Google Sheet Sync Warning] Webhook update failed: {e_wh}")
+
+def sync_pending_posted_reels_to_sheet():
+    """
+    Scans all mapped channels for reels that are posted locally in DB
+    but still marked 'Pending' in the Google Sheet.
+    Uses Playwright in headless mode to update the cells to 'Sent' and today's date.
+    """
+    from playwright.sync_api import sync_playwright
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    # Group pending updates by tab
+    updates_by_tab = {}
+
+    for channel_id, mapping in CHANNEL_SHEET_MAP.items():
+        tab_name = mapping["tab_name"]
+        gid = mapping["gid"]
+        db_path = os.path.join(BASE_DIR, f"databases/{channel_id}_history.db")
+        if not os.path.exists(db_path):
+            continue
+        db = ChannelDatabase(db_path)
+
+        csv_url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={gid}"
+        try:
+            req = urllib.request.Request(csv_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                content = resp.read().decode("utf-8", errors="ignore")
+            reader = list(csv.reader(io.StringIO(content)))
+            if not reader:
+                continue
+
+            col_link = 1
+            col_shortcode = 2
+            col_status = 8
+            for idx, h in enumerate(reader[0]):
+                h_l = h.lower().strip()
+                if "shortcode" in h_l: col_shortcode = idx
+                elif "link" in h_l: col_link = idx
+                elif "status" in h_l: col_status = idx
+
+            rows_to_update = []
+            for r_idx, row in enumerate(reader[1:], start=2):
+                if len(row) <= col_link:
+                    continue
+                sc = row[col_shortcode].strip() if len(row) > col_shortcode else ""
+                link = row[col_link].strip()
+                if not sc and link:
+                    m = re.search(r'/(?:reel|p)/([A-Za-z0-9_-]+)', link)
+                    if m: sc = m.group(1)
+                if not sc:
+                    continue
+
+                curr_status = row[col_status].strip().lower() if len(row) > col_status else ""
+                if curr_status not in ("sent", "posted") and db.is_reel_processed(sc):
+                    rows_to_update.append(r_idx)
+
+            if rows_to_update:
+                updates_by_tab[tab_name] = {"gid": gid, "rows": rows_to_update}
+
+        except Exception as e:
+            print(f"Error checking sheet tab {tab_name}: {e}")
+
+    if not updates_by_tab:
+        print("✅ [Sheet Sync] All posted reels are already up-to-date in Google Sheet!")
+        return True
+
+    print(f"🔄 [Sheet Sync] Updating Google Sheet for {sum(len(v['rows']) for v in updates_by_tab.values())} rows...")
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(viewport={"width": 1400, "height": 900})
+
+            for tab_name, info in updates_by_tab.items():
+                gid = info["gid"]
+                rows = info["rows"]
+                tab_url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit#gid={gid}"
+                page.goto(tab_url)
+                page.wait_for_timeout(7000)
+
+                for r_num in rows:
+                    print(f"   -> [{tab_name}] Setting Row {r_num}: Status='Sent', Date='{today_str}'")
+                    # Update Column I
+                    name_box = page.wait_for_selector("#t-name-box", timeout=10000)
+                    name_box.click()
+                    page.keyboard.press("Control+A")
+                    page.keyboard.type(f"I{r_num}")
+                    page.keyboard.press("Enter")
+                    page.wait_for_timeout(400)
+
+                    f_bar = page.wait_for_selector("#t-formula-bar-input", timeout=5000)
+                    f_bar.click()
+                    page.keyboard.press("Control+A")
+                    page.keyboard.type("Sent")
+                    page.keyboard.press("Enter")
+                    page.wait_for_timeout(500)
+
+                    # Update Column J
+                    name_box.click()
+                    page.keyboard.press("Control+A")
+                    page.keyboard.type(f"J{r_num}")
+                    page.keyboard.press("Enter")
+                    page.wait_for_timeout(400)
+
+                    f_bar.click()
+                    page.keyboard.press("Control+A")
+                    page.keyboard.type(today_str)
+                    page.keyboard.press("Enter")
+                    page.wait_for_timeout(500)
+
+            page.wait_for_timeout(3500)
+            browser.close()
+            print("✅ [Sheet Sync] Successfully synced all posted reels to Google Sheet!")
+            return True
+    except Exception as e_pw:
+        print(f"❌ [Sheet Sync Error] Playwright update failed: {e_pw}")
+        return False
 
 if __name__ == "__main__":
     ch = sys.argv[1] if len(sys.argv) > 1 else "marketing_road24"

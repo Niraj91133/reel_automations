@@ -349,6 +349,11 @@ def run_all_channels_dispatcher(run_once=False):
                         last_post_time[ch_id] = now_epoch
                         global_last_post_time = now_epoch
                         any_action = True
+                        try:
+                            from core.google_sheet_source import sync_pending_posted_reels_to_sheet
+                            sync_pending_posted_reels_to_sheet()
+                        except Exception as e_sync:
+                            print(f"Sheet auto-sync note: {e_sync}")
                         break  # Yield to wait the 5-minute stagger window before next channel
                     else:
                         # On temporary failure, back off 3 minutes before retrying this channel

@@ -31,6 +31,9 @@ AUTOPILOT_CHANNELS = [
 def prebake_channel_reels(channel_id, count=30):
     config = get_channel_config(channel_id)
     display_name = config.get("display_name", channel_id)
+    if not config.get("enabled", True):
+        print(f"⏭️ Skipping {display_name} (Channel is disabled in config).")
+        return []
     workspace_dir = config["runtime"]["workspace_dir"]
     db = ChannelDatabase(config["runtime"]["db_path"])
     queue_dir = os.path.join(workspace_dir, "tomorrow_reels")
