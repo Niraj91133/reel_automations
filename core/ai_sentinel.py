@@ -323,16 +323,20 @@ Generate the complete Predictive SRE Health Audit Report now.
                 print(f"⚡ [Sentinel Self-Heal] Deficit detected for [{ch_name}] (Buffer: {buf_count}). Auto-baking {needed} reels...")
                 try:
                     from prebake_autopilot_channels import prebake_channel_reels
-                    prebake_channel_reels(ch_id, count=needed)
-                    action_info = {
-                        "action": "refill_buffer",
-                        "channel": ch_id,
-                        "reels_baked": needed,
-                        "previous_buffer": buf_count,
-                        "time": self._get_ist_time()
-                    }
-                    remediations.append(action_info)
-                    print(f"✅ [Sentinel Self-Heal] Successfully replenished buffer for {ch_name}!")
+                    baked_res = prebake_channel_reels(ch_id, count=needed)
+                    if not baked_res:
+                        print(f"⚠️ [Sentinel Self-Heal] Auto-bake yielded 0 reels for {ch_name} (candidates rejected or pool empty).")
+                        telemetry.setdefault("auto_bake_failures", {})[ch_id] = "All candidate reels rejected by filters or pool exhausted"
+                    else:
+                        action_info = {
+                            "action": "refill_buffer",
+                            "channel": ch_id,
+                            "reels_baked": len(baked_res),
+                            "previous_buffer": buf_count,
+                            "time": self._get_ist_time()
+                        }
+                        remediations.append(action_info)
+                        print(f"✅ [Sentinel Self-Heal] Successfully replenished buffer for {ch_name}!")
                 except Exception as e_bake:
                     print(f"Error auto-baking buffer for {ch_id}: {e_bake}")
                     telemetry.setdefault("auto_bake_failures", {})[ch_id] = str(e_bake)
@@ -408,6 +412,22 @@ Generate the complete Predictive SRE Health Audit Report now.
                     "action": f"Run 'python prebake_autopilot_channels.py {ch_id} 5' or hunt fresh reels in Antigravity."
                 })
 
+            # 4. Schedule Lag Blocker: Expected slots vs actual posts
+            today_count = ch_data.get("today_posts_count", 0)
+            mins_since = ch_data.get("minutes_since_last_post", 0)
+            now_ist = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+            if 7 <= now_ist.hour < 22:
+                elapsed_min = max(0, (now_ist.hour * 60 + now_ist.minute) - (7 * 60))
+                expected_slots = min(30, max(1, int(elapsed_min / 31.5) + 1))
+                lag = expected_slots - today_count
+                if lag >= 2 and mins_since > 40:
+                    blockers.append({
+                        "key": f"SCHEDULE_LAG_{ch_id}",
+                        "title": f"Schedule Lag Alert: {ch_name} is behind by {lag} posts!",
+                        "detail": f"Expected ~{expected_slots} posts by now, but only {today_count} posted. Last post was {mins_since:.0f} mins ago.",
+                        "action": f"Check candidates or filters: run 'python prebake_autopilot_channels.py {ch_id} 5' in Antigravity."
+                    })
+
         # 3. Disk Space Critical (< 3 GB)
         disk_free = telemetry.get("system", {}).get("disk_free_gb", 100)
         if isinstance(disk_free, (int, float)) and disk_free < 3.0:
@@ -416,6 +436,17 @@ Generate the complete Predictive SRE Health Audit Report now.
                 "title": "Low Disk Space Alert",
                 "detail": f"Only {disk_free} GB free space remaining on C: drive.",
                 "action": "Clean up raw video files in C:/reel_cache."
+            })
+
+        # 4. Auto-Bake Failure Alert (Candidates rejected or pool dry)
+        for ch_id, fail_reason in telemetry.get("auto_bake_failures", {}).items():
+            cfg = get_channel_config(ch_id)
+            ch_name = cfg.get("display_name", ch_id)
+            blockers.append({
+                "key": f"BAKE_FAILED_{ch_id}",
+                "title": f"Auto-Bake Sourcing Alert for {ch_name}",
+                "detail": f"Reason: {fail_reason}. Buffer could not be replenished automatically.",
+                "action": f"Adjust comment/niche filters or hunt fresh reels for {ch_name} in Antigravity."
             })
 
         return blockers
