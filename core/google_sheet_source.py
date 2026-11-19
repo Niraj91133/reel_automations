@@ -3,7 +3,9 @@ import sys
 import re
 import csv
 import io
+import json
 import urllib.request
+from datetime import datetime
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
@@ -161,6 +163,58 @@ def fetch_reels_from_google_sheet(channel_id, max_count=30):
     except Exception as e:
         print(f"❌ [Google Sheet Error] Failed to read {tab_name} tab: {e}")
         return []
+
+def mark_reel_in_sheet_posted(channel_id, shortcode, live_permalink=None):
+    """
+    Updates the reel status when posted:
+    1. Writes to databases/sheet_posted_reels.json to keep permanent audit trail.
+    2. If GOOGLE_SHEET_WEBHOOK_URL is configured in .env, sends POST to update Google Sheet cell in real-time.
+    """
+    mapping = CHANNEL_SHEET_MAP.get(channel_id)
+    tab_name = mapping["tab_name"] if mapping else "Unknown"
+
+    # 1. Local persistent tracking log
+    try:
+        log_file = os.path.join(BASE_DIR, "databases/sheet_posted_reels.json")
+        data = []
+        if os.path.exists(log_file):
+            with open(log_file, "r", encoding="utf-8") as f:
+                try: data = json.load(f)
+                except: data = []
+        data.append({
+            "channel_id": channel_id,
+            "tab": tab_name,
+            "shortcode": shortcode,
+            "permalink": live_permalink,
+            "posted_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+        with open(log_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        print(f"📝 [Sheet Tracker] Logged posted reel {shortcode} for {tab_name} tab.")
+    except Exception as e_log:
+        print(f"Sheet Tracker notice: {e_log}")
+
+    # 2. Remote Webhook Update (if configured)
+    webhook_url = os.getenv("GOOGLE_SHEET_WEBHOOK_URL")
+    if webhook_url:
+        try:
+            payload = json.dumps({
+                "action": "mark_posted",
+                "tab": tab_name,
+                "shortcode": shortcode,
+                "status": "Posted",
+                "live_link": live_permalink or "",
+                "posted_date": datetime.now().strftime("%Y-%m-%d")
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                webhook_url,
+                data=payload,
+                headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                print(f"✅ [Google Sheet Sync] Successfully marked {shortcode} as Posted in {tab_name} tab.")
+        except Exception as e_wh:
+            print(f"⚠️ [Google Sheet Sync Warning] Webhook update failed: {e_wh}")
 
 if __name__ == "__main__":
     ch = sys.argv[1] if len(sys.argv) > 1 else "marketing_road24"

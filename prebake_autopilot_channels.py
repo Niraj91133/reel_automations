@@ -94,16 +94,16 @@ def prebake_channel_reels(channel_id, count=30):
         except Exception as e:
             print(f"Note on Raj DM fetch for {display_name}: {e}")
 
-    # TIER 2: 10 PM AUTO-FALLBACK: Auto-fill deficit from channel's local hunted_reels DB pool!
-    if len(candidates) < target_pool:
-        deficit = target_pool - len(candidates)
-        print(f"ℹ️ [{display_name} 10 PM Auto-Fallback] Pool: {len(candidates)}/{target_pool}. Pulling up to {deficit} reels from DB hunted pool...")
-        pool_candidates = db.get_unprocessed_hunted_reels(limit=deficit * 2)
+    # TIER 2: AUTO-FALLBACK: Auto-fill deficit ONLY if Sheet + Raj DM has fewer than target count!
+    if len(candidates) < count:
+        deficit = count - len(candidates)
+        print(f"ℹ️ [{display_name} Auto-Fallback] Sheet/DM provided {len(candidates)}/{count} reels. Pulling remaining {deficit} reels from DB hunted pool...")
+        pool_candidates = db.get_unprocessed_hunted_reels(limit=deficit * 3)
         for sc, cr, vw in pool_candidates:
             if sc not in approved_codes and not db.is_reel_processed(sc):
                 candidates.append((sc, cr, vw))
                 approved_codes.add(sc)
-            if len(candidates) >= target_pool:
+            if len(candidates) >= count:
                 break
 
     # TIER 3: LIVE NICHE CREATOR SCOUT (If DB pool runs low)

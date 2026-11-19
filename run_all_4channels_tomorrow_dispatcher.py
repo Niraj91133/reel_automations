@@ -178,6 +178,11 @@ def publish_channel_slot(channel_id, display_name, handle, slot_num, queue_dir):
                     f"🔗 <b>Watch Reel:</b> {link}"
                 )
                 db.mark_reel_processed(shortcode, creator, title, link)
+                try:
+                    from core.google_sheet_source import mark_reel_in_sheet_posted
+                    mark_reel_in_sheet_posted(channel_id, shortcode, link)
+                except Exception as e_sheet_mark:
+                    print(f"Sheet sync notice for {channel_id}: {e_sheet_mark}")
                 # Auto-archive published reel to keep queue pristine and avoid ghost re-use
                 try:
                     import shutil
