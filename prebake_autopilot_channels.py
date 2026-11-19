@@ -177,11 +177,12 @@ def prebake_channel_reels(channel_id, count=30):
         dl_title = dl_meta.get("title", "") or ""
         dl_cta_present = any(sig in dl_desc.lower() for sig in [
             "comment", "dm", "link in bio", "bhejo", "comment karo",
-            "type ", "drop a", "share karunga", "link dunga", "list chahiye", "pdf chahiye"
+            "type ", "drop a", "share karunga", "link dunga", "list chahiye",
+            "pdf chahiye", "guide", "strategy", "free", "setup", "rules"
         ])
 
-        # Reject reels with trivial engagement (<50 comments) unless explicitly verified as comment CTA
-        if dl_comments > 0 and dl_comments < 50 and not dl_cta_present:
+        # Reject reels with trivial engagement (<20 comments) unless explicitly verified as comment CTA
+        if dl_comments > 0 and dl_comments < 20 and not dl_cta_present:
             print(f"🛑 [Comment Guard REJECTED] Reel {shortcode} has only {dl_comments} comments and lacks comment CTA. Discarding for high-comment reel...")
             try:
                 if os.path.exists(raw_video):
