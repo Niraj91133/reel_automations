@@ -60,8 +60,22 @@ def prebake_channel_reels(channel_id, count=30):
     approved_codes = set()
     target_pool = max(count * 3, count + 20)
 
+    # TIER 0: GOOGLE SHEET REEL HUB (Top Priority - Direct Sheet Integration)
+    try:
+        from core.google_sheet_source import get_pending_reels_from_sheet
+        sheet_reels = get_pending_reels_from_sheet(channel_id, limit=count * 2)
+        for r in sheet_reels:
+            sc = r.get("shortcode")
+            if sc and sc not in approved_codes and not db.is_reel_processed(sc):
+                candidates.append((sc, r.get("creator", "sheet_creator"), f"Sheet:{r.get('source_tab', 'Tab')}"))
+                approved_codes.add(sc)
+        if sheet_reels:
+            print(f"📊 [{display_name}] Loaded {len(candidates)} curated reels directly from Google Sheet!")
+    except Exception as e_sheet:
+        print(f"Note on Google Sheet fetch for {display_name}: {e_sheet}")
+
     # TIER 1: Check if Raj approved/shared any reels in DM chat for this channel (Marketing & Startup)
-    if channel_id in ("marketing_road24", "thestartup_street"):
+    if len(candidates) < count and channel_id in ("marketing_road24", "thestartup_street"):
         dm_target = config.get("hunting_settings", {}).get("dm_target_chat") or config.get("content_settings", {}).get("dm_target_chat", "im_raaaj_")
         print(f"📥 [Tier 1: Raj DM Check] Checking @{dm_target} chat for [{display_name}]...")
         try:
