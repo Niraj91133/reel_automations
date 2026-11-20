@@ -69,7 +69,7 @@ def prebake_channel_reels(channel_id, count=30):
     # 3. @vivek2000__      -> @the_loan_road (Vivek2000 tab)
     try:
         from core.google_sheet_source import fetch_reels_from_google_sheet
-        sheet_reels = fetch_reels_from_google_sheet(channel_id, max_count=count * 2)
+        sheet_reels = fetch_reels_from_google_sheet(channel_id, max_count=max(30, count * 3))
         if sheet_reels:
             for r in sheet_reels:
                 sc = r.get("shortcode")
@@ -97,16 +97,17 @@ def prebake_channel_reels(channel_id, count=30):
         except Exception as e:
             print(f"Note on Raj DM fetch for {display_name}: {e}")
 
-    # TIER 2: AUTO-FALLBACK: Auto-fill deficit ONLY if Sheet + Raj DM has fewer than target count!
-    if len(candidates) < count:
-        deficit = count - len(candidates)
-        print(f"ℹ️ [{display_name} Auto-Fallback] Sheet/DM provided {len(candidates)}/{count} reels. Pulling remaining {deficit} reels from DB hunted pool...")
+    # TIER 2: AUTO-FALLBACK: Auto-fill pool with at least 15 candidates so download/compliance failures never starve the baker!
+    min_pool_required = max(15, count * 2)
+    if len(candidates) < min_pool_required:
+        deficit = min_pool_required - len(candidates)
+        print(f"ℹ️ [{display_name} Auto-Fallback] Pool has {len(candidates)}/{min_pool_required}. Pulling up to {deficit} reels from DB hunted pool...")
         pool_candidates = db.get_unprocessed_hunted_reels(limit=deficit * 3)
         for sc, cr, vw in pool_candidates:
             if sc not in approved_codes and not db.is_reel_processed(sc):
                 candidates.append((sc, cr, vw))
                 approved_codes.add(sc)
-            if len(candidates) >= count:
+            if len(candidates) >= min_pool_required:
                 break
 
     # TIER 3: LIVE NICHE CREATOR SCOUT (If DB pool runs low)

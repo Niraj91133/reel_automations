@@ -33,9 +33,17 @@ for ch_id, name, handle in CHANNELS:
         try:
             conn = sqlite3.connect(db_path)
             c = conn.cursor()
-            today_prefix = datetime.now().strftime("%Y-%m-%d")
-            c.execute("SELECT COUNT(*) FROM processed_reels WHERE created_at LIKE ?", (f"{today_prefix}%",))
-            today_posts = c.fetchone()[0]
+            today_ist = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+            c.execute("SELECT created_at FROM processed_reels")
+            for r in c.fetchall():
+                if r[0]:
+                    try:
+                        u_dt = datetime.strptime(r[0], "%Y-%m-%d %H:%M:%S")
+                        i_dt = u_dt + timedelta(hours=5, minutes=30)
+                        if i_dt.strftime("%Y-%m-%d") == today_ist:
+                            today_posts += 1
+                    except:
+                        pass
 
             c.execute("SELECT created_at FROM processed_reels ORDER BY id DESC LIMIT 1")
             row = c.fetchone()
