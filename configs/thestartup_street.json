@@ -4,7 +4,7 @@
   "instagram_username": "thestartup_street",
   "category": "startup",
   "description": "Startup Stories, Billion-Dollar Business Models, Small Manufacturing Machines, Low Capital Startups & Real Founder Lessons in Hindi",
-  "enabled": false,
+  "enabled": true,
   "credentials": {
     "gemini_api_key": "${GEMINI_API_KEY}",
     "instagram_account_id": "17841464149880503",
